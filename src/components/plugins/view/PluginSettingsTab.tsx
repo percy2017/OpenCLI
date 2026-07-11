@@ -1,17 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Activity,
   BarChart3,
   BookOpen,
-  Calculator,
-  Clock,
   Download,
   ExternalLink,
-  Github,
   GitBranch,
   Loader2,
-  ListTodo,
   RefreshCw,
   ServerCrash,
   ShieldAlert,
@@ -27,13 +22,6 @@ import PluginIcon from './PluginIcon';
 
 const STARTER_PLUGIN_URL = 'https://github.com/cloudcli-ai/cloudcli-plugin-starter';
 const TERMINAL_PLUGIN_URL = 'https://github.com/cloudcli-ai/cloudcli-plugin-terminal';
-const SCHEDULED_PROMPT_PLUGIN_URL = 'https://github.com/grostim/cloudcli-cron';
-const CLAUDE_WATCH_PLUGIN_URL = 'https://github.com/satsuki19980613/cloudcli-claude-watch';
-const PRISM_CLOUDCLI_PLUGIN_URL = 'https://github.com/jakeefr/cloudcli-plugin-prism';
-const SESSION_MANAGER_PLUGIN_URL = 'https://github.com/strykereye2/cloudcli-plugin-session-manager';
-const TOKEN_COST_CALCULATOR_PLUGIN_URL = 'https://github.com/NightmareAway/cloudcli-plugin-token-cost-calculator';
-const TASK_QUEUE_PLUGIN_URL = 'https://github.com/TadMSTR/cloudcli-plugin-task-queue';
-const GITHUB_ISSUES_BOARD_PLUGIN_URL = 'https://github.com/szmidtpiotr/claude-github-issue';
 
 type PluginRecommendation = {
   id: string;
@@ -41,7 +29,7 @@ type PluginRecommendation = {
   repoUrl: string;
   installedNames: string[];
   icon: LucideIcon;
-  source: 'official' | 'unofficial';
+  source: 'official';
 };
 
 const OFFICIAL_PLUGIN_RECOMMENDATIONS: PluginRecommendation[] = [
@@ -60,65 +48,6 @@ const OFFICIAL_PLUGIN_RECOMMENDATIONS: PluginRecommendation[] = [
     installedNames: ['web-terminal'],
     icon: Terminal,
     source: 'official',
-  },
-];
-
-const UNOFFICIAL_PLUGIN_RECOMMENDATIONS: PluginRecommendation[] = [
-  {
-    id: 'cloudcli-claude-watch',
-    translationKey: 'claudeWatchPlugin',
-    repoUrl: CLAUDE_WATCH_PLUGIN_URL,
-    installedNames: ['cloudcli-claude-watch'],
-    icon: Activity,
-    source: 'unofficial',
-  },
-  {
-    id: 'workspace-scheduled-prompts',
-    translationKey: 'scheduledPromptPlugin',
-    repoUrl: SCHEDULED_PROMPT_PLUGIN_URL,
-    installedNames: ['workspace-scheduled-prompts'],
-    icon: Clock,
-    source: 'unofficial',
-  },
-  {
-    id: 'prism',
-    translationKey: 'prismOpenCLI',
-    repoUrl: PRISM_CLOUDCLI_PLUGIN_URL,
-    installedNames: ['prism'],
-    icon: Activity,
-    source: 'unofficial',
-  },
-  {
-    id: 'session-manager',
-    translationKey: 'sessionManagerPlugin',
-    repoUrl: SESSION_MANAGER_PLUGIN_URL,
-    installedNames: ['session-manager'],
-    icon: Activity,
-    source: 'unofficial',
-  },
-  {
-    id: 'token-cost-calculator',
-    translationKey: 'tokenCostCalculatorPlugin',
-    repoUrl: TOKEN_COST_CALCULATOR_PLUGIN_URL,
-    installedNames: ['token-cost-calculator'],
-    icon: Calculator,
-    source: 'unofficial',
-  },
-  {
-    id: 'task-queue',
-    translationKey: 'taskQueuePlugin',
-    repoUrl: TASK_QUEUE_PLUGIN_URL,
-    installedNames: ['task-queue'],
-    icon: ListTodo,
-    source: 'unofficial',
-  },
-  {
-    id: 'claude-github-issue',
-    translationKey: 'githubIssuesBoardPlugin',
-    repoUrl: GITHUB_ISSUES_BOARD_PLUGIN_URL,
-    installedNames: ['claude-github-issue'],
-    icon: Github,
-    source: 'unofficial',
   },
 ];
 
@@ -378,10 +307,9 @@ function PluginRecommendationCard({
 }) {
   const { t } = useTranslation('settings');
   const Icon = recommendation.icon;
-  const isOfficial = recommendation.source === 'official';
-  const accentClass = isOfficial ? 'bg-blue-500/30' : 'bg-amber-500/40';
-  const hoverClass = isOfficial ? 'hover:border-blue-400 dark:hover:border-blue-500' : 'hover:border-amber-400 dark:hover:border-amber-500';
-  const iconClass = isOfficial ? 'text-blue-500' : 'text-amber-500';
+  const accentClass = 'bg-blue-500/30';
+  const hoverClass = 'hover:border-blue-400 dark:hover:border-blue-500';
+  const iconClass = 'text-blue-500';
 
   return (
     <div className={`relative flex overflow-hidden rounded-lg border border-dashed border-border bg-card transition-all duration-200 ${hoverClass}`}>
@@ -509,15 +437,10 @@ export default function PluginSettingsTab() {
   };
 
   const officialPlugins = plugins.filter(isOfficialPlugin);
-  const otherPlugins = plugins.filter((plugin) => !isOfficialPlugin(plugin));
   const officialRecommendations = OFFICIAL_PLUGIN_RECOMMENDATIONS.filter(
     (recommendation) => !isRecommendationInstalled(recommendation),
   );
-  const unofficialRecommendations = UNOFFICIAL_PLUGIN_RECOMMENDATIONS.filter(
-    (recommendation) => !isRecommendationInstalled(recommendation),
-  );
   const hasOfficialSection = officialPlugins.length > 0 || officialRecommendations.length > 0;
-  const hasOtherSection = otherPlugins.length > 0 || unofficialRecommendations.length > 0;
 
   const renderPluginCard = (plugin: Plugin, index: number) => {
     const handleToggle = async (enabled: boolean) => {
@@ -613,24 +536,6 @@ export default function PluginSettingsTab() {
             >
               {officialPlugins.map((plugin, index) => renderPluginCard(plugin, index))}
               {officialRecommendations.map((recommendation) => (
-                <PluginRecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  onInstall={() => void handleInstallRecommendation(recommendation)}
-                  disabled={!!installingRecommendation}
-                  installing={installingRecommendation === recommendation.id}
-                />
-              ))}
-            </RecommendationSection>
-          )}
-
-          {hasOtherSection && (
-            <RecommendationSection
-              title={t('pluginSettings.sections.unofficialTitle')}
-              description={t('pluginSettings.sections.unofficialDescription')}
-            >
-              {otherPlugins.map((plugin, index) => renderPluginCard(plugin, officialPlugins.length + index))}
-              {unofficialRecommendations.map((recommendation) => (
                 <PluginRecommendationCard
                   key={recommendation.id}
                   recommendation={recommendation}
