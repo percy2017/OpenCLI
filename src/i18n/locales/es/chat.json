@@ -1,0 +1,236 @@
+{
+  "codeBlock": {
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "copyCode": "Copiar código"
+  },
+  "copyMessage": {
+    "copy": "Copiar mensaje",
+    "copied": "Mensaje copiado",
+    "selectFormat": "Selecciona el formato de copiado",
+    "copyAsMarkdown": "Copiar como markdown",
+    "copyAsText": "Copiar como texto"
+  },
+  "messageTypes": {
+    "user": "Tú",
+    "error": "Error",
+    "tool": "Herramienta",
+    "claude": "Claude",
+    "cursor": "Cursor",
+    "codex": "Codex",
+    "opencode": "OpenCode"
+  },
+  "tools": {
+    "settings": "Ajustes de herramienta",
+    "error": "Error de herramienta",
+    "result": "Resultado",
+    "viewParams": "Ver parámetros de entrada",
+    "viewRawParams": "Ver parámetros sin procesar",
+    "viewDiff": "Ver diff de edición de",
+    "creatingFile": "Creando archivo nuevo:",
+    "updatingTodo": "Actualizando lista de tareas",
+    "read": "Leer",
+    "readFile": "Leer archivo",
+    "updateTodo": "Actualizar lista de tareas",
+    "readTodo": "Leer lista de tareas",
+    "searchResults": "resultados"
+  },
+  "search": {
+    "found": "Se encontraron {{count}} {{type}}",
+    "file": "archivo",
+    "files": "archivos",
+    "pattern": "patrón:",
+    "in": "en:"
+  },
+  "fileOperations": {
+    "updated": "Archivo actualizado correctamente",
+    "created": "Archivo creado correctamente",
+    "written": "Archivo escrito correctamente",
+    "diff": "Diff",
+    "newFile": "Nuevo archivo",
+    "viewContent": "Ver contenido del archivo",
+    "viewFullOutput": "Ver salida completa ({{count}} caracteres)",
+    "contentDisplayed": "El contenido del archivo se muestra en la vista de diff de arriba"
+  },
+  "interactive": {
+    "title": "Prompt interactivo",
+    "waiting": "Esperando tu respuesta en la CLI",
+    "instruction": "Por favor selecciona una opción en la terminal donde se está ejecutando Claude.",
+    "selectedOption": "✓ Claude seleccionó la opción {{number}}",
+    "instructionDetail": "En la CLI, seleccionarías esta opción interactivamente usando las flechas o escribiendo el número."
+  },
+  "thinking": {
+    "title": "Pensando...",
+    "emoji": "💭 Pensando..."
+  },
+  "json": {
+    "response": "Respuesta JSON"
+  },
+  "permissions": {
+    "grant": "Conceder permiso para {{tool}}",
+    "added": "Permiso añadido",
+    "addTo": "Añade {{entry}} a Herramientas permitidas.",
+    "retry": "Permiso guardado. Reintenta la solicitud para usar la herramienta.",
+    "error": "No se pudieron actualizar los permisos. Por favor intenta de nuevo.",
+    "openSettings": "Abrir ajustes"
+  },
+  "todo": {
+    "updated": "La lista de tareas se ha actualizado correctamente",
+    "current": "Lista de tareas actual"
+  },
+  "plan": {
+    "viewPlan": "📋 Ver plan de implementación",
+    "title": "Plan de implementación"
+  },
+  "usageLimit": {
+    "resetAt": "Se alcanzó el límite de uso de Claude. Tu límite se restablecerá el **{{time}} {{timezone}}** - {{date}}"
+  },
+  "codex": {
+    "permissionMode": "Modo de permisos",
+    "modes": {
+      "default": "Modo predeterminado",
+      "auto": "Modo automático",
+      "acceptEdits": "Aceptar ediciones",
+      "bypassPermissions": "Omitir permisos",
+      "plan": "Modo plan"
+    },
+    "descriptions": {
+      "default": "Solo los comandos de confianza (ls, cat, grep, git status, etc.) se ejecutan automáticamente. Otros comandos se omiten. Puede escribir en el espacio de trabajo.",
+      "auto": "Un clasificador de modelo decide por cada llamada de herramienta si aprobar o denegar. Sin intervención, pero más seguro que Omitir — aún se producen denegaciones.",
+      "acceptEdits": "Todos los comandos se ejecutan automáticamente dentro del espacio de trabajo. Modo totalmente automático con ejecución aislada.",
+      "bypassPermissions": "Acceso total al sistema sin restricciones. Todos los comandos se ejecutan automáticamente con acceso completo a disco y red. Usar con precaución.",
+      "plan": "Modo planificación - no se ejecuta ningún comando"
+    },
+    "technicalDetails": "Detalles técnicos"
+  },
+  "voice": {
+    "input": "Entrada de voz",
+    "stopRecording": "Detener grabación",
+    "speak": "Leer en voz alta",
+    "stopSpeaking": "Detener",
+    "loading": "Cargando…"
+  },
+  "input": {
+    "placeholder": "Escribe / para comandos, @ para archivos, o pregúntale lo que quieras a {{provider}}...",
+    "placeholderDefault": "Escribe tu mensaje...",
+    "disabled": "Entrada desactivada",
+    "attachFiles": "Adjuntar archivos",
+    "attachImages": "Adjuntar imágenes",
+    "send": "Enviar",
+    "stop": "Detener",
+    "hintText": {
+      "ctrlEnter": "Ctrl+Enter para enviar • Shift+Enter para nueva línea • Tab para cambiar de modo • / para comandos",
+      "enter": "Enter para enviar • Shift+Enter para nueva línea • Tab para cambiar de modo • / para comandos",
+      "queue": "Enter para poner en cola tu próximo mensaje",
+      "updateQueued": "Enter para actualizar el mensaje en cola"
+    },
+    "clickToChangeMode": "Haz clic para cambiar el modo de permisos (o pulsa Tab en la entrada)",
+    "showAllCommands": "Mostrar todos los comandos",
+    "clearInput": "Limpiar entrada",
+    "scrollToBottom": "Ir al final",
+    "queue": {
+      "sendNext": "Poner en cola el siguiente mensaje",
+      "update": "Actualizar mensaje en cola",
+      "label": "En cola",
+      "willSend": "Se enviará cuando esto termine",
+      "edit": "Editar mensaje en cola",
+      "delete": "Eliminar mensaje en cola"
+    }
+  },
+  "providerSelection": {
+    "title": "Elige tu asistente de IA",
+    "description": "Selecciona un proveedor para iniciar una nueva conversación",
+    "selectModel": "Seleccionar modelo",
+    "providerInfo": {
+      "anthropic": "de Anthropic",
+      "openai": "de OpenAI",
+      "cursorEditor": "Editor de código con IA",
+      "google": "de Google"
+    },
+    "readyPrompt": {
+      "claude": "Listo para usar Claude con {{model}}. Empieza a escribir tu mensaje abajo.",
+      "cursor": "Listo para usar Cursor con {{model}}. Empieza a escribir tu mensaje abajo.",
+      "codex": "Listo para usar Codex con {{model}}. Empieza a escribir tu mensaje abajo.",
+      "opencode": "Listo para usar OpenCode con {{model}}. Empieza a escribir tu mensaje abajo.",
+      "default": "Selecciona un proveedor arriba para comenzar"
+    },
+    "pressToSearch": "Pulsa <kbd>{{shortcut}}</kbd> para buscar sesiones, archivos y commits"
+  },
+  "session": {
+    "continue": {
+      "title": "Continúa tu conversación",
+      "description": "Haz preguntas sobre tu código, solicita cambios u obtén ayuda con tareas de desarrollo"
+    },
+    "loading": {
+      "olderMessages": "Cargando mensajes anteriores...",
+      "sessionMessages": "Cargando mensajes de la sesión..."
+    },
+    "messages": {
+      "showingOf": "Mostrando {{shown}} de {{total}} mensajes",
+      "scrollToLoad": "Desplázate hacia arriba para cargar más",
+      "showingLast": "Mostrando los últimos {{count}} mensajes (de {{total}} en total)",
+      "loadEarlier": "Cargar mensajes anteriores",
+      "loadAll": "Cargar todos los mensajes",
+      "loadingAll": "Cargando todos los mensajes...",
+      "allLoaded": "Todos los mensajes cargados",
+      "perfWarning": "Todos los mensajes cargados — el desplazamiento puede ser más lento. Haz clic en \"Ir al final\" para restaurar el rendimiento."
+    }
+  },
+  "shell": {
+    "selectProject": {
+      "title": "Selecciona un proyecto",
+      "description": "Elige un proyecto para abrir una terminal interactiva en ese directorio"
+    },
+    "status": {
+      "newSession": "Nueva sesión",
+      "initializing": "Inicializando...",
+      "restarting": "Reiniciando..."
+    },
+    "actions": {
+      "disconnect": "Desconectar",
+      "disconnectTitle": "Desconectar de la terminal",
+      "restart": "Reiniciar",
+      "restartTitle": "Reiniciar terminal",
+      "connect": "Continuar en la terminal",
+      "connectTitle": "Conectar a la terminal"
+    },
+    "loading": "Cargando terminal...",
+    "connecting": "Conectando a la terminal...",
+    "startSession": "Iniciar una nueva sesión de Claude",
+    "resumeSession": "Reanudar sesión: {{displayName}}...",
+    "runCommand": "Ejecutar {{command}} en {{projectName}}",
+    "startCli": "Iniciando Claude CLI en {{projectName}}",
+    "defaultCommand": "comando"
+  },
+  "claudeStatus": {
+    "actions": {
+      "thinking": "Pensando",
+      "processing": "Procesando",
+      "analyzing": "Analizando",
+      "working": "Trabajando",
+      "computing": "Calculando",
+      "reasoning": "Razonando"
+    },
+    "state": {
+      "live": "En vivo",
+      "paused": "Pausado"
+    },
+    "elapsed": {
+      "seconds": "{{count}}s",
+      "minutesSeconds": "{{minutes}}m {{seconds}}s",
+      "label": "transcurrido {{time}}",
+      "startingNow": "Iniciando ahora"
+    },
+    "stop": "Detener",
+    "controls": {
+      "stopGeneration": "Detener generación",
+      "pressEscToStop": "Pulsa Esc en cualquier momento para detener"
+    },
+    "providers": {
+      "assistant": "Asistente"
+    }
+  },
+  "projectSelection": {
+    "startChatWithProvider": "Selecciona un proyecto para empezar a chatear con {{provider}}"
+  }
+}
