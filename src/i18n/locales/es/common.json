@@ -243,6 +243,25 @@
         "installRuntime": "No se pudo instalar el runtime del navegador"
       }
     },
+    "minimax": {
+      "sectionTitle": "MiniMax MCP",
+      "sectionDescription": "Conecta el servidor MCP oficial del plan de programación MiniMax para que Codex y Claude puedan navegar, planificar y actuar en la web mediante la API de MiniMax.",
+      "enableLabel": "Activar MiniMax MCP",
+      "enableDescription": "Registra el servidor MCP oficial de MiniMax en Codex y Claude. Requiere la CLI de MiniMax instalada (uvx) y una clave de API de MiniMax válida en tu entorno.",
+      "enableAria": "Activar MiniMax MCP",
+      "stateLabel": "Estado: {{state}}",
+      "stateEnabled": "activo",
+      "stateDisabled": "inactivo",
+      "codexStatus": "Codex: {{state}}",
+      "claudeStatus": "Claude: {{state}}",
+      "providerConfigured": "registrado",
+      "providerMissing": "no registrado",
+      "errors": {
+        "loadState": "No se pudo cargar el estado de MiniMax MCP",
+        "saveState": "No se pudo actualizar el estado de MiniMax MCP",
+        "partialFailure": "MiniMax MCP se actualizó, pero estos proveedores fallaron: {{providers}}"
+      }
+    },
     "panel": {
       "loadError": "No se pudo cargar el Navegador",
       "actionError": "La acción del Navegador falló",

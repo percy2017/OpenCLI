@@ -67,7 +67,7 @@ export default function AgentCategoryContentSection({
         />
       )}
 
-      {selectedCategory === 'skills' && selectedAgent === 'claude' && (
+      {selectedCategory === 'skills' && (
         <ProviderSkills
           selectedProvider={selectedAgent}
           currentProjects={projects.map<SkillsProject>((project) => ({

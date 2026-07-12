@@ -216,8 +216,8 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement | null>(null);
 
-  const providerName = PROVIDER_NAMES[selectedProvider];
-  const providerPath = PROVIDER_SKILL_PATHS[selectedProvider];
+  const providerName = t(`skillsManagement.providerNames.${selectedProvider}`, { defaultValue: PROVIDER_NAMES[selectedProvider] });
+  const providerPath = t(`skillsManagement.installPath.${selectedProvider}`, { defaultValue: PROVIDER_SKILL_PATHS[selectedProvider] });
 
   useEffect(() => {
     setQueuedFiles([]);
@@ -278,7 +278,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
         queueSkillFolders(files);
         setSubmitError(null);
       } catch (error) {
-        setSubmitError(error instanceof Error ? error.message : 'Failed to read skill folder');
+        setSubmitError(error instanceof Error ? error.message : t('skillsManagement.readFolderError'));
       }
       return;
     }
@@ -288,7 +288,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
       .slice(0, 20);
 
     if (acceptedFiles.length === 0) {
-      setSubmitError('Drop one or more markdown files or a folder containing SKILL.md.');
+      setSubmitError(t('skillsManagement.dropHint'));
       return;
     }
 
@@ -320,7 +320,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
       queueSkillFolders(selectedFiles);
       setSubmitError(null);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to read skill folder');
+      setSubmitError(error instanceof Error ? error.message : t('skillsManagement.readFolderError'));
     }
   }, [queueSkillFolders]);
 
@@ -333,7 +333,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
 
   const handleUploadInstall = useCallback(async () => {
     if (queuedFiles.length === 0) {
-      setSubmitError('Add one or more markdown files first.');
+      setSubmitError(t('skillsManagement.addFirst'));
       return;
     }
 
@@ -362,7 +362,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
       setJustInstalled(true);
       setIsAddDialogOpen(false);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to import skills');
+      setSubmitError(error instanceof Error ? error.message : t('skillsManagement.importError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -466,7 +466,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
                   <div className="text-xs text-muted-foreground">
                     {queuedFile.kind === 'folder'
                       ? `${queuedFile.files.length} files`
-                      : 'Markdown file'}
+                      : t('skillsManagement.markdownFile')}
                     {' · '}
                     {formatFileSize(queuedFile.size)}
                   </div>
@@ -496,7 +496,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => setShowInstallPath((current) => !current)}
           >
-            {showInstallPath ? 'Hide install location' : 'Where will this install?'}
+            {showInstallPath ? t('skillsManagement.hideInstallLocation') : t('skillsManagement.whereWillInstall')}
           </button>
           {showInstallPath && (
             <div className="rounded-lg border border-border/60 bg-muted/15 p-3">
@@ -516,9 +516,9 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
           <FileCode2 className="h-4 w-4" strokeWidth={1.7} />
         </div>
         <div className="min-w-0 space-y-1">
-          <h3 className="text-lg font-medium text-foreground">{t('tabs.skills', { defaultValue: 'Skills' })}</h3>
+          <h3 className="text-lg font-medium text-foreground">{t('skillsManagement.heading')}</h3>
           <p className="text-sm text-muted-foreground">
-            Manage {providerName} skills from local files, complete folders, and project-aware locations.
+            {t(`skillsManagement.description${selectedProvider.charAt(0).toUpperCase()}${selectedProvider.slice(1)}`)}
           </p>
         </div>
       </div>
@@ -531,8 +531,8 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search skills..."
-              aria-label="Search skills"
+              placeholder={t('skillsManagement.searchPlaceholder')}
+              aria-label={t('skillsManagement.searchAria')}
               className="h-9 w-full pl-9 pr-9"
             />
             {searchQuery && (
@@ -553,7 +553,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             onClick={() => handleAddDialogOpenChange(true)}
           >
             <Plus className="h-4 w-4" />
-            Add Skill
+            {t('skillsManagement.addSkill')}
           </Button>
           <Button
             onClick={() => void refreshSkills({ force: true })}
@@ -563,13 +563,13 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             disabled={isLoading || isLoadingProjectScopes}
           >
             <RefreshCw className={cn('h-4 w-4', (isLoading || isLoadingProjectScopes) && 'animate-spin')} />
-            Refresh
+            {t('skillsManagement.refresh')}
           </Button>
         </div>
         {isLoadingProjectScopes && (
           <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Scanning project skills...
+            {t('skillsManagement.scanningProjects')}
           </div>
         )}
       </div>
@@ -579,14 +579,14 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
           wrapperClassName="z-[10000]"
           className="flex h-[calc(100vh-2rem)] max-h-[760px] w-[calc(100vw-2rem)] max-w-4xl flex-col overflow-hidden p-0 sm:h-[720px]"
         >
-          <DialogTitle>Add {providerName} Skill</DialogTitle>
+          <DialogTitle>{t('skillsManagement.addSkill', { defaultValue: 'Add Skill' })} {t(`skillsManagement.providerNames.${selectedProvider}`)}</DialogTitle>
           <div className="flex-shrink-0 border-b border-border/60 px-4 py-4">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/20 text-muted-foreground">
                 <FileUp className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-base font-medium text-foreground">Add {providerName} Skill</div>
+                <div className="text-base font-medium text-foreground">{t('skillsManagement.addSkill', { defaultValue: 'Add Skill' })} {t(`skillsManagement.providerNames.${selectedProvider}`)}</div>
                 <div className="mt-1 text-sm text-muted-foreground">
                   Upload a SKILL.md file or a complete skill folder.
                 </div>
@@ -618,7 +618,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
                     ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-200'
                     : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
                 )}>
-                  {submitError || loadError || 'Skills saved successfully.'}
+                  {submitError || loadError || t('skillsManagement.savedSuccess')}
                 </div>
               ) : (
                 <span className="text-xs text-muted-foreground">
@@ -635,7 +635,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
                 disabled={isSubmitting}
                 onClick={() => handleAddDialogOpenChange(false)}
               >
-                Cancel
+                {t('skillsManagement.cancel', { defaultValue: 'Cancel' })}
               </Button>
               <Button
                 type="button"
@@ -645,7 +645,9 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
                 disabled={isSubmitting || queuedFiles.length === 0}
               >
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                Install {queuedFiles.length > 0 ? `${queuedFiles.length} Skill${queuedFiles.length === 1 ? '' : 's'}` : 'Skill'}
+                {queuedFiles.length > 0
+                  ? t('skillsManagement.installButton', { count: queuedFiles.length })
+                  : t('skillsManagement.installOne')}
               </Button>
             </div>
           </div>
@@ -661,14 +663,14 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
       {justInstalled && saveStatus === 'success' && !isAddDialogOpen && (
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
           <CheckCircle2 className="h-4 w-4" />
-          Skills saved successfully.
+          {t('skillsManagement.savedSuccess')}
         </div>
       )}
 
       <div className="space-y-5">
         {isLoading && skills.length === 0 && (
           <div className="flex min-h-[180px] items-center justify-center text-sm text-muted-foreground">
-            Loading {providerName} skills…
+            {t(`skillsManagement.loading${selectedProvider.charAt(0).toUpperCase()}${selectedProvider.slice(1)}`)}
           </div>
         )}
 
@@ -677,9 +679,9 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg border border-border/60 bg-background/80 text-muted-foreground">
               <FileText className="h-6 w-6" />
             </div>
-            <div className="mt-4 text-sm font-medium text-foreground">No skills discovered yet</div>
+            <div className="mt-4 text-sm font-medium text-foreground">{t(`skillsManagement.empty${selectedProvider.charAt(0).toUpperCase()}${selectedProvider.slice(1)}Title`)}</div>
             <div className="mt-1 text-sm text-muted-foreground">
-              Add a global skill above or create project-specific skill folders in your workspace.
+              {t('skillsManagement.emptyBody')}
             </div>
           </div>
         )}
@@ -687,9 +689,9 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
         {!isLoading && skills.length > 0 && filteredSkills.length === 0 && (
           <div className="rounded-lg border border-dashed border-border/70 bg-muted/15 px-4 py-10 text-center">
             <Search className="mx-auto h-6 w-6 text-muted-foreground" />
-            <div className="mt-3 text-sm font-medium text-foreground">No matching skills</div>
+            <div className="mt-3 text-sm font-medium text-foreground">{t('skillsManagement.noMatchesTitle')}</div>
             <div className="mt-1 text-sm text-muted-foreground">
-              Try a different command, name, scope, project, or source path.
+              {t('skillsManagement.noMatchesBody')}
             </div>
           </div>
         )}
@@ -698,7 +700,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
           <section key={group.scope} className="min-w-0 space-y-3">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className={cn('rounded-full px-2.5 py-1 text-xs', SCOPE_BADGE_CLASSES[group.scope])}>
-                {SCOPE_LABELS[group.scope]}
+                {t(`skillsManagement.scopeLabels.${group.scope}`, { defaultValue: SCOPE_LABELS[group.scope] })}
               </Badge>
               <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                 {group.skills.length} skill{group.skills.length === 1 ? '' : 's'}
@@ -717,7 +719,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
                   </div>
 
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {skill.description || 'No description provided in the skill front matter.'}
+                    {skill.description || t('skillsManagement.noDescription')}
                   </p>
 
                   <div className="mt-4 flex flex-wrap items-center gap-2">

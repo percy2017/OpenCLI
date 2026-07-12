@@ -243,6 +243,25 @@
         "installRuntime": "Failed to install browser runtime"
       }
     },
+    "minimax": {
+      "sectionTitle": "MiniMax MCP",
+      "sectionDescription": "Connect the official MiniMax coding plan MCP server so Codex and Claude can browse, plan, and act on the web through the MiniMax API.",
+      "enableLabel": "Enable MiniMax MCP",
+      "enableDescription": "Registers the official MiniMax MCP server with both Codex and Claude. Requires the MiniMax CLI to be installed (uvx) and a valid MiniMax API key in your environment.",
+      "enableAria": "Toggle MiniMax MCP",
+      "stateLabel": "State: {{state}}",
+      "stateEnabled": "active",
+      "stateDisabled": "inactive",
+      "codexStatus": "Codex: {{state}}",
+      "claudeStatus": "Claude: {{state}}",
+      "providerConfigured": "registered",
+      "providerMissing": "not registered",
+      "errors": {
+        "loadState": "Failed to load MiniMax MCP state",
+        "saveState": "Failed to update MiniMax MCP state",
+        "partialFailure": "MiniMax MCP was updated, but these providers failed: {{providers}}"
+      }
+    },
     "panel": {
       "loadError": "Failed to load Browser",
       "actionError": "Browser action failed",

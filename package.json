@@ -15,6 +15,7 @@
     "dist/",
     "dist-server/",
     "scripts/",
+    "bundled/",
     "README.md"
   ],
   "homepage": "https://cloudcli.ai",

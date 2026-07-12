@@ -528,5 +528,54 @@
     "installAriaLabel": "URL del repositorio git del plugin",
     "tab": "pestaña",
     "runningStatus": "en ejecución"
+  },
+  "skillsManagement": {
+    "heading": "Skills",
+    "descriptionClaude": "Administra las skills de Claude desde archivos locales, carpetas completas o ubicaciones por proyecto.",
+    "descriptionCodex": "Administra las skills de Codex desde archivos locales, carpetas completas o ubicaciones por proyecto.",
+    "searchPlaceholder": "Buscar skills...",
+    "searchAria": "Buscar skills",
+    "addSkill": "Añadir skill",
+    "refresh": "Actualizar",
+    "refreshing": "Actualizando",
+    "scanningProjects": "Escaneando skills del proyecto...",
+    "loadingClaude": "Cargando skills de Claude...",
+    "loadingCodex": "Cargando skills de Codex...",
+    "emptyClaudeTitle": "Aún no se descubrieron skills",
+    "emptyCodexTitle": "Aún no se descubrieron skills",
+    "emptyBody": "Añade una skill global arriba o crea carpetas de skills específicas del proyecto en tu espacio de trabajo.",
+    "noMatchesTitle": "No hay skills que coincidan",
+    "noMatchesBody": "Prueba con otro comando, nombre, ámbito, proyecto o ruta de origen.",
+    "noDescription": "No se proporcionó descripción en el front matter de la skill.",
+    "whereWillInstall": "¿Dónde se instalará?",
+    "hideInstallLocation": "Ocultar ubicación de instalación",
+    "installLocationTooltip": "Ubicación de instalación",
+    "installButton": "Instalar {{count}}",
+    "installOne": "Instalar",
+    "savedSuccess": "Skills guardadas correctamente.",
+    "cancel": "Cancelar",
+    "markdownFile": "Archivo markdown",
+    "dropHint": "Suelta uno o más archivos markdown o una carpeta que contenga SKILL.md.",
+    "addFirst": "Añade primero uno o más archivos markdown.",
+    "importError": "No se pudieron importar las skills",
+    "readFolderError": "No se pudo leer la carpeta de skills",
+    "folderTooLarge": "Las carpetas de skills seleccionadas deben pesar menos de 30 MB en total.",
+    "missingSkillMd": "La carpeta seleccionada no contiene un archivo SKILL.md.",
+    "scopeLabels": {
+      "user": "Usuario",
+      "plugin": "Plugin",
+      "repo": "Repo",
+      "project": "Proyecto",
+      "admin": "Admin",
+      "system": "Sistema"
+    },
+    "providerNames": {
+      "claude": "Claude",
+      "codex": "Codex"
+    },
+    "installPath": {
+      "claude": "~/.claude/skills/<nombre-de-skill>/SKILL.md",
+      "codex": "~/.agents/skills/<nombre-de-skill>/SKILL.md"
+    }
   }
 }

@@ -22,7 +22,7 @@ type ProjectTarget = {
   path: string;
 };
 
-const SKILLS_CACHE_TTL_MS = 5 * 60_000;
+const SKILLS_CACHE_TTL_MS = 30_000;
 const skillsCache = new Map<string, SkillsCacheEntry>();
 
 const SKILL_SCOPE_ORDER: Record<SkillsScope, number> = {
@@ -325,6 +325,10 @@ export function useProviderSkills({ selectedProvider, currentProjects }: UseProv
 
   useEffect(() => {
     setSaveStatus(null);
+    // Switching providers must NOT keep showing the previous provider's cached
+    // list (or, worse, a previously cached empty list). The next refreshSkills
+    // call will repopulate the cache for the new provider.
+    clearProviderSkillCache(selectedProvider);
   }, [selectedProvider]);
 
   useEffect(() => {

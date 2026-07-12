@@ -547,5 +547,54 @@
     "installAriaLabel": "Plugin git repository URL",
     "tab": "tab",
     "runningStatus": "running"
+  },
+  "skillsManagement": {
+    "heading": "Skills",
+    "descriptionClaude": "Manage Claude skills from local files, complete folders, and project-aware locations.",
+    "descriptionCodex": "Manage Codex skills from local files, complete folders, and project-aware locations.",
+    "searchPlaceholder": "Search skills...",
+    "searchAria": "Search skills",
+    "addSkill": "Add Skill",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing",
+    "scanningProjects": "Scanning project skills...",
+    "loadingClaude": "Loading Claude skills…",
+    "loadingCodex": "Loading Codex skills…",
+    "emptyClaudeTitle": "No skills discovered yet",
+    "emptyCodexTitle": "No skills discovered yet",
+    "emptyBody": "Add a global skill above or create project-specific skill folders in your workspace.",
+    "noMatchesTitle": "No matching skills",
+    "noMatchesBody": "Try a different command, name, scope, project, or source path.",
+    "noDescription": "No description provided in the skill front matter.",
+    "whereWillInstall": "Where will this install?",
+    "hideInstallLocation": "Hide install location",
+    "installLocationTooltip": "Install location",
+    "installButton": "Install {{count}}",
+    "installOne": "Install",
+    "savedSuccess": "Skills saved successfully.",
+    "cancel": "Cancel",
+    "markdownFile": "Markdown file",
+    "dropHint": "Drop one or more markdown files or a folder containing SKILL.md.",
+    "addFirst": "Add one or more markdown files first.",
+    "importError": "Failed to import skills",
+    "readFolderError": "Failed to read skill folder",
+    "folderTooLarge": "Selected skill folders must be smaller than 30 MB in total.",
+    "missingSkillMd": "The selected folder does not contain a SKILL.md file.",
+    "scopeLabels": {
+      "user": "User",
+      "plugin": "Plugin",
+      "repo": "Repo",
+      "project": "Project",
+      "admin": "Admin",
+      "system": "System"
+    },
+    "providerNames": {
+      "claude": "Claude",
+      "codex": "Codex"
+    },
+    "installPath": {
+      "claude": "~/.claude/skills/<skill-name>/SKILL.md",
+      "codex": "~/.agents/skills/<skill-name>/SKILL.md"
+    }
   }
 }

@@ -50,11 +50,13 @@ import providerRoutes from './modules/providers/provider.routes.js';
 import voiceRoutes from './voice-proxy.js';
 import minimaxRoutes from './minimax-proxy.js';
 import browserUseRoutes from './modules/browser-use/browser-use.routes.js';
+import mcpMinimaxRoutes from './modules/mcp-minimax/mcp-minimax.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
 import browserUseMcpRoutes from './modules/browser-use/browser-use-mcp.routes.js';
 import { browserUseService } from './modules/browser-use/browser-use.service.js';
 import { startEnabledPluginServers, stopAllPlugins, getPluginPort } from './utils/plugin-process-manager.js';
 import { initializeDatabase, projectsDb, sessionsDb } from './modules/database/index.js';
+import { runFirstRunOnStartup } from './modules/first-run/first-run.service.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 import { IS_PLATFORM } from './constants/config.js';
@@ -194,6 +196,9 @@ app.use('/api/browser-use-mcp', browserUseMcpRoutes);
 
 // Browser API Routes (protected)
 app.use('/api/browser-use', authenticateToken, browserUseRoutes);
+
+// MiniMax MCP toggle (protected)
+app.use('/api/mcp-minimax', authenticateToken, mcpMinimaxRoutes);
 
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);
@@ -1504,6 +1509,9 @@ async function startServer() {
     try {
         // Initialize authentication database
         await initializeDatabase();
+
+        // Seed bundled skills (one-shot, gated by app_config).
+        await runFirstRunOnStartup();
 
         // Configure Web Push (VAPID keys)
         configureWebPush();
