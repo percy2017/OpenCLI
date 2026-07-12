@@ -28,6 +28,8 @@ Override de path: env var `CLAUDE_CLI_PATH` (default `claude`).
 # MiniMax como backend LLM default para Claude Code
 export ANTHROPIC_BASE_URL="https://api.minimax.io/v1"   # endpoint de MiniMax
 export ANTHROPIC_API_KEY="<tu-token-de-MiniMax>"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW="1000000"
+ANTHROPIC_MODEL="MiniMax-M3[1m]"
 
 # Recargá: source ~/.bashrc
 ```
@@ -47,12 +49,17 @@ codex --version    # verifica
 
 ```toml
 # ~/.codex/config.toml
+
+model = "MiniMax-M3"
 model_provider = "minimax"
+model_context_window = 1000000
 
 [model_providers.minimax]
 name = "MiniMax"
 base_url = "https://api.minimax.io/v1"
 api_key = "<tu-token-de-MiniMax>"
+wire_api = "responses"
+
 ```
 
 Codex por defecto intenta OAuth vía `~/.codex/auth.json` si no encuentra esto; con el bloque de arriba se usa el token de MiniMax directamente. OpenCLI tampoco gestiona esta config.
@@ -111,7 +118,7 @@ OpenCLI configura automáticamente **2 MCP servers** en los providers de Claude 
 
 Habilita el tab **Browser** del sidebar: browser automation via MCP (Playwright). Se activa cuando encendés la feature de Browser en Settings → Navegador.
 
-### 2. `cloudcli-minimax` (opcional)
+### 2. `cloudcli-minimax`
 
 Conecta el plan de **MiniMax** al MCP de cada provider. Se activa si tenés `mmx` autenticado. Permite invocar skills/external tools del plan de MiniMax desde dentro de una sesión de Claude o Codex.
 
