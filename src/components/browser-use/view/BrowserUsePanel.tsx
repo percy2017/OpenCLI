@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Bot,
   Clock3,
@@ -65,24 +66,24 @@ async function readJson<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-function formatRelativeTime(value: string | null): string {
-  if (!value) return 'Never';
+function formatRelativeTime(t: (key: string, opts?: Record<string, unknown>) => string, value: string | null): string {
+  if (!value) return t('browserUse.panel.time.never');
 
   const timestamp = Date.parse(value);
-  if (!Number.isFinite(timestamp)) return 'Unknown';
+  if (!Number.isFinite(timestamp)) return t('browserUse.panel.time.unknown');
 
   const elapsedSeconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
-  if (elapsedSeconds < 10) return 'Just now';
-  if (elapsedSeconds < 60) return `${elapsedSeconds}s ago`;
+  if (elapsedSeconds < 10) return t('browserUse.panel.time.justNow');
+  if (elapsedSeconds < 60) return t('browserUse.panel.time.secondsAgo', { count: elapsedSeconds });
   const elapsedMinutes = Math.round(elapsedSeconds / 60);
-  if (elapsedMinutes < 60) return `${elapsedMinutes}m ago`;
+  if (elapsedMinutes < 60) return t('browserUse.panel.time.minutesAgo', { count: elapsedMinutes });
   const elapsedHours = Math.round(elapsedMinutes / 60);
-  if (elapsedHours < 24) return `${elapsedHours}h ago`;
-  return `${Math.round(elapsedHours / 24)}d ago`;
+  if (elapsedHours < 24) return t('browserUse.panel.time.hoursAgo', { count: elapsedHours });
+  return t('browserUse.panel.time.daysAgo', { count: Math.round(elapsedHours / 24) });
 }
 
-function getDomain(url: string | null): string {
-  if (!url) return 'No page loaded';
+function getDomain(t: (key: string) => string, url: string | null): string {
+  if (!url) return t('browserUse.panel.noPageLoaded');
 
   try {
     return new URL(url).hostname;
@@ -91,8 +92,8 @@ function getDomain(url: string | null): string {
   }
 }
 
-function formatAction(action: string | null): string {
-  if (!action) return 'Waiting';
+function formatAction(t: (key: string) => string, action: string | null): string {
+  if (!action) return t('browserUse.panel.waiting');
   return action.replace(/_/g, ' ').replace(/:/g, ': ');
 }
 
@@ -119,12 +120,10 @@ function getStatusDot(status: BrowserUseSession['status']): string {
   return 'bg-border';
 }
 
-const PROMPTS = [
-  'Use Browser to inspect the checkout flow and report any broken UI states.',
-  'Open <url> with Browser, interact with the page, and summarize what changed after each step.',
-];
+const PROMPT_KEYS = ['checkout', 'navigate'] as const;
 
 export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUsePanelProps) {
+  const { t } = useTranslation('common');
   const [status, setStatus] = useState<BrowserUseStatus | null>(null);
   const [sessions, setSessions] = useState<BrowserUseSession[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -142,12 +141,12 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
   const activeSessions = sessions.filter((session) => session.status === 'ready');
   const needsBrowserBinaries = Boolean(status?.enabled && (!status.playwrightInstalled || !status.chromiumInstalled));
   const runtimeLabel = !status?.enabled
-    ? 'Disabled'
+    ? t('browserUse.panel.statusLabels.disabled')
     : status.available
-      ? 'Ready'
+      ? t('browserUse.panel.statusLabels.ready')
       : status.installInProgress || isInstalling
-        ? 'Installing'
-        : 'Setup required';
+        ? t('browserUse.panel.statusLabels.installing')
+        : t('browserUse.panel.statusLabels.setupRequired');
 
   const cursorStyle = selectedSession?.cursor && selectedSession.viewport
     ? {
@@ -175,11 +174,11 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
       ));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load Browser');
+      setError(err instanceof Error ? err.message : t('browserUse.panel.loadError'));
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -193,11 +192,11 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
       await action();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Browser action failed');
+      setError(err instanceof Error ? err.message : t('browserUse.panel.actionError'));
     } finally {
       setIsBusy(false);
     }
-  }, [refresh]);
+  }, [refresh, t]);
 
   const stopSession = () => runAction(async () => {
     if (!selectedSession) return;
@@ -240,9 +239,9 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-2">
               <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', getStatusDot(session.status))} />
-              <div className="truncate text-sm font-medium">{session.title || getDomain(session.url)}</div>
+              <div className="truncate text-sm font-medium">{session.title || getDomain(t, session.url)}</div>
             </div>
-            <div className="mt-1 truncate pl-3.5 text-xs text-muted-foreground">{getDomain(session.url)}</div>
+            <div className="mt-1 truncate pl-3.5 text-xs text-muted-foreground">{getDomain(t, session.url)}</div>
           </div>
           <Badge variant="outline" className="shrink-0 border-border bg-background text-[10px] text-muted-foreground">
             {session.status}
@@ -250,8 +249,8 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
         </div>
         <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Clock3 className="h-3 w-3" />
-          <span>{formatRelativeTime(session.updatedAt)}</span>
-          <span className="truncate">- {formatAction(session.lastAction)}</span>
+          <span>{formatRelativeTime(t, session.updatedAt)}</span>
+          <span className="truncate">- {formatAction(t, session.lastAction)}</span>
         </div>
       </button>
     );
@@ -266,19 +265,19 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
           </div>
           <div className="min-w-0">
             <div className="text-sm font-semibold text-foreground">
-              {status?.enabled ? 'No browser sessions yet' : 'Browser is disabled'}
+              {status?.enabled ? t('browserUse.panel.emptyEnabledTitle') : t('browserUse.panel.emptyDisabledTitle')}
             </div>
             <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
               {status?.enabled
-                ? 'Agent browser sessions appear here while an AI task is using Browser.'
-                : 'Enable Browser in settings to let agents open monitored browser sessions.'}
+                ? t('browserUse.panel.emptyEnabledBody')
+                : t('browserUse.panel.emptyDisabledBody')}
             </p>
           </div>
         </div>
 
         {needsBrowserBinaries && (
           <div className="mt-4 rounded-md border border-border bg-muted/30 p-3">
-            <div className="text-sm font-medium text-foreground">Runtime setup required</div>
+            <div className="text-sm font-medium text-foreground">{t('browserUse.panel.setupRequiredTitle')}</div>
             <p className="mt-1 text-sm text-muted-foreground">{status?.message}</p>
             <Button
               type="button"
@@ -292,19 +291,19 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
               ) : (
                 <Download className="h-4 w-4" />
               )}
-              {isInstalling || status?.installInProgress ? 'Installing...' : 'Install Runtime'}
+              {isInstalling || status?.installInProgress ? t('browserUse.panel.installing') : t('browserUse.panel.installRuntime')}
             </Button>
           </div>
         )}
 
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          {PROMPTS.map((prompt) => (
-            <div key={prompt} className="rounded-md border border-border/70 bg-background/70 p-3">
+          {PROMPT_KEYS.map((key) => (
+            <div key={key} className="rounded-md border border-border/70 bg-background/70 p-3">
               <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 <Bot className="h-3.5 w-3.5" />
-                Prompt
+                {t('browserUse.panel.promptLabel')}
               </div>
-              <p className="text-sm leading-6 text-foreground">{prompt}</p>
+              <p className="text-sm leading-6 text-foreground">{t(`browserUse.panel.prompts.${key}`)}</p>
             </div>
           ))}
         </div>
@@ -318,7 +317,7 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
         <div className="relative inline-block max-h-full">
           <img
             src={selectedSession.screenshotDataUrl}
-            alt="Browser session screenshot"
+            alt={t('browserUse.panel.screenshotAlt')}
             className={fullscreen ? 'block max-h-[80vh] w-auto max-w-full object-contain' : 'block max-h-[72vh] w-auto max-w-full object-contain'}
           />
           {cursorStyle && (
@@ -333,8 +332,8 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
       ) : (
         <div className="px-6 text-center">
           <MonitorPlay className="mx-auto h-9 w-9 text-neutral-500" />
-          <div className="mt-3 text-sm font-medium text-neutral-100">{selectedSession?.message || 'Waiting for screenshot'}</div>
-          <p className="mt-1 text-xs text-neutral-400">The next agent browser snapshot will render here.</p>
+          <div className="mt-3 text-sm font-medium text-neutral-100">{selectedSession?.message || t('browserUse.panel.waitingForScreenshot')}</div>
+          <p className="mt-1 text-xs text-neutral-400">{t('browserUse.panel.snapshotWillRender')}</p>
         </div>
       )}
     </div>
@@ -346,12 +345,12 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <MonitorPlay className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">Browser</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('browserUse.panel.headerTitle')}</h3>
             <Badge variant="outline" className={cn('text-[10px]', getRuntimeTone(status, isInstalling))}>
               {runtimeLabel}
             </Badge>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">Monitor browser sessions opened by AI agents.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t('browserUse.panel.headerSubtitle')}</p>
         </div>
         <div className="flex items-center gap-1.5">
           {onShowSettings && (
@@ -360,8 +359,8 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
               size="sm"
               className="h-7 w-7 p-0"
               onClick={() => onShowSettings('browser')}
-              title="Open Browser settings"
-              aria-label="Open Browser settings"
+              title={t('browserUse.panel.openSettingsTitle')}
+              aria-label={t('browserUse.panel.openSettingsAria')}
             >
               <Settings className="h-3.5 w-3.5" />
             </Button>
@@ -372,8 +371,8 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
             className="h-7 w-7 p-0"
             onClick={() => void refresh()}
             disabled={isRefreshing || isBusy}
-            title="Refresh browser sessions"
-            aria-label="Refresh browser sessions"
+            title={t('browserUse.panel.refreshSessionsTitle')}
+            aria-label={t('browserUse.panel.refreshSessionsAria')}
           >
             <RefreshCw className={cn('h-3.5 w-3.5', isRefreshing && 'animate-spin')} />
           </Button>
@@ -403,7 +402,7 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
               >
                 <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', getStatusDot(session.status))} />
                 <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                  {session.title || getDomain(session.url)}
+                  {session.title || getDomain(t, session.url)}
                 </span>
               </button>
             ))}
@@ -415,12 +414,12 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
         <main className="flex min-h-0 flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/20 px-4 py-2.5 text-xs text-muted-foreground">
             <div className="min-w-0 truncate">
-              {activeSessions.length} active
+              {t('browserUse.panel.sessionsActive', { count: activeSessions.length })}
               <span className="px-1.5">/</span>
-              {sessions.length} total
+              {t('browserUse.panel.sessionsTotal', { count: sessions.length })}
             </div>
             <div className="min-w-0 truncate">
-              Updated {formatRelativeTime(selectedSession?.updatedAt || null)}
+              {t('browserUse.panel.updatedLabel', { time: formatRelativeTime(t, selectedSession?.updatedAt || null) })}
             </div>
           </div>
 

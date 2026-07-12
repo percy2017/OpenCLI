@@ -176,6 +176,81 @@
       "perfWarning": "All messages loaded — scrolling may be slower. Click \"Scroll to bottom\" to restore performance."
     }
   },
+  "commandResult": {
+    "defaultTitle": "Command Result",
+    "close": "Close",
+    "closeModalAria": "Close command result modal",
+    "escCloses": "Esc closes the modal.",
+    "help": {
+      "eyebrow": "Command center",
+      "title": "Help & Shortcuts",
+      "subtitle": "Search built-ins, syntax patterns, and command usage without leaving the chat.",
+      "filterPlaceholder": "Filter commands...",
+      "noResults": "No commands match that filter.",
+      "noDescription": "No description available.",
+      "syntax": "Syntax",
+      "syntaxArgs": "<code className=\"text-foreground\">$ARGUMENTS</code> passes all args.",
+      "syntaxPositional": "<code className=\"text-foreground\">$1</code>, <code className=\"text-foreground\">$2</code> pass positional args.",
+      "syntaxFile": "<code className=\"text-foreground\">@file</code> includes file contents.",
+      "syntaxCommand": "<code className=\"text-foreground\">/command arg1 arg2</code>",
+      "quickTip": "Quick tip",
+      "quickTipBody": "Type <code className=\"text-foreground\">/</code> in the composer to open the command palette, then use arrows and Enter to run a command.",
+      "builtin": "builtin"
+    },
+    "models": {
+      "eyebrow": "Model selection",
+      "title": "Choose a Model",
+      "subtitle": "Pick the model this provider should use.",
+      "activeLabel": "Active model · {{provider}}",
+      "nextSelection": "→ {{model}} next",
+      "currentSelection": "Current selection",
+      "appliesNext": "Applies next response",
+      "refreshTitle": "Refresh model list from providers",
+      "selectModelAria": "Select model {{model}}",
+      "noResults": "No models match that search.",
+      "nextResponseSession": "Your choice applies to this session on the next response.",
+      "nextResponseDefault": "Your choice becomes the default model for new turns.",
+      "nextResponseModel": "Next response will resume with {{model}}.",
+      "defaultModelSet": "Default {{provider}} model set to {{model}}.",
+      "genericError": "Unable to change the model right now.",
+      "searchPlaceholder": "Search {{provider}} models..."
+    },
+    "cost": {
+      "eyebrow": "Session telemetry",
+      "title": "Token Usage",
+      "subtitle": "Input, output, and total token counts for this session.",
+      "totalTokens": "Total tokens used",
+      "inputTokens": "Input tokens",
+      "outputTokens": "Output tokens",
+      "contextWindow": "Context window",
+      "breakdown": "Breakdown",
+      "breakdownUnavailable": "Unavailable",
+      "provider": "Provider",
+      "model": "Model"
+    },
+    "status": {
+      "eyebrow": "Runtime health",
+      "title": "System Status",
+      "subtitle": "Version, provider, runtime, and environment details in one place.",
+      "package": "Package",
+      "version": "Version",
+      "uptime": "Uptime",
+      "provider": "Provider",
+      "model": "Model",
+      "node": "Node.js",
+      "platform": "Platform",
+      "memory": "Memory",
+      "memoryValue": "{{value}} MB RSS",
+      "packageFallback": "claude-code-ui",
+      "runtimeOnline": "Runtime online",
+      "runtimeOnlineDetail": "Process {{status}} is responding.",
+      "pidPlaceholder": "status",
+      "statusBadge": "Healthy"
+    },
+    "fallbacks": {
+      "unknown": "Unknown"
+    }
+  },
   "shell": {
     "selectProject": {
       "title": "Select a Project",

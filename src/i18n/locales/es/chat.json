@@ -176,6 +176,81 @@
       "perfWarning": "Todos los mensajes cargados — el desplazamiento puede ser más lento. Haz clic en \"Ir al final\" para restaurar el rendimiento."
     }
   },
+  "commandResult": {
+    "defaultTitle": "Resultado del comando",
+    "close": "Cerrar",
+    "closeModalAria": "Cerrar el modal de resultado del comando",
+    "escCloses": "Esc cierra el modal.",
+    "help": {
+      "eyebrow": "Centro de comandos",
+      "title": "Ayuda y atajos",
+      "subtitle": "Consulta comandos, patrones de sintaxis y uso sin salir del chat.",
+      "filterPlaceholder": "Filtrar comandos...",
+      "noResults": "Ningún comando coincide con ese filtro.",
+      "noDescription": "Sin descripción disponible.",
+      "syntax": "Sintaxis",
+      "syntaxArgs": "<code className=\"text-foreground\">$ARGUMENTS</code> pasa todos los argumentos.",
+      "syntaxPositional": "<code className=\"text-foreground\">$1</code>, <code className=\"text-foreground\">$2</code> pasan argumentos posicionales.",
+      "syntaxFile": "<code className=\"text-foreground\">@archivo</code> incluye el contenido del archivo.",
+      "syntaxCommand": "<code className=\"text-foreground\">/comando arg1 arg2</code>",
+      "quickTip": "Consejo rápido",
+      "quickTipBody": "Escribe <code className=\"text-foreground\">/</code> en el compositor para abrir la paleta de comandos y luego usa las flechas y Enter para ejecutarlos.",
+      "builtin": "incorporado"
+    },
+    "models": {
+      "eyebrow": "Selección de modelo",
+      "title": "Elegir un modelo",
+      "subtitle": "Elige el modelo que debe usar este proveedor.",
+      "activeLabel": "Modelo activo · {{provider}}",
+      "nextSelection": "→ {{model}} siguiente",
+      "currentSelection": "Selección actual",
+      "appliesNext": "Aplica en la siguiente respuesta",
+      "refreshTitle": "Actualizar la lista de modelos del proveedor",
+      "selectModelAria": "Seleccionar modelo {{model}}",
+      "noResults": "Ningún modelo coincide con esa búsqueda.",
+      "nextResponseSession": "Tu elección se aplica a esta sesión en la siguiente respuesta.",
+      "nextResponseDefault": "Tu elección se convierte en el modelo predeterminado para nuevos turnos.",
+      "nextResponseModel": "La siguiente respuesta continuará con {{model}}.",
+      "defaultModelSet": "Modelo predeterminado de {{provider}} establecido en {{model}}.",
+      "genericError": "No se pudo cambiar el modelo ahora mismo.",
+      "searchPlaceholder": "Buscar modelos de {{provider}}..."
+    },
+    "cost": {
+      "eyebrow": "Telemetría de la sesión",
+      "title": "Uso de tokens",
+      "subtitle": "Recuentos de tokens de entrada, salida y totales de esta sesión.",
+      "totalTokens": "Total de tokens usados",
+      "inputTokens": "Tokens de entrada",
+      "outputTokens": "Tokens de salida",
+      "contextWindow": "Ventana de contexto",
+      "breakdown": "Desglose",
+      "breakdownUnavailable": "No disponible",
+      "provider": "Proveedor",
+      "model": "Modelo"
+    },
+    "status": {
+      "eyebrow": "Estado del runtime",
+      "title": "Estado del sistema",
+      "subtitle": "Versión, proveedor, runtime y entorno en un solo lugar.",
+      "package": "Paquete",
+      "version": "Versión",
+      "uptime": "Tiempo activo",
+      "provider": "Proveedor",
+      "model": "Modelo",
+      "node": "Node.js",
+      "platform": "Plataforma",
+      "memory": "Memoria",
+      "memoryValue": "{{value}} MB RSS",
+      "packageFallback": "claude-code-ui",
+      "runtimeOnline": "Runtime en línea",
+      "runtimeOnlineDetail": "El proceso {{status}} está respondiendo.",
+      "pidPlaceholder": "estado",
+      "statusBadge": "Saludable"
+    },
+    "fallbacks": {
+      "unknown": "Desconocido"
+    }
+  },
   "shell": {
     "selectProject": {
       "title": "Selecciona un proyecto",

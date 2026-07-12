@@ -1121,7 +1121,15 @@ app.get('/api/projects/:projectId/sessions/:sessionId/token-usage', authenticate
             let inputTokens = 0;
             let outputTokens = 0;
             let totalTokens = 0;
-            let contextWindow = 200000; // Default for Codex/OpenAI
+            // Default for Codex/OpenAI. Can be overridden via CONTEXT_WINDOW in .env.
+            // Some upstream providers report a smaller `model_context_window` in the
+            // token_count event than the model actually supports; we honor the
+            // higher of the two when CONTEXT_WINDOW is configured.
+            const parsedEnvContextWindow = parseInt(process.env.CONTEXT_WINDOW, 10);
+            const envContextWindow = Number.isFinite(parsedEnvContextWindow) && parsedEnvContextWindow > 0
+                ? parsedEnvContextWindow
+                : 0;
+            let contextWindow = Math.max(200000, envContextWindow); // Default for Codex/OpenAI
 
             // Find the latest token_count event with info (scan from end)
             for (let i = lines.length - 1; i >= 0; i--) {
@@ -1137,7 +1145,10 @@ app.get('/api/projects/:projectId/sessions/:sessionId/token-usage', authenticate
                             totalTokens = tokenInfo.total_token_usage.total_tokens || inputTokens + outputTokens;
                         }
                         if (tokenInfo.model_context_window) {
-                            contextWindow = tokenInfo.model_context_window;
+                            // Use the larger of: provider-reported window vs env override.
+                            // This lets `CONTEXT_WINDOW=1000000` in .env fix providers that
+                            // report a smaller window than the model actually supports.
+                            contextWindow = Math.max(tokenInfo.model_context_window, envContextWindow);
                         }
                         break; // Stop after finding the latest token count
                     }
