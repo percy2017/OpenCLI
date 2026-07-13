@@ -621,7 +621,6 @@ app.get('/api/projects/:projectId/sqlite/tables', authenticateToken, async (req,
             )
             .all();
 
-        const countStmt = db.prepare('SELECT COUNT(*) AS count FROM ?');
         const tables = tableRows.map((row) => {
             // COUNT(*) takes a table identifier; quote it so names with spaces
             // or hyphens still resolve.

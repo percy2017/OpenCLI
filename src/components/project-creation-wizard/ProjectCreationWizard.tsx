@@ -110,7 +110,7 @@ export default function ProjectCreationWizard({
           </Button>
         </div>
 
-        <ErrorBanner message={errorMessage ?? ''} />
+        {errorMessage && <ErrorBanner message={errorMessage} />}
 
         <div className="p-6">
           {step === 1 && (

@@ -206,7 +206,7 @@
     "step3": {
       "reviewConfig": "Revisa tu configuración",
       "path": "Ruta:",
-      "newEmpty": "El espacio de trabajo se añadirá a tu lista de proyectos y estará disponible para sesiones de Claude/Cursor."
+      "newEmpty": "El espacio de trabajo se añadirá a tu lista de proyectos y estará disponible para sesiones de Claude/Codex."
     },
     "buttons": {
       "cancel": "Cancelar",
