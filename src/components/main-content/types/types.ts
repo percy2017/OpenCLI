@@ -36,6 +36,10 @@ export type MainContentHeaderProps = {
   selectedProject: Project;
   selectedSession: ProjectSession | null;
   shouldShowBrowserTab: boolean;
+  shouldShowRagVectorTab: boolean;
+  shouldShowMinimaxTab: boolean;
+  shouldShowTerminalModuleTab: boolean;
+  shouldShowShellTab: boolean;
   isMobile: boolean;
   onMenuClick: () => void;
 };

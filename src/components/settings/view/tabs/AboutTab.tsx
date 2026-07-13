@@ -8,7 +8,6 @@ import PremiumFeatureCard from '../PremiumFeatureCard';
 
 const GITHUB_REPO_URL = 'https://github.com/siteboon/claudecodeui';
 const DISCORD_URL = 'https://discord.gg/buxwujPNRE';
-const DOCS_URL = 'https://cloudcli.ai/docs/plugin-overview';
 const CLOUDCLI_URL = 'https://cloudcli.ai';
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -104,15 +103,6 @@ export default function AboutTab() {
         >
           <DiscordIcon className="h-4 w-4" />
           Discord
-        </a>
-        <a
-          href={DOCS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          Docs
         </a>
         <a
           href={CLOUDCLI_URL}

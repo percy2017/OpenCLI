@@ -5,7 +5,6 @@ import {
   KeyRound,
   MonitorPlay,
   Palette,
-  Plug,
 } from 'lucide-react';
 
 import type {
@@ -27,9 +26,8 @@ export const SETTINGS_MAIN_TABS: SettingsMainTabMeta[] = [
   { id: 'agents', label: 'Agents', keywords: 'agents subagents claude code', icon: Bot },
   { id: 'appearance', label: 'Appearance', keywords: 'appearance theme dark light language', icon: Palette },
   { id: 'api', label: 'API Tokens', keywords: 'api tokens auth keys', icon: KeyRound },
-  { id: 'browser', label: 'Browser', keywords: 'browser playwright chromium automation', icon: MonitorPlay },
+  { id: 'browser', label: 'Browser MCP', keywords: 'browser playwright chromium automation mcp', icon: MonitorPlay },
   { id: 'notifications', label: 'Notifications', keywords: 'notifications alerts push', icon: Bell },
-  { id: 'plugins', label: 'Plugins', keywords: 'plugins extensions integrations', icon: Plug },
 ];
 
 export const AGENT_PROVIDERS: AgentProvider[] = ['claude', 'codex'];

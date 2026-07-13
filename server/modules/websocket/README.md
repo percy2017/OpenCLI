@@ -4,7 +4,8 @@ This module owns the server-side WebSocket gateway used by:
 
 1. Chat streaming (`/ws`)
 2. Interactive terminal sessions (`/shell`)
-3. Plugin WebSocket passthrough (`/plugin-ws/:pluginName`)
+3. Plain bash PTY for the Terminal module (`/terminal-shell`)
+4. Desktop notifications (`/desktop-notifications`)
 
 It is intentionally structured as **small services** plus a **barrel export** in `index.ts`.
 
@@ -37,7 +38,6 @@ Benefits:
 | `services/chat-run-registry.service.ts` | Tracks live provider runs per app session id: seq numbering, event replay buffer, provider-id mapping, completion state |
 | `services/chat-session-writer.service.ts` | Gateway writer handed to provider runtimes: remaps provider session ids to app ids, swallows `session_created`, assigns `seq` |
 | `services/shell-websocket.service.ts` | Handles `/shell` PTY lifecycle, reconnect buffering, auth URL detection |
-| `services/plugin-websocket-proxy.service.ts` | Bridges client socket to plugin socket |
 | `services/websocket-writer.service.ts` | Adapts raw WebSocket to writer interface (`send`, `setSessionId`, `getSessionId`) for non-chat writer consumers |
 | `services/websocket-state.service.ts` | Holds shared chat client set and open-state constant |
 
@@ -50,16 +50,13 @@ flowchart LR
   B --> D{Pathname}
   D -->|/ws| E[handleChatConnection]
   D -->|/shell| F[handleShellConnection]
-  D -->|/plugin-ws/:name| G[handlePluginWsProxy]
-  D -->|other| H[close()]
+  D -->|/terminal-shell| H[handleTerminalShellConnection]
+  D -->|/desktop-notifications| I[handleDesktopNotificationsConnection]
+  D -->|other| Z[close()]
 
-  E --> I[connectedClients Set]
-  E --> J[chatRunRegistry + ChatSessionWriter]
-  F --> K[ptySessionsMap]
-  G --> L[Upstream Plugin ws://127.0.0.1:port/ws]
-
-  I --> M[projects.service loading_progress]
-  I --> N[sessions-watcher.service session_upserted]
+  E --> J[connectedClients Set]
+  E --> K[chatRunRegistry + ChatSessionWriter]
+  F --> L[ptySessionsMap]
 ```
 
 ## Connection Handshake + Routing
@@ -72,7 +69,7 @@ sequenceDiagram
   participant Router as connection router
   participant Chat as /ws handler
   participant Shell as /shell handler
-  participant Proxy as /plugin-ws handler
+  participant Terminal as /terminal-shell handler
 
   Client->>WSS: Upgrade Request
   WSS->>Auth: verifyClient(info)
@@ -94,8 +91,8 @@ sequenceDiagram
       Router->>Chat: handleChatConnection(ws, request, deps.chat)
     else pathname == /shell
       Router->>Shell: handleShellConnection(ws, deps.shell)
-    else pathname startsWith /plugin-ws/
-      Router->>Proxy: handlePluginWsProxy(ws, pathname, getPluginPort)
+    else pathname == /terminal-shell
+      Router->>Terminal: handleTerminalShellConnection(ws)
     else unknown
       Router->>Router: ws.close()
     end
@@ -194,34 +191,6 @@ Strips ANSI, accumulates text buffer, extracts URLs, emits `auth_url` once per n
 7. Close behavior:
 Socket disconnect does not instantly kill PTY; session is kept alive and terminated on timeout.
 
-## `/plugin-ws/:pluginName` Proxy Flow
-
-```mermaid
-sequenceDiagram
-  participant Client
-  participant Proxy as handlePluginWsProxy
-  participant PM as getPluginPort
-  participant Upstream as Plugin WS
-
-  Client->>Proxy: Connect /plugin-ws/:name
-  Proxy->>Proxy: Validate pluginName regex
-  alt Invalid name
-    Proxy-->>Client: close(4400, "Invalid plugin name")
-  else Valid
-    Proxy->>PM: getPluginPort(name)
-    alt Plugin not running
-      Proxy-->>Client: close(4404, "Plugin not running")
-    else Port found
-      Proxy->>Upstream: new WebSocket(ws://127.0.0.1:port/ws)
-      Client-->>Upstream: relay messages bidirectionally
-      Upstream-->>Client: relay messages bidirectionally
-      Upstream-->>Client: close propagation
-      Client-->>Upstream: close propagation
-      Upstream-->>Client: close(4502, "Upstream error") on upstream error
-    end
-  end
-```
-
 ## Shared Client Registry and Broadcasts
 
 Only chat sockets (`/ws`) are tracked in `connectedClients`.
@@ -252,9 +221,7 @@ Allows active session stream redirection on reconnect.
 
 Current explicit close codes in this module:
 
-1. `4400`: Invalid plugin name
-2. `4404`: Plugin not running
-3. `4502`: Upstream plugin WebSocket error
+1. `4403`: Terminal disabled (kills both `/shell` and `/terminal-shell` upgrades when the user disables the Terminal module)
 
 Other errors:
 

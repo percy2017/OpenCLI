@@ -1,4 +1,4 @@
-import { Info, Key, Puzzle } from 'lucide-react';
+import { Info, Key } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SettingsMainTab } from '../types/types';
 
@@ -19,7 +19,6 @@ const TAB_CONFIG: MainTabConfig[] = [
   { id: 'appearance', labelKey: 'mainTabs.appearance' },
   { id: 'api', labelKey: 'mainTabs.apiTokens', icon: Key },
   { id: 'notifications', labelKey: 'mainTabs.notifications' },
-  { id: 'plugins', labelKey: 'mainTabs.plugins', icon: Puzzle },
 ];
 
 export default function SettingsMainTabs({ activeTab, onChange }: SettingsMainTabsProps) {

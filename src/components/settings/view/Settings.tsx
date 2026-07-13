@@ -10,8 +10,10 @@ import AppearanceSettingsTab from '../view/tabs/AppearanceSettingsTab';
 import CredentialsSettingsTab from '../view/tabs/api-settings/CredentialsSettingsTab';
 import VoiceSettingsTab from '../view/tabs/VoiceSettingsTab';
 import BrowserUseSettingsTab from '../view/tabs/browser-use-settings/BrowserUseSettingsTab';
+import McpMinimaxSettingsTab from '../view/tabs/minimax-mcp/McpMinimaxSettingsTab';
+import MmxCliSettingsTab from '../view/tabs/mmx-cli/MmxCliSettingsTab';
+import TerminalSettingsTab from '../view/tabs/terminal/TerminalSettingsTab';
 import NotificationsSettingsTab from '../view/tabs/NotificationsSettingsTab';
-import PluginSettingsTab from '../../plugins/view/PluginSettingsTab';
 import { useSettingsController } from '../hooks/useSettingsController';
 import { useWebPush } from '../../../hooks/useWebPush';
 import type { SettingsProps } from '../types/types';
@@ -182,6 +184,10 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
 
               {activeTab === 'browser' && <BrowserUseSettingsTab />}
 
+              {activeTab === 'minimaxMcp' && <McpMinimaxSettingsTab />}
+
+              {activeTab === 'mmxCli' && <MmxCliSettingsTab />}
+
               {activeTab === 'notifications' && (
                 <NotificationsSettingsTab
                   notificationPreferences={notificationPreferences}
@@ -202,7 +208,7 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
 
               {activeTab === 'voice' && <VoiceSettingsTab />}
 
-              {activeTab === 'plugins' && <PluginSettingsTab />}
+              {activeTab === 'terminal' && <TerminalSettingsTab />}
 
             </div>
           </main>

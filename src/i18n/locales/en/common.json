@@ -24,7 +24,9 @@
     "git": "Source Control",
     "tasks": "Tasks",
     "browser": "Browser",
-    "computer": "Computer"
+    "computer": "Computer",
+    "ragVector": "RAG Vector",
+    "minimax": "Minimax MCP"
   },
   "status": {
     "loading": "Loading...",
@@ -327,6 +329,138 @@
       "stopSessionAria": "Stop session",
       "deleteSessionTitle": "Delete session",
       "deleteSessionAria": "Delete session"
+    }
+  },
+  "mmxCli": {
+    "sectionTitle": "Rag MCP",
+    "sectionDescription": "Enable the RAG Vector knowledge base backed by MiniMax embeddings and register cloudcli-rag with Claude Code and Codex so agents can search your documents via MCP tools.",
+    "enableLabel": "Enable RAG Vector",
+    "enableDescription": "When enabled, the \"RAG Vector\" tab appears in the header to upload and manage documents, and the cloudcli-rag MCP server is registered with Claude Code and Codex.",
+    "enableAria": "Toggle RAG Vector and cloudcli-rag",
+    "stateLabel": "State: {{state}}",
+    "stateEnabled": "Enabled",
+    "stateDisabled": "Disabled",
+    "codexStatus": "Codex: {{state}}",
+    "claudeStatus": "Claude: {{state}}",
+    "providerConfigured": "registered",
+    "providerMissing": "not registered",
+    "errors": {
+      "loadState": "Failed to load Rag MCP state.",
+      "saveState": "Failed to save Rag MCP state.",
+      "partialFailure": "Some providers rejected the change ({{providers}})."
+    }
+  },
+  "ragVector": {
+    "empty": {
+      "title": "RAG Vector",
+      "description": "Knowledge base coming soon. You will be able to upload documents and chat against them here."
+    }
+  },
+  "terminal": {
+    "sectionTitle": "Terminal",
+    "sectionDescription": "Enable or disable the integrated terminal that exposes a full shell via WebSocket.",
+    "enableLabel": "Enable terminal",
+    "enableDescription": "When enabled, the Terminal tab is available and new WebSocket connections to /shell are accepted.",
+    "enableAria": "Toggle terminal",
+    "stateLabel": "State: {{state}}",
+    "stateEnabled": "Enabled",
+    "stateDisabled": "Disabled",
+    "panelTitle": "Terminal module",
+    "panelDescription": "Manage the Terminal toggle that gates the WebSocket /shell endpoint. Configure it in Settings.",
+    "openSettings": "Open terminal settings",
+    "disabledTitle": "Terminal disabled",
+    "disabledDescription": "The Terminal module is turned off. Enable it in Settings to use the integrated shell.",
+    "overlayConnecting": "Connecting to terminal module…",
+    "overlayError": "Connection error",
+    "overlayClosed": "Shell closed. Reload the tab to reconnect.",
+    "errors": {
+      "loadState": "Failed to load terminal state.",
+      "saveState": "Failed to save terminal state."
+    }
+  },
+  "knowledgeBase": {
+    "title": "Knowledge Base",
+    "description": "Manage documents that power the RAG Vector store.",
+    "uploadCta": "Upload documents",
+    "empty": {
+      "title": "No documents yet",
+      "description": "Upload office documents, code, markdown, or text. Files will be available for retrieval once indexing is enabled.",
+      "uploadCta": "Upload your first document",
+      "hint": "Supported formats: PDF, Word, Excel, PowerPoint, text, markdown, code."
+    },
+    "status": {
+      "pending": "Pending",
+      "uploading": "Uploading… {{progress}}%",
+      "indexing": "Indexing",
+      "ready": "Ready",
+      "error": "Error"
+    },
+    "list": {
+      "title_one": "Document ({{count}})",
+      "title_other": "Documents ({{count}})",
+      "searchPlaceholder": "Filter documents…",
+      "searchAria": "Filter documents",
+      "empty": "No documents yet.",
+      "noResults": "No documents match this filter.",
+      "chunksCount_one": "{{count}} chunk",
+      "chunksCount_other": "{{count}} chunks",
+      "pendingChunks": "Awaiting indexing"
+    },
+    "detail": {
+      "sizeLabel": "Size",
+      "chunksLabel": "Chunks",
+      "uploadedLabel": "Uploaded",
+      "indexedLabel": "Indexed",
+      "indexingTitle": "Indexing in progress",
+      "indexingDescription": "The document is being split into chunks and embedded. This may take a moment.",
+      "errorTitle": "Indexing failed",
+      "errorDescription": "The document could not be processed. Try reindexing or removing and re-uploading it.",
+      "previewTitle": "Preview",
+      "previewCount_one": "{{count}} chunk shown",
+      "previewCount_other": "{{count}} chunks shown",
+      "previewEmpty": "No chunks available yet. Once the document is indexed, a preview will appear here.",
+      "chunkIndex": "Chunk {{index}}",
+      "selectPrompt": "Select a document from the list to see its details.",
+      "previewLoading": "Loading chunks…",
+      "loadingList": "Loading documents…"
+    },
+    "actions": {
+      "menu": "Document actions",
+      "reindex": "Reindex",
+      "download": "Download",
+      "delete": "Delete"
+    },
+    "upload": {
+      "title": "Upload documents",
+      "close": "Close",
+      "dropzoneIdle": "Drag files here or click to browse",
+      "dropzoneActive": "Drop to add",
+      "dropzoneReject": "Some files are not supported",
+      "dropzoneAria": "Drop zone",
+      "limits": "Up to {{maxFiles}} files per upload · 10 MB each",
+      "queueCount_one": "{{count}} file queued",
+      "queueCount_other": "{{count}} files queued",
+      "clearAll": "Clear",
+      "queued": "Queued",
+      "removeItem": "Remove from queue",
+      "readyCount_one": "Ready to upload ({{count}})",
+      "readyCount_other": "Ready to upload ({{count}})",
+      "errorsCount_one": "{{count}} file skipped",
+      "errorsCount_other": "{{count}} files skipped",
+      "cancel": "Cancel",
+      "submit_one": "Upload 1 file",
+      "submit_other": "Upload {{count}} files"
+    },
+    "errors": {
+      "fileTooLarge": "File exceeds the 10 MB limit.",
+      "unsupportedType": "File type is not supported.",
+      "unknown": "Could not add this file.",
+      "loadFailed": "Failed to load knowledge base.",
+      "deleteFailed": "Failed to delete document.",
+      "reindexFailed": "Failed to reindex document.",
+      "downloadFailed": "Failed to download document.",
+      "uploadFailed": "Failed to upload document.",
+      "dismiss": "Dismiss"
     }
   }
 }

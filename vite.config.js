@@ -47,6 +47,10 @@ export default defineConfig(({ mode }) => {
           target: `ws://${proxyHost}:${serverPort}`,
           ws: true
         },
+        '/terminal-shell': {
+          target: `ws://${proxyHost}:${serverPort}`,
+          ws: true
+        },
         '/plugin-ws': {
           target: `ws://${proxyHost}:${serverPort}`,
           ws: true

@@ -1,12 +1,14 @@
 import { getConnection } from "@/modules/database/connection.js";
 import { runMigrations } from "@/modules/database/migrations.js";
-import { INIT_SCHEMA_SQL } from "@/modules/database/schema.js";
+import { INIT_SCHEMA_SQL, RAG_DOCUMENTS_TABLE_SCHEMA_SQL, RAG_CHUNKS_TABLE_SCHEMA_SQL } from "@/modules/database/schema.js";
 
 // Initialize database with schema
 export const initializeDatabase = async () => {
     try {
         const db = getConnection();
         db.exec(INIT_SCHEMA_SQL);
+        db.exec(RAG_DOCUMENTS_TABLE_SCHEMA_SQL);
+        db.exec(RAG_CHUNKS_TABLE_SCHEMA_SQL);
         console.log('Database schema applied');
         runMigrations(db);
     } catch (err) {

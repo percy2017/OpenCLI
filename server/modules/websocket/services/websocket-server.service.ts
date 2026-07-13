@@ -4,8 +4,9 @@ import { WebSocketServer, type VerifyClientCallbackSync } from 'ws';
 
 import { handleChatConnection } from '@/modules/websocket/services/chat-websocket.service.js';
 import { verifyWebSocketClient } from '@/modules/websocket/services/websocket-auth.service.js';
-import { handlePluginWsProxy } from '@/modules/websocket/services/plugin-websocket-proxy.service.js';
 import { handleShellConnection } from '@/modules/websocket/services/shell-websocket.service.js';
+import { terminalService } from '@/modules/terminal/terminal.service.js';
+import { handleTerminalShellConnection } from '@/modules/terminal/terminal-websocket.service.js';
 import { handleDesktopNotificationsConnection } from '@/modules/notifications/index.js';
 import type { AuthenticatedWebSocketRequest } from '@/shared/types.js';
 
@@ -13,12 +14,11 @@ type WebSocketServerDependencies = {
   verifyClient: Parameters<typeof verifyWebSocketClient>[1];
   chat: Parameters<typeof handleChatConnection>[2];
   shell: Parameters<typeof handleShellConnection>[1];
-  getPluginPort: Parameters<typeof handlePluginWsProxy>[2];
 };
 
 /**
- * Creates and wires the server-wide websocket gateway used for chat, shell, and
- * plugin proxy routes.
+ * Creates and wires the server-wide websocket gateway used for chat, shell,
+ * terminal-shell, and desktop-notifications paths.
  */
 export function createWebSocketServer(
   server: HttpServer,
@@ -55,7 +55,26 @@ export function createWebSocketServer(
     const pathname = new URL(url, 'http://localhost').pathname;
 
     if (pathname === '/shell') {
+      // Kill-switch: when the user disables Terminal in Settings, refuse new
+      // WS upgrades. Already-open PTY sessions are NOT killed (they continue
+      // until the client closes the socket or `ptySessionsMap` reaps them
+      // after 30 minutes of inactivity).
+      if (!terminalService.isEnabled()) {
+        ws.close(4403, 'Terminal disabled');
+        return;
+      }
       handleShellConnection(ws, dependencies.shell);
+      return;
+    }
+
+    if (pathname === '/terminal-shell') {
+      // Plain bash PTY for the Terminal module — independent of the agent's
+      // /shell session lifecycle. Subject to the same kill-switch above.
+      if (!terminalService.isEnabled()) {
+        ws.close(4403, 'Terminal disabled');
+        return;
+      }
+      handleTerminalShellConnection(ws);
       return;
     }
 
@@ -66,11 +85,6 @@ export function createWebSocketServer(
 
     if (pathname === '/desktop-notifications') {
       handleDesktopNotificationsConnection(ws, incomingRequest);
-      return;
-    }
-
-    if (pathname.startsWith('/plugin-ws/')) {
-      handlePluginWsProxy(ws, pathname, dependencies.getPluginPort);
       return;
     }
 

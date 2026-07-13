@@ -45,16 +45,18 @@ import agentRoutes from './routes/agent.js';
 import projectModuleRoutes from './modules/projects/projects.routes.js';
 import notificationRoutes from './modules/notifications/notifications.routes.js';
 import userRoutes from './routes/user.js';
-import pluginsRoutes from './routes/plugins.js';
 import providerRoutes from './modules/providers/provider.routes.js';
 import voiceRoutes from './voice-proxy.js';
 import minimaxRoutes from './minimax-proxy.js';
 import browserUseRoutes from './modules/browser-use/browser-use.routes.js';
 import mcpMinimaxRoutes from './modules/mcp-minimax/mcp-minimax.routes.js';
+import featureFlagsRoutes from './modules/feature-flags/feature-flags.routes.js';
+import ragRoutes from './modules/rag/rag.routes.js';
+import ragMcpToggleRoutes from './modules/rag-mcp-toggle/rag-mcp-toggle.routes.js';
+import terminalRoutes from './modules/terminal/terminal.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
 import browserUseMcpRoutes from './modules/browser-use/browser-use-mcp.routes.js';
 import { browserUseService } from './modules/browser-use/browser-use.service.js';
-import { startEnabledPluginServers, stopAllPlugins, getPluginPort } from './utils/plugin-process-manager.js';
 import { initializeDatabase, projectsDb, sessionsDb } from './modules/database/index.js';
 import { runFirstRunOnStartup } from './modules/first-run/first-run.service.js';
 import { configureWebPush } from './services/vapid-keys.js';
@@ -95,7 +97,7 @@ function readUsageNumber(value) {
 const app = express();
 const server = http.createServer(app);
 
-// Single WebSocket server that handles chat, shell, and plugin proxy paths.
+// Single WebSocket server that handles chat, shell, terminal-shell, and desktop-notifications paths.
 const providerAbortRegistry = {
     claude: abortClaudeSDKSession,
     codex: abortCodexSession,
@@ -132,7 +134,6 @@ const wss = createWebSocketServer(server, {
         extractUrlsFromText,
         shouldAutoOpenUrlFromOutput,
     },
-    getPluginPort,
 });
 
 // Make WebSocket server available to routes
@@ -188,9 +189,6 @@ app.use('/api/notifications', authenticateToken, notificationRoutes);
 // User API Routes (protected)
 app.use('/api/user', authenticateToken, userRoutes);
 
-// Plugins API Routes (protected)
-app.use('/api/plugins', authenticateToken, pluginsRoutes);
-
 // Browser MCP bridge API (local token protected)
 app.use('/api/browser-use-mcp', browserUseMcpRoutes);
 
@@ -199,6 +197,18 @@ app.use('/api/browser-use', authenticateToken, browserUseRoutes);
 
 // MiniMax MCP toggle (protected)
 app.use('/api/mcp-minimax', authenticateToken, mcpMinimaxRoutes);
+
+// Feature flags (protected)
+app.use('/api/feature-flags', authenticateToken, featureFlagsRoutes);
+
+// RAG (knowledge base)
+app.use('/api/rag', authenticateToken, ragRoutes);
+
+// RAG MCP toggle (registers cloudli-rag with Claude + Codex)
+app.use('/api/rag-mcp', authenticateToken, ragMcpToggleRoutes);
+
+// Terminal kill-switch (gates the /shell WebSocket)
+app.use('/api/terminal', authenticateToken, terminalRoutes);
 
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);
@@ -1513,6 +1523,17 @@ async function startServer() {
         // Seed bundled skills (one-shot, gated by app_config).
         await runFirstRunOnStartup();
 
+        // Clear RAG documents left stuck in `indexing` by a previous crash.
+        try {
+            const { reapStuckIndexingDocuments } = await import('./modules/rag/store.js');
+            const reaped = reapStuckIndexingDocuments();
+            if (reaped.length > 0) {
+                console.log(`[rag] reaped ${reaped.length} stuck indexing document(s):`, reaped.map((r) => r.name));
+            }
+        } catch (error) {
+            console.warn('[rag] failed to reap stuck indexing documents:', error?.message || error);
+        }
+
         // Configure Web Push (VAPID keys)
         configureWebPush();
 
@@ -1548,25 +1569,14 @@ async function startServer() {
 
             // Start watching the projects folder for changes
             await initializeSessionsWatcher();
-
-            // Start server-side plugin processes for enabled plugins
-            startEnabledPluginServers().catch(err => {
-                console.error('[Plugins] Error during startup:', err.message);
-            });
         });
 
         await closeSessionsWatcher();
-        // Clean up plugin processes on shutdown
         const shutdownRuntimeServices = async () => {
             try {
                 await browserUseService.stopAllSessions();
             } catch (err) {
                 console.error('[Browser] Error stopping sessions during shutdown:', err?.message || err);
-            }
-            try {
-                await stopAllPlugins();
-            } catch (err) {
-                console.error('[Plugins] Error stopping plugins during shutdown:', err?.message || err);
             }
             try {
                 await removeLocalServerMarker();

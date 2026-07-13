@@ -22,69 +22,13 @@ import enSidebar from './locales/en/sidebar.json';
 import enChat from './locales/en/chat.json';
 import enCodeEditor from './locales/en/codeEditor.json';
 
-import koCommon from './locales/ko/common.json';
-import koSettings from './locales/ko/settings.json';
-import koAuth from './locales/ko/auth.json';
-import koSidebar from './locales/ko/sidebar.json';
-import koChat from './locales/ko/chat.json';
-// eslint-disable-next-line import-x/order
-import koCodeEditor from './locales/ko/codeEditor.json';
-
-import zhCommon from './locales/zh-CN/common.json';
-import zhSettings from './locales/zh-CN/settings.json';
-import zhAuth from './locales/zh-CN/auth.json';
-import zhSidebar from './locales/zh-CN/sidebar.json';
-import zhChat from './locales/zh-CN/chat.json';
-// eslint-disable-next-line import-x/order
-import zhCodeEditor from './locales/zh-CN/codeEditor.json';
-
-import jaCommon from './locales/ja/common.json';
-import jaSettings from './locales/ja/settings.json';
-import jaAuth from './locales/ja/auth.json';
-import jaSidebar from './locales/ja/sidebar.json';
-import jaChat from './locales/ja/chat.json';
-import jaCodeEditor from './locales/ja/codeEditor.json';
-
-import ruCommon from './locales/ru/common.json';
-import ruSettings from './locales/ru/settings.json';
-import ruAuth from './locales/ru/auth.json';
-import ruSidebar from './locales/ru/sidebar.json';
-import ruChat from './locales/ru/chat.json';
-import ruCodeEditor from './locales/ru/codeEditor.json';
-
-import deCommon from './locales/de/common.json';
-import deSettings from './locales/de/settings.json';
-import deAuth from './locales/de/auth.json';
-import deSidebar from './locales/de/sidebar.json';
-import deChat from './locales/de/chat.json';
-import deCodeEditor from './locales/de/codeEditor.json';
-
-import trCommon from './locales/tr/common.json';
-import trSettings from './locales/tr/settings.json';
-import trAuth from './locales/tr/auth.json';
-import trSidebar from './locales/tr/sidebar.json';
-import trChat from './locales/tr/chat.json';
-import trCodeEditor from './locales/tr/codeEditor.json';
-import itCommon from './locales/it/common.json';
-import itSettings from './locales/it/settings.json';
-import itAuth from './locales/it/auth.json';
-import itSidebar from './locales/it/sidebar.json';
-import itChat from './locales/it/chat.json';
-import itCodeEditor from './locales/it/codeEditor.json';
-
 import esCommon from './locales/es/common.json';
 import esSettings from './locales/es/settings.json';
 import esAuth from './locales/es/auth.json';
 import esSidebar from './locales/es/sidebar.json';
 import esChat from './locales/es/chat.json';
+// eslint-disable-next-line import-x/order
 import esCodeEditor from './locales/es/codeEditor.json';
-
-import zhTWCommon from './locales/zh-TW/common.json';
-import zhTWSettings from './locales/zh-TW/settings.json';
-import zhTWAuth from './locales/zh-TW/auth.json';
-import zhTWSidebar from './locales/zh-TW/sidebar.json';
-import zhTWChat from './locales/zh-TW/chat.json';
-import zhTWCodeEditor from './locales/zh-TW/codeEditor.json';
 
 // Import supported languages configuration
 import { languages } from './languages.js';
@@ -103,6 +47,14 @@ const getSavedLanguage = () => {
   }
 };
 
+// One-time migration: this version shipped with a curated language list
+// (only `es` and `en`). Users coming from earlier installs may have a
+// `userLanguage` value that was valid before but is no longer recognized
+// — in that case the validation above already falls back to `es`. For
+// users whose saved value IS still valid (e.g. `'en'`) but was set by the
+// app default rather than an explicit choice, we leave it alone. Nothing
+// to do here today; kept as a hook for future migrations.
+
 // Initialize i18next
 i18n
   .use(LanguageDetector) // Detect user language
@@ -118,62 +70,6 @@ i18n
         chat: enChat,
         codeEditor: enCodeEditor,
       },
-      ko: {
-        common: koCommon,
-        settings: koSettings,
-        auth: koAuth,
-        sidebar: koSidebar,
-        chat: koChat,
-        codeEditor: koCodeEditor,
-      },
-      'zh-CN': {
-        common: zhCommon,
-        settings: zhSettings,
-        auth: zhAuth,
-        sidebar: zhSidebar,
-        chat: zhChat,
-        codeEditor: zhCodeEditor,
-      },
-      ja: {
-        common: jaCommon,
-        settings: jaSettings,
-        auth: jaAuth,
-        sidebar: jaSidebar,
-        chat: jaChat,
-        codeEditor: jaCodeEditor,
-      },
-      ru: {
-        common: ruCommon,
-        settings: ruSettings,
-        auth: ruAuth,
-        sidebar: ruSidebar,
-        chat: ruChat,
-        codeEditor: ruCodeEditor,
-      },
-      de: {
-        common: deCommon,
-        settings: deSettings,
-        auth: deAuth,
-        sidebar: deSidebar,
-        chat: deChat,
-        codeEditor: deCodeEditor,
-      },
-      tr: {
-        common: trCommon,
-        settings: trSettings,
-        auth: trAuth,
-        sidebar: trSidebar,
-        chat: trChat,
-        codeEditor: trCodeEditor,
-      },
-      it: {
-        common: itCommon,
-        settings: itSettings,
-        auth: itAuth,
-        sidebar: itSidebar,
-        chat: itChat,
-        codeEditor: itCodeEditor,
-      },
       es: {
         common: esCommon,
         settings: esSettings,
@@ -181,14 +77,6 @@ i18n
         sidebar: esSidebar,
         chat: esChat,
         codeEditor: esCodeEditor,
-      },
-      'zh-TW': {
-        common: zhTWCommon,
-        settings: zhTWSettings,
-        auth: zhTWAuth,
-        sidebar: zhTWSidebar,
-        chat: zhTWChat,
-        codeEditor: zhTWCodeEditor,
       },
     },
 

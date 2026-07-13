@@ -10,6 +10,10 @@ export default function MainContentHeader({
   selectedProject,
   selectedSession,
   shouldShowBrowserTab,
+  shouldShowRagVectorTab,
+  shouldShowMinimaxTab,
+  shouldShowTerminalModuleTab,
+  shouldShowShellTab,
   isMobile,
   onMenuClick,
 }: MainContentHeaderProps) {
@@ -58,6 +62,11 @@ export default function MainContentHeader({
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               shouldShowBrowserTab={shouldShowBrowserTab}
+              shouldShowRagVectorTab={shouldShowRagVectorTab}
+
+              shouldShowMinimaxTab={shouldShowMinimaxTab}
+              shouldShowTerminalModuleTab={shouldShowTerminalModuleTab}
+            shouldShowShellTab={shouldShowShellTab}
             />
           </div>
           {canScrollRight && (

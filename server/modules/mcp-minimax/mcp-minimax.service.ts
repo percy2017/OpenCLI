@@ -228,7 +228,11 @@ function normalizeResults(results: Array<{ provider: LLMProvider; created?: bool
 }
 
 async function enable(): Promise<ProviderResult[]> {
-  const results = await providerMcpService.addMcpServerToAllProviders(getCanonicalServerConfig());
+  const config = getCanonicalServerConfig();
+  const results = await providerMcpService.addMcpServerToAllProviders({
+    ...config,
+    scope: SERVER_SCOPE,
+  });
   return normalizeResults(results);
 }
 

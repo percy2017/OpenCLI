@@ -472,6 +472,28 @@ export const runMigrations = (db: Database) => {
     }
 
     db.exec(LAST_SCANNED_AT_SQL);
+
+    // RAG: per-chunk embedding provider (added when switching from single-provider
+    // MiniMax to a registry that also supports Ollama/OpenAI). Pre-existing
+    // chunks are backfilled to 'minimax' so the column is never NULL.
+    try {
+      const ragChunksInfo = db.prepare('PRAGMA table_info(rag_chunks)').all() as { name: string }[];
+      const ragChunksColumnNames = ragChunksInfo.map((column) => column.name);
+      addColumnToTableIfNotExists(
+        db,
+        'rag_chunks',
+        ragChunksColumnNames,
+        'provider',
+        "TEXT NOT NULL DEFAULT 'minimax'",
+      );
+      db.exec('CREATE INDEX IF NOT EXISTS idx_rag_chunks_provider_dims ON rag_chunks(provider, dimensions)');
+    } catch (error: any) {
+      // rag_chunks may not exist yet on first install; that's fine — the
+      // table is created later via RAG_CHUNKS_TABLE_SCHEMA_SQL with the
+      // column already present.
+      console.warn('[migrations] rag_chunks provider column skipped:', error?.message || error);
+    }
+
     console.log('Database migrations completed successfully');
   } catch (error: any) {
     console.error('Error running migrations:', error.message);

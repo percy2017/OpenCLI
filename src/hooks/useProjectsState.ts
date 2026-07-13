@@ -303,10 +303,10 @@ const removeSessionFromProject = (project: Project, sessionIdToDelete: string): 
   return updatedProject;
 };
 
-const VALID_TABS: Set<string> = new Set(['chat', 'files', 'shell', 'git', 'browser']);
+const VALID_TABS: Set<string> = new Set(['chat', 'files', 'shell', 'git', 'browser', 'rag-vector', 'minimax']);
 
 const isValidTab = (tab: string): tab is AppTab => {
-  return VALID_TABS.has(tab) || tab.startsWith('plugin:');
+  return VALID_TABS.has(tab);
 };
 
 const readPersistedTab = (): AppTab => {

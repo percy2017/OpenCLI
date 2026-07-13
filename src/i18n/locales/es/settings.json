@@ -105,10 +105,12 @@
     "git": "Git",
     "apiTokens": "API y tokens",
     "voice": "Voz",
-    "browser": "Navegador",
+    "browser": "Navegador MCP",
     "notifications": "Notificaciones",
-    "plugins": "Plugins",
-    "about": "Acerca de"
+    "about": "Acerca de",
+    "mmxCli": "Rag MCP",
+    "terminal": "Terminal",
+    "minimaxMcp": "Minimax MCP"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -438,96 +440,6 @@
       "title": "Acerca de Codex MCP",
       "description": "Codex admite servidores MCP basados en stdio. Puedes añadir servidores que amplíen las capacidades de Codex con herramientas y recursos adicionales."
     }
-  },
-  "pluginSettings": {
-    "title": "Plugins",
-    "description": "Extiende la interfaz con plugins personalizados. Instala desde git o suelta una carpeta en ~/.claude-code-ui/plugins/",
-    "installPlaceholder": "https://github.com/usuario/mi-plugin",
-    "installButton": "Instalar",
-    "installing": "Instalando…",
-    "securityWarning": "Instala solo plugins cuyo código fuente hayas revisado o de autores en los que confíes.",
-    "scanningPlugins": "Escaneando plugins…",
-    "noPluginsInstalled": "No hay plugins instalados",
-    "pullLatest": "Traer la última versión desde git",
-    "noGitRemote": "Sin remoto de git — actualización no disponible",
-    "uninstallPlugin": "Desinstalar plugin",
-    "confirmUninstall": "Haz clic de nuevo para confirmar",
-    "confirmUninstallMessage": "¿Eliminar {{name}}? Esta acción no se puede deshacer.",
-    "cancel": "Cancelar",
-    "remove": "Eliminar",
-    "updateFailed": "La actualización falló",
-    "installFailed": "La instalación falló",
-    "uninstallFailed": "La desinstalación falló",
-    "toggleFailed": "No se pudo alternar",
-    "starterPluginLabel": "Plugin de inicio",
-    "starter": "Inicio",
-    "docs": "Documentación",
-    "sections": {
-      "officialTitle": "Plugins oficiales",
-      "officialDescription": "Mantenidos por el equipo de OpenCLI y listos para instalar directamente.",
-      "unofficialTitle": "Otros plugins",
-      "unofficialDescription": "Plugins no oficiales e integraciones de otros usuarios. Revisa el código fuente antes de instalar."
-    },
-    "starterPlugin": {
-      "name": "Estadísticas del proyecto",
-      "badge": "inicio",
-      "description": "Conteo de archivos, líneas de código, desglose por tipo de archivo y actividad reciente de tu proyecto.",
-      "install": "Instalar"
-    },
-    "terminalPlugin": {
-      "name": "Terminal",
-      "badge": "oficial",
-      "description": "Terminal integrada con acceso completo al shell directamente en la interfaz.",
-      "install": "Instalar"
-    },
-    "scheduledPromptPlugin": {
-      "name": "Prompts programados",
-      "badge": "no oficial",
-      "description": "Programa prompts en el espacio de trabajo, revisa el historial de ejecuciones y gestiona tareas locales recurrentes.",
-      "install": "Instalar"
-    },
-    "claudeWatchPlugin": {
-      "name": "Claude Watch",
-      "badge": "no oficial",
-      "description": "Vigila sesiones largas de Claude Code para detectar bloqueos y expone controles del proceso.",
-      "install": "Instalar"
-    },
-    "prismOpenCLI": {
-      "name": "PRISM OpenCLI",
-      "badge": "no oficial",
-      "description": "Inteligencia de sesiones para Claude Code, dentro de OpenCLI. Descubre por qué tus sesiones están gastando tokens sin salir del navegador.",
-      "install": "Instalar"
-    },
-    "sessionManagerPlugin": {
-      "name": "Sesiones",
-      "badge": "no oficial",
-      "description": "Ve, gestiona y termina sesiones activas de Claude Code.",
-      "install": "Instalar"
-    },
-    "tokenCostCalculatorPlugin": {
-      "name": "Calculadora de costos de tokens",
-      "badge": "no oficial",
-      "description": "Calcula costos de la API a partir de precios de modelos y uso de tokens, con soporte de precios predefinidos.",
-      "install": "Instalar"
-    },
-    "taskQueuePlugin": {
-      "name": "Cola de tareas",
-      "badge": "no oficial",
-      "description": "Panel de cola de tareas para ver, filtrar y lanzar tareas de agentes.",
-      "install": "Instalar"
-    },
-    "githubIssuesBoardPlugin": {
-      "name": "Tablero de issues de GitHub",
-      "badge": "no oficial",
-      "description": "Tablero Kanban para issues de GitHub con sincronización bidireccional con TaskMaster e instalación automática del skill de CLI /github-task",
-      "install": "Instalar"
-    },
-    "morePlugins": "Más",
-    "enable": "Activar",
-    "disable": "Desactivar",
-    "installAriaLabel": "URL del repositorio git del plugin",
-    "tab": "pestaña",
-    "runningStatus": "en ejecución"
   },
   "skillsManagement": {
     "heading": "Skills",

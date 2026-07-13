@@ -24,7 +24,9 @@
     "git": "Control de código",
     "tasks": "Tareas",
     "browser": "Navegador",
-    "computer": "Computadora"
+    "computer": "Computadora",
+    "ragVector": "RAG Vector",
+    "minimax": "Minimax MCP"
   },
   "status": {
     "loading": "Cargando...",
@@ -327,6 +329,138 @@
       "stopSessionAria": "Detener sesión",
       "deleteSessionTitle": "Eliminar sesión",
       "deleteSessionAria": "Eliminar sesión"
+    }
+  },
+  "mmxCli": {
+    "sectionTitle": "Rag MCP",
+    "sectionDescription": "Activa la base de conocimiento RAG Vector con embeddings de MiniMax y registra cloudcli-rag en Claude Code y Codex para que los agentes puedan buscar en tus documentos vía MCP.",
+    "enableLabel": "Activar RAG Vector",
+    "enableDescription": "Cuando esté activo, aparece el tab \"RAG Vector\" en el header para subir y gestionar documentos y se registra el MCP server cloudcli-rag con Claude Code y Codex.",
+    "enableAria": "Alternar RAG Vector y cloudcli-rag",
+    "stateLabel": "Estado: {{state}}",
+    "stateEnabled": "Activado",
+    "stateDisabled": "Desactivado",
+    "codexStatus": "Codex: {{state}}",
+    "claudeStatus": "Claude: {{state}}",
+    "providerConfigured": "registrado",
+    "providerMissing": "no registrado",
+    "errors": {
+      "loadState": "Error al cargar el estado de Rag MCP.",
+      "saveState": "Error al guardar el estado de Rag MCP.",
+      "partialFailure": "Algunos proveedores rechazaron el cambio ({{providers}})."
+    }
+  },
+  "ragVector": {
+    "empty": {
+      "title": "RAG Vector",
+      "description": "Base de conocimiento próximamente. Pronto podrás subir documentos y chatear contra ellos aquí."
+    }
+  },
+  "terminal": {
+    "sectionTitle": "Terminal",
+    "sectionDescription": "Activa o desactiva la terminal integrada que expone un shell completo vía WebSocket.",
+    "enableLabel": "Activar terminal",
+    "enableDescription": "Cuando está activa, el tab Terminal está disponible y se aceptan nuevas conexiones WebSocket a /shell.",
+    "enableAria": "Alternar terminal",
+    "stateLabel": "Estado: {{state}}",
+    "stateEnabled": "Activado",
+    "stateDisabled": "Desactivado",
+    "panelTitle": "Módulo Terminal",
+    "panelDescription": "Gestioná el toggle de Terminal que gatea el endpoint WebSocket /shell. Configuralo en Ajustes.",
+    "openSettings": "Abrir ajustes de terminal",
+    "disabledTitle": "Terminal desactivado",
+    "disabledDescription": "El módulo Terminal está apagado. Activalo en Ajustes para usar la shell integrada.",
+    "overlayConnecting": "Conectando al módulo Terminal…",
+    "overlayError": "Error de conexión",
+    "overlayClosed": "Shell cerrado. Recargá el tab para reconectar.",
+    "errors": {
+      "loadState": "Error al cargar el estado de la terminal.",
+      "saveState": "Error al guardar el estado de la terminal."
+    }
+  },
+  "knowledgeBase": {
+    "title": "Base de conocimiento",
+    "description": "Gestioná los documentos que alimentan el store RAG Vector.",
+    "uploadCta": "Subir documentos",
+    "empty": {
+      "title": "Aún no hay documentos",
+      "description": "Subí documentos ofimáticos, código, markdown o texto. Estarán disponibles para retrieval cuando se active la indexación.",
+      "uploadCta": "Subí tu primer documento",
+      "hint": "Formatos soportados: PDF, Word, Excel, PowerPoint, texto, markdown, código."
+    },
+    "status": {
+      "pending": "Pendiente",
+      "uploading": "Subiendo… {{progress}}%",
+      "indexing": "Indexando",
+      "ready": "Listo",
+      "error": "Error"
+    },
+    "list": {
+      "title_one": "Documento ({{count}})",
+      "title_other": "Documentos ({{count}})",
+      "searchPlaceholder": "Filtrar documentos…",
+      "searchAria": "Filtrar documentos",
+      "empty": "Aún no hay documentos.",
+      "noResults": "Ningún documento coincide con este filtro.",
+      "chunksCount_one": "{{count}} chunk",
+      "chunksCount_other": "{{count}} chunks",
+      "pendingChunks": "Esperando indexación"
+    },
+    "detail": {
+      "sizeLabel": "Tamaño",
+      "chunksLabel": "Chunks",
+      "uploadedLabel": "Subido",
+      "indexedLabel": "Indexado",
+      "indexingTitle": "Indexación en curso",
+      "indexingDescription": "El documento se está dividiendo en chunks y embebiendo. Esto puede tardar un momento.",
+      "errorTitle": "Falló la indexación",
+      "errorDescription": "No se pudo procesar el documento. Probá reindexar o eliminarlo y volver a subirlo.",
+      "previewTitle": "Vista previa",
+      "previewCount_one": "{{count}} chunk mostrado",
+      "previewCount_other": "{{count}} chunks mostrados",
+      "previewEmpty": "Aún no hay chunks disponibles. Cuando el documento esté indexado aparecerá una vista previa acá.",
+      "chunkIndex": "Chunk {{index}}",
+      "selectPrompt": "Seleccioná un documento de la lista para ver sus detalles.",
+      "previewLoading": "Cargando chunks…",
+      "loadingList": "Cargando documentos…"
+    },
+    "actions": {
+      "menu": "Acciones del documento",
+      "reindex": "Reindexar",
+      "download": "Descargar",
+      "delete": "Eliminar"
+    },
+    "upload": {
+      "title": "Subir documentos",
+      "close": "Cerrar",
+      "dropzoneIdle": "Arrastrá archivos acá o hacé click para elegir",
+      "dropzoneActive": "Soltá para agregar",
+      "dropzoneReject": "Algunos archivos no son compatibles",
+      "dropzoneAria": "Zona de drop",
+      "limits": "Hasta {{maxFiles}} archivos por subida · 10 MB cada uno",
+      "queueCount_one": "{{count}} archivo en cola",
+      "queueCount_other": "{{count}} archivos en cola",
+      "clearAll": "Limpiar",
+      "queued": "En cola",
+      "removeItem": "Quitar de la cola",
+      "readyCount_one": "Listo para subir ({{count}})",
+      "readyCount_other": "Listo para subir ({{count}})",
+      "errorsCount_one": "{{count}} archivo descartado",
+      "errorsCount_other": "{{count}} archivos descartados",
+      "cancel": "Cancelar",
+      "submit_one": "Subir 1 archivo",
+      "submit_other": "Subir {{count}} archivos"
+    },
+    "errors": {
+      "fileTooLarge": "El archivo supera el límite de 10 MB.",
+      "unsupportedType": "Tipo de archivo no soportado.",
+      "unknown": "No se pudo agregar este archivo.",
+      "loadFailed": "Error al cargar la base de conocimiento.",
+      "deleteFailed": "Error al eliminar el documento.",
+      "reindexFailed": "Error al reindexar el documento.",
+      "downloadFailed": "Error al descargar el documento.",
+      "uploadFailed": "Error al subir el documento.",
+      "dismiss": "Descartar"
     }
   }
 }

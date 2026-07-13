@@ -300,7 +300,6 @@ function Sidebar({
             restartRequired={restartRequired}
             releaseInfo={releaseInfo}
             latestVersion={latestVersion}
-            currentVersion={currentVersion}
             onShowVersionModal={() => setShowVersionModal(true)}
             onShowSettings={onShowSettings}
             onLogout={() => setShowLogoutConfirm(true)}

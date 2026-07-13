@@ -122,7 +122,12 @@ Habilita el tab **Browser** del sidebar: browser automation via MCP (Playwright)
 
 Conecta el plan de **MiniMax** al MCP de cada provider. Se activa si tenés `mmx` autenticado. Permite invocar skills/external tools del plan de MiniMax desde dentro de una sesión de Claude o Codex.
 
+### 3. `cloudli-rag`
+
+para gestionar RAG con minimax
+
 Si querés listarlos manualmente:
+
 
 ```bash
 # Claude
@@ -153,11 +158,11 @@ Copiá `.env.example` a `.env` y ajustá los puertos si hace falta.
 ```
 ┌─────────────────────────────────────────────────┐
 │  Browser (React + Vite)                         │
-│  - Auth, Theme, Plugins, WebSocket contexts     │
+│  - Auth, Theme, WebSocket contexts     │
 │  - Chat, FileTree, Shell, CodeEditor, Settings  │
 └────────────────────┬────────────────────────────┘
                      │ HTTP REST + WebSocket
-                     │ (3 endpoints: /ws, /shell, /plugin-ws)
+                     │ (3 endpoints: /ws, /shell, /terminal-shell)
 ┌────────────────────▼────────────────────────────┐
 │  Express server (Node 22, TypeScript)           │
 │                                                 │
@@ -191,4 +196,3 @@ Las traducciones viven en `src/i18n/locales/<lang>/{common,settings,auth,sidebar
 
 - **Auth:** usuario + password hasheado con bcrypt + JWT. WebSocket valida token en upgrade.
 - **Workspace isolation:** paths de proyectos se validan contra `WORKSPACES_ROOT` antes de cualquier filesystem mutation. Ver `validateWorkspacePath` y `FORBIDDEN_WORKSPACE_PATHS` en `server/shared/utils.ts`.
-- **Plugins:** instalás plugins solo desde Git URLs que vos escribís a mano — el server te avisa que revisés el código primero.

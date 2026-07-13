@@ -1,4 +1,5 @@
 import { Edit3, ExternalLink, Globe, Lock, Plus, Server, Terminal, Trash2, Users, Zap } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { McpProject, McpProvider, McpScope, ProviderMcpServer } from '../types';
@@ -11,6 +12,7 @@ import {
   MCP_PROVIDER_NAMES,
 } from '../constants';
 import { useMcpServers } from '../hooks/useMcpServers';
+import { authenticatedFetch } from '../../../utils/api';
 import { maskSecret } from '../utils/mcpFormatting';
 
 import McpServerFormModal from './modals/McpServerFormModal';
@@ -55,6 +57,15 @@ const getServerKey = (server: ProviderMcpServer): string => (
 // Servers prefixed with `cloudcli-` are written and removed automatically by a
 // OpenCLI feature toggle (e.g. the Browser tab), not added by the user. They are
 // shown read-only so users don't edit/delete them out of sync with the feature.
+
+// Map managed server names to the feature toggle that controls them. Hidden from
+// the list when the corresponding toggle is off, even if the provider config
+// file still has a stale entry (e.g. after a failed cleanup write).
+const MANAGED_SERVER_TOGGLE: Record<string, 'mcp-minimax' | 'rag-mcp'> = {
+  'cloudcli-minimax': 'mcp-minimax',
+  'cloudcli-rag': 'rag-mcp',
+};
+
 const isManagedServer = (server: ProviderMcpServer): boolean => server.name.startsWith('cloudcli-');
 
 function ConfigLine({ label, children }: { label: string; children: string }) {
@@ -120,6 +131,56 @@ export default function McpServers({ selectedProvider, currentProjects }: McpSer
     submitGlobalForm,
     deleteServer,
   } = useMcpServers({ selectedProvider, currentProjects });
+
+  // Track the feature toggle states for managed servers so we can hide
+  // entries whose owning feature is currently off. Defaults to true (visible)
+  // until the first fetch resolves — we never want a managed server to flash
+  // away just because the toggle fetch hasn't completed yet.
+  const [managedToggles, setManagedToggles] = useState<Record<string, boolean>>({});
+
+  const loadManagedToggles = useCallback(async () => {
+    const next: Record<string, boolean> = {};
+    await Promise.all([
+      authenticatedFetch('/api/mcp-minimax/state')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.success !== false && data?.data?.state) {
+            next['mcp-minimax'] = data.data.state.enabled === true;
+          }
+        })
+        .catch(() => {}),
+      authenticatedFetch('/api/rag-mcp/state')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.success !== false && data?.data?.state) {
+            next['rag-mcp'] = data.data.state.enabled === true;
+          }
+        })
+        .catch(() => {}),
+    ]);
+    setManagedToggles(next);
+  }, []);
+
+  useEffect(() => {
+    void loadManagedToggles();
+    const onRagChange = () => void loadManagedToggles();
+    const onMinimaxChange = () => void loadManagedToggles();
+    window.addEventListener('ragVectorStateChanged', onRagChange);
+    window.addEventListener('mcpMinimaxStateChanged', onMinimaxChange);
+    return () => {
+      window.removeEventListener('ragVectorStateChanged', onRagChange);
+      window.removeEventListener('mcpMinimaxStateChanged', onMinimaxChange);
+    };
+  }, [loadManagedToggles]);
+
+  const isManagedServerVisible = (server: ProviderMcpServer): boolean => {
+    if (!isManagedServer(server)) return true;
+    const toggle = MANAGED_SERVER_TOGGLE[server.name];
+    if (!toggle) return true;
+    // Until the toggle state loads (undefined), keep the entry visible to
+    // avoid an empty-list flash. Once loaded, hide if explicitly disabled.
+    return managedToggles[toggle] !== false;
+  };
 
   const providerName = MCP_PROVIDER_NAMES[selectedProvider];
   const description = t(`mcpServers.description.${selectedProvider}`, {
@@ -189,7 +250,7 @@ export default function McpServers({ selectedProvider, currentProjects }: McpSer
           <div className="py-8 text-center text-muted-foreground">Loading MCP servers...</div>
         )}
 
-        {servers.map((server) => {
+        {servers.filter(isManagedServerVisible).map((server) => {
           const managed = isManagedServer(server);
 
           return (

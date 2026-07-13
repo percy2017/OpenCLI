@@ -16,6 +16,8 @@ const router = express.Router();
 
 let _cache = null;
 let _cacheAt = 0;
+let _textCache = null;
+let _textCacheAt = 0;
 const QUOTA_TTL_MS = 30 * 1000;
 
 /**
@@ -161,6 +163,35 @@ router.get('/quota', async (_req, res) => {
     return res.json(parsed);
   } catch (e) {
     return res.status(502).json({ error: e.message });
+  }
+});
+
+
+/**
+ * GET /api/minimax/quota/text -> the raw `mmx quota show` output (text mode).
+ * Unlike /quota this never JSON-parses, so the UI can render the bordered
+ * table directly. Cached like /quota to avoid hammering the CLI.
+ */
+router.get('/quota/text', async (_req, res) => {
+  const now = Date.now();
+  if (_textCache && now - _textCacheAt < QUOTA_TTL_MS) {
+    res.setHeader('X-MiniMax-Cache', 'hit');
+    return res.type('text/plain').send(_textCache);
+  }
+  try {
+    const { code, stdout, stderr } = await runMmx(['quota', 'show']);
+    if (code !== 0) {
+      const tail = (stderr || '').trim().split('\n').slice(-3).join(' | ');
+      return res.status(502).type('text/plain').send(
+        `mmx quota show failed: ${tail || `exit ${code}`}`,
+      );
+    }
+    _textCache = stdout;
+    _textCacheAt = now;
+    res.setHeader('X-MiniMax-Cache', 'miss');
+    return res.type('text/plain').send(stdout);
+  } catch (e) {
+    return res.status(502).type('text/plain').send(`mmx quota show failed: ${e.message}`);
   }
 });
 

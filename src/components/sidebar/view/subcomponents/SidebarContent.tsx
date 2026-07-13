@@ -144,7 +144,6 @@ type SidebarContentProps = {
   restartRequired: boolean;
   releaseInfo: ReleaseInfo | null;
   latestVersion: string | null;
-  currentVersion: string;
   onShowVersionModal: () => void;
   onShowSettings: () => void;
   onLogout: () => void;
@@ -183,7 +182,6 @@ export default function SidebarContent({
   restartRequired,
   releaseInfo,
   latestVersion,
-  currentVersion,
   onShowVersionModal,
   onShowSettings,
   onLogout,
@@ -560,7 +558,6 @@ export default function SidebarContent({
         restartRequired={restartRequired}
         releaseInfo={releaseInfo}
         latestVersion={latestVersion}
-        currentVersion={currentVersion}
         onShowVersionModal={onShowVersionModal}
         onShowSettings={onShowSettings}
         onLogout={onLogout}

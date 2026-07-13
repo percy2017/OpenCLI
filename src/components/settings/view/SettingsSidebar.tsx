@@ -1,4 +1,4 @@
-import { Bell, Bot, Key, Mic, MonitorPlay, Palette, Puzzle } from 'lucide-react';
+import { Bell, Bot, Cable, Key, Mic, MonitorPlay, Palette, Sparkles, Terminal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '../../../lib/utils';
@@ -22,8 +22,10 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'api', labelKey: 'mainTabs.apiTokens', icon: Key },
   { id: 'voice', labelKey: 'mainTabs.voice', icon: Mic },
   { id: 'browser', labelKey: 'mainTabs.browser', icon: MonitorPlay },
-  { id: 'plugins', labelKey: 'mainTabs.plugins', icon: Puzzle },
+  { id: 'minimaxMcp', labelKey: 'mainTabs.minimaxMcp', icon: Cable },
+  { id: 'mmxCli', labelKey: 'mainTabs.mmxCli', icon: Sparkles },
   { id: 'notifications', labelKey: 'mainTabs.notifications', icon: Bell },
+  { id: 'terminal', labelKey: 'mainTabs.terminal', icon: Terminal },
 ];
 
 export default function SettingsSidebar({ activeTab, onChange }: SettingsSidebarProps) {

@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Terminal, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import ChatInterface from '../../chat/view/ChatInterface';
 import FileTree from '../../file-tree/view/FileTree';
 import StandaloneShell from '../../standalone-shell/view/StandaloneShell';
-import PluginTabContent from '../../plugins/view/PluginTabContent';
+import KnowledgeBaseView from '../../knowledge-base/KnowledgeBaseView';
+import MinimaxPanel from '../../minimax-mcp/MinimaxPanel';
 import { BrowserUsePanel } from '../../browser-use';
 import type { MainContentProps } from '../types/types';
 import { usePaletteOpsRegister } from '../../../contexts/PaletteOpsContext';
@@ -12,10 +15,12 @@ import { useFileOpenResolver } from '../../../hooks/useFileOpenResolver';
 import { authenticatedFetch } from '../../../utils/api';
 import { useEditorSidebar } from '../../code-editor/hooks/useEditorSidebar';
 import EditorSidebar from '../../code-editor/view/EditorSidebar';
+import { Button } from '../../../shared/view/ui';
 
 import MainContentHeader from './subcomponents/MainContentHeader';
 import MainContentStateView from './subcomponents/MainContentStateView';
 import ErrorBoundary from './ErrorBoundary';
+import TerminalShellView from './TerminalShellView';
 
 function MainContent({
   selectedProject,
@@ -39,10 +44,47 @@ function MainContent({
 }: MainContentProps) {
   const { preferences } = useUiPreferences();
   const { showRawParameters, showThinking, sendByCtrlEnter } = preferences;
+  const { t } = useTranslation('common');
+
+  // New Terminal module state (separate from the agent-facing xterm.js tab).
+  const [terminalState, setTerminalState] = useState<{ enabled: boolean } | null>(null);
+
+  const loadTerminalState = useCallback(async () => {
+    try {
+      const response = await authenticatedFetch('/api/terminal/state');
+      const data = await response.json();
+      if (response.ok && data?.success !== false && data?.data) {
+        setTerminalState({ enabled: data.data.enabled === true });
+      } else {
+        setTerminalState({ enabled: true });
+      }
+    } catch {
+      setTerminalState({ enabled: true });
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTerminalState();
+    const handler = () => void loadTerminalState();
+    window.addEventListener('terminalStateChanged', handler);
+    return () => window.removeEventListener('terminalStateChanged', handler);
+  }, [loadTerminalState]);
 
   const [browserUseEnabled, setBrowserUseEnabled] = useState(false);
+  const [ragVectorEnabled, setRagVectorEnabled] = useState(false);
+  const [minimaxMcpEnabled, setMinimaxMcpEnabled] = useState(false);
 
   const shouldShowBrowserTab = browserUseEnabled;
+  const shouldShowRagVectorTab = ragVectorEnabled;
+  // Visible whenever the MiniMax MCP toggle is on (mirrors ragVector).
+  const shouldShowMinimaxTab = minimaxMcpEnabled;
+  // VITE_SHOW_SHELL_TAB controls the first "Terminal" tab in the header
+  // (agent-facing xterm.js shell). Defaults to true when unset.
+  const shouldShowShellTab = String(import.meta.env.VITE_SHOW_SHELL_TAB ?? 'true').toLowerCase() !== 'false';
+  // The second "Terminal" pill in the header is only meaningful when the
+  // Terminal module is enabled. While loading (terminalState === null) we
+  // hide it to avoid a flash of a tab that will immediately disappear.
+  const shouldShowTerminalModuleTab = terminalState?.enabled === true;
 
   const {
     editingFile,
@@ -79,11 +121,67 @@ function MainContent({
     return () => window.removeEventListener('browserUseSettingsChanged', loadBrowserUseSettings);
   }, [loadBrowserUseSettings]);
 
+  const loadRagVectorFlag = useCallback(async () => {
+    try {
+      const response = await authenticatedFetch('/api/feature-flags/rag-vector');
+      const data = await response.json();
+      setRagVectorEnabled(Boolean(response.ok && data?.success !== false && data?.data?.enabled));
+    } catch {
+      setRagVectorEnabled(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadRagVectorFlag();
+    window.addEventListener('ragVectorStateChanged', loadRagVectorFlag);
+    return () => window.removeEventListener('ragVectorStateChanged', loadRagVectorFlag);
+  }, [loadRagVectorFlag]);
+
+  const loadMinimaxMcpFlag = useCallback(async () => {
+    try {
+      const response = await authenticatedFetch('/api/mcp-minimax/state');
+      const data = await response.json();
+      setMinimaxMcpEnabled(Boolean(response.ok && data?.success !== false && data?.data?.state?.enabled === true));
+    } catch {
+      setMinimaxMcpEnabled(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMinimaxMcpFlag();
+    window.addEventListener('mcpMinimaxStateChanged', loadMinimaxMcpFlag);
+    return () => window.removeEventListener('mcpMinimaxStateChanged', loadMinimaxMcpFlag);
+  }, [loadMinimaxMcpFlag]);
+
   useEffect(() => {
     if (!shouldShowBrowserTab && activeTab === 'browser') {
       setActiveTab('chat');
     }
   }, [shouldShowBrowserTab, activeTab, setActiveTab]);
+
+  useEffect(() => {
+    if (!shouldShowRagVectorTab && activeTab === 'rag-vector') {
+      setActiveTab('chat');
+    }
+  }, [shouldShowRagVectorTab, activeTab, setActiveTab]);
+
+  useEffect(() => {
+    if (!shouldShowMinimaxTab && activeTab === 'minimax') {
+      setActiveTab('chat');
+    }
+  }, [shouldShowMinimaxTab, activeTab, setActiveTab]);
+
+  useEffect(() => {
+    if (!shouldShowShellTab && activeTab === 'shell') {
+      setActiveTab('chat');
+    }
+  }, [shouldShowShellTab, activeTab, setActiveTab]);
+
+  useEffect(() => {
+    if (!shouldShowTerminalModuleTab && activeTab === 'terminal') {
+      setActiveTab('chat');
+    }
+  }, [shouldShowTerminalModuleTab, activeTab, setActiveTab]);
 
   usePaletteOpsRegister({
     openFile: (filePath: string) => {
@@ -112,6 +210,10 @@ function MainContent({
         selectedProject={selectedProject}
         selectedSession={selectedSession}
         shouldShowBrowserTab={shouldShowBrowserTab}
+        shouldShowRagVectorTab={shouldShowRagVectorTab}
+        shouldShowMinimaxTab={shouldShowMinimaxTab}
+        shouldShowTerminalModuleTab={shouldShowTerminalModuleTab}
+        shouldShowShellTab={shouldShowShellTab}
         isMobile={isMobile}
         onMenuClick={onMenuClick}
       />
@@ -159,19 +261,45 @@ function MainContent({
             </div>
           )}
 
+          {activeTab === 'terminal' && (
+            terminalState?.enabled === false ? (
+              <div className="flex h-full w-full items-center justify-center p-6">
+                <div className="max-w-md space-y-4 text-center">
+                  <Terminal className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {t('terminal.disabledTitle')}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {t('terminal.disabledDescription')}
+                  </p>
+                  <Button onClick={() => onShowSettings('terminal')} variant="default">
+                    {t('terminal.openSettings')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <TerminalShellView
+                project={selectedProject}
+                isActive={activeTab === 'terminal'}
+              />
+            )
+          )}
+
           {shouldShowBrowserTab && activeTab === 'browser' && (
             <div className="h-full overflow-hidden">
               <BrowserUsePanel isVisible={activeTab === 'browser'} onShowSettings={onShowSettings} />
             </div>
           )}
 
-          {activeTab.startsWith('plugin:') && (
+          {shouldShowRagVectorTab && activeTab === 'rag-vector' && (
             <div className="h-full overflow-hidden">
-              <PluginTabContent
-                pluginName={activeTab.replace('plugin:', '')}
-                selectedProject={selectedProject}
-                selectedSession={selectedSession}
-              />
+              <KnowledgeBaseView />
+            </div>
+          )}
+
+          {shouldShowMinimaxTab && activeTab === 'minimax' && (
+            <div className="h-full overflow-hidden">
+              <MinimaxPanel />
             </div>
           )}
         </div>

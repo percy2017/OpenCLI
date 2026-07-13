@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 
 import SessionProviderLogo from '../../../llm-logo-provider/SessionProviderLogo';
 import type { AppTab, Project, ProjectSession } from '../../../../types/app';
-import { usePlugins } from '../../../../contexts/PluginsContext';
 
 type MainContentTitleProps = {
   activeTab: AppTab;
@@ -10,11 +9,7 @@ type MainContentTitleProps = {
   selectedSession: ProjectSession | null;
 };
 
-function getTabTitle(activeTab: AppTab, t: (key: string) => string, pluginDisplayName?: string) {
-  if (activeTab.startsWith('plugin:') && pluginDisplayName) {
-    return pluginDisplayName;
-  }
-
+function getTabTitle(activeTab: AppTab, t: (key: string) => string) {
   if (activeTab === 'files') {
     return t('mainContent.projectFiles');
   }
@@ -36,11 +31,6 @@ export default function MainContentTitle({
   selectedSession,
 }: MainContentTitleProps) {
   const { t } = useTranslation();
-  const { plugins } = usePlugins();
-
-  const pluginDisplayName = activeTab.startsWith('plugin:')
-    ? plugins.find((p) => p.name === activeTab.replace('plugin:', ''))?.displayName
-    : undefined;
 
   const showSessionIcon = activeTab === 'chat' && Boolean(selectedSession);
   const showChatNewSession = activeTab === 'chat' && !selectedSession;
@@ -69,7 +59,7 @@ export default function MainContentTitle({
         ) : (
           <div className="min-w-0">
             <h2 className="text-sm font-semibold leading-tight text-foreground">
-              {getTabTitle(activeTab, t, pluginDisplayName)}
+              {getTabTitle(activeTab, t)}
             </h2>
             <div className="truncate text-[11px] leading-tight text-muted-foreground">{selectedProject.displayName}</div>
           </div>

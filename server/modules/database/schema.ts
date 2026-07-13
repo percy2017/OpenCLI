@@ -120,6 +120,42 @@ CREATE TABLE IF NOT EXISTS app_config (
 );
 `;
 
+export const RAG_DOCUMENTS_TABLE_SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS rag_documents (
+    document_id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    storage_path TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    chunk_count INTEGER NOT NULL DEFAULT 0,
+    error_message TEXT,
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    indexed_at DATETIME
+);
+CREATE INDEX IF NOT EXISTS idx_rag_documents_status ON rag_documents(status);
+CREATE INDEX IF NOT EXISTS idx_rag_documents_uploaded_at ON rag_documents(uploaded_at);
+`;
+
+export const RAG_CHUNKS_TABLE_SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS rag_chunks (
+    chunk_id TEXT PRIMARY KEY NOT NULL,
+    document_id TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    embedding TEXT NOT NULL,
+    provider TEXT NOT NULL DEFAULT 'ollama',
+    model TEXT NOT NULL,
+    dimensions INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES rag_documents(document_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_document_id ON rag_chunks(document_id);
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_document_index ON rag_chunks(document_id, chunk_index);
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_provider_dims ON rag_chunks(provider, dimensions);
+`;
+
 export const INIT_SCHEMA_SQL = `
 -- Initialize authentication database
 PRAGMA foreign_keys = ON;
