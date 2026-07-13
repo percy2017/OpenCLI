@@ -8,6 +8,7 @@ import { useExpandedDirectories } from '../hooks/useExpandedDirectories';
 import { useFileTreeData } from '../hooks/useFileTreeData';
 import { useFileTreeOperations } from '../hooks/useFileTreeOperations';
 import { useFileTreeSearch } from '../hooks/useFileTreeSearch';
+import { useFileTreeSelection } from '../hooks/useFileTreeSelection';
 import { useFileTreeViewMode } from '../hooks/useFileTreeViewMode';
 import { useFileTreeShowIgnored } from '../hooks/useFileTreeShowIgnored';
 import { useFileTreeUpload } from '../hooks/useFileTreeUpload';
@@ -20,6 +21,7 @@ import FileTreeBody from './FileTreeBody';
 import FileTreeDetailedColumns from './FileTreeDetailedColumns';
 import FileTreeHeader from './FileTreeHeader';
 import FileTreeLoadingState from './FileTreeLoadingState';
+import FileTreeSelectionToolbar from './FileTreeSelectionToolbar';
 import FileTreeUploadProgress from './FileTreeUploadProgress';
 import ImageViewer from './ImageViewer';
 
@@ -57,6 +59,23 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
     files,
     expandDirectories,
   });
+  const selection = useFileTreeSelection();
+
+  // Flattened list of every directory path in the project — powers the move
+  // picker "quick pick" section.
+  const allFolders = (() => {
+    const out: string[] = [''];
+    const walk = (nodes: FileTreeNode[]) => {
+      for (const node of nodes) {
+        if (node.type === 'directory') {
+          out.push(node.path);
+          if (node.children) walk(node.children);
+        }
+      }
+    };
+    walk(files);
+    return out;
+  })();
 
   // File operations
   const operations = useFileTreeOperations({
@@ -89,6 +108,20 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
     }
   }, [operations.renamingItem]);
 
+  // Esc clears selection when active. Tracked outside the toolbar so the
+  // listener is installed once and cleaned up reliably.
+  useEffect(() => {
+    if (!selection.isSelectionMode) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selection.selectedCount > 0) {
+        event.preventDefault();
+        selection.clearSelection();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selection.isSelectionMode, selection.selectedCount, selection]);
+
   const renderFileIcon = useCallback((filename: string) => {
     const { icon: Icon, color } = getFileIconData(filename);
     return <Icon className={cn(ICON_SIZE_CLASS, color)} />;
@@ -114,6 +147,9 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
         return;
       }
 
+      // SQLite files (and other binary files) flow through the normal editor
+      // route. The editor reads `getPreviewKind()` and renders the right
+      // sidebar pane (image / pdf / sqlite) instead of a generic placeholder.
       onFileOpen?.(item.path);
     },
     [onFileOpen, selectedProject, toggleDirectory],
@@ -155,10 +191,18 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
         onUploadFiles={upload.handleFileSelect}
         onNewFile={() => operations.handleStartCreate('', 'file')}
         onNewFolder={() => operations.handleStartCreate('', 'directory')}
-        onRefresh={refreshFiles}
+        onRefresh={() => {
+          refreshFiles();
+          // Refresh implies disk changed; selected paths may now be invalid.
+          selection.clearSelection();
+        }}
         onCollapseAll={collapseAll}
         showIgnored={showIgnored}
         onShowIgnoredChange={changeShowIgnored}
+        isSelectionMode={selection.isSelectionMode}
+        onToggleSelectionMode={selection.toggleSelectionMode}
+        selectedCount={selection.selectedCount}
+        onSelectAllVisible={() => selection.selectAllVisible(files, expandedDirs)}
         loading={loading}
         operationLoading={operationLoading}
         isUploading={upload.uploadProgress?.status === 'uploading'}
@@ -219,6 +263,9 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
           onCopyPath={operations.handleCopyPath}
           onDownload={operations.handleDownload}
           onRefresh={refreshFiles}
+          isSelectionMode={selection.isSelectionMode}
+          isSelected={selection.isSelected}
+          onToggleSelected={selection.toggleNode}
           // Pass rename state and handlers for inline editing
           renamingItem={operations.renamingItem}
           renameValue={operations.renameValue}
@@ -229,6 +276,23 @@ export default function FileTree({ selectedProject, onFileOpen }: FileTreeProps)
           operationLoading={operationLoading}
         />
       </ScrollArea>
+
+      {selection.isSelectionMode && (
+        <FileTreeSelectionToolbar
+          selectedCount={selection.selectedCount}
+          selectedPaths={Array.from(selection.selectedPaths)}
+          isLoading={operationLoading}
+          onCopyPaths={operations.handleCopyPaths}
+          onDownloadPaths={operations.handleDownloadPaths}
+          onDeletePaths={operations.handleDeletePaths}
+          onMovePaths={operations.handleMovePaths}
+          onClearSelection={selection.clearSelection}
+          onConfirmDelete={() => selection.clearSelection()}
+          onConfirmMove={() => selection.clearSelection()}
+          tree={files}
+          folders={allFolders}
+        />
+      )}
 
       {selectedImage && (
         <ImageViewer

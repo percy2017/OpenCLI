@@ -22,6 +22,10 @@ type FileTreeBodyProps = {
   onCopyPath?: (item: FileTreeNode) => void;
   onDownload?: (item: FileTreeNode) => void;
   onRefresh?: () => void;
+  // Multi-select
+  isSelectionMode?: boolean;
+  isSelected?: (path: string) => boolean;
+  onToggleSelected?: (item: FileTreeNode) => void;
   // Rename state for inline editing
   renamingItem?: FileTreeNode | null;
   renameValue?: string;
@@ -49,6 +53,9 @@ export default function FileTreeBody({
   onCopyPath,
   onDownload,
   onRefresh,
+  isSelectionMode,
+  isSelected,
+  onToggleSelected,
   renamingItem,
   renameValue,
   setRenameValue,
@@ -89,6 +96,9 @@ export default function FileTreeBody({
           onCopyPath={onCopyPath}
           onDownload={onDownload}
           onRefresh={onRefresh}
+          isSelectionMode={isSelectionMode}
+          isSelected={isSelected}
+          onToggleSelected={onToggleSelected}
           renamingItem={renamingItem}
           renameValue={renameValue}
           setRenameValue={setRenameValue}

@@ -108,7 +108,18 @@
     "stopRecording": "Detener grabación",
     "speak": "Leer en voz alta",
     "stopSpeaking": "Detener",
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "errors": {
+      "noSpeech": "No se detectó voz. Intenta de nuevo.",
+      "aborted": "Entrada de voz cancelada.",
+      "audioCapture": "No se encontró micrófono. Revisa tu dispositivo de audio.",
+      "network": "Error de red durante la entrada de voz.",
+      "notAllowed": "Permiso de micrófono denegado.",
+      "serviceNotAllowed": "Servicio de voz bloqueado. Revisa la configuración del navegador.",
+      "languageNotSupported": "Idioma no soportado por la entrada de voz.",
+      "phishing": "Entrada de voz bloqueada por seguridad.",
+      "unknown": "Falló la entrada de voz. Intenta de nuevo."
+    }
   },
   "input": {
     "placeholder": "Escribe / para comandos, @ para archivos, o pregúntale lo que quieras a {{provider}}...",

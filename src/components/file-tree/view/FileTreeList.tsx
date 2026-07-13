@@ -17,6 +17,10 @@ type FileTreeListProps = {
   onCopyPath?: (item: FileTreeNodeType) => void;
   onDownload?: (item: FileTreeNodeType) => void;
   onRefresh?: () => void;
+  // Multi-select
+  isSelectionMode?: boolean;
+  isSelected?: (path: string) => boolean;
+  onToggleSelected?: (item: FileTreeNodeType) => void;
   // Rename state for inline editing
   renamingItem?: FileTreeNodeType | null;
   renameValue?: string;
@@ -42,6 +46,9 @@ export default function FileTreeList({
   onCopyPath,
   onDownload,
   onRefresh,
+  isSelectionMode,
+  isSelected,
+  onToggleSelected,
   renamingItem,
   renameValue,
   setRenameValue,
@@ -70,6 +77,9 @@ export default function FileTreeList({
           onCopyPath={onCopyPath}
           onDownload={onDownload}
           onRefresh={onRefresh}
+          isSelectionMode={isSelectionMode}
+          isSelected={isSelected?.(item.path)}
+          onToggleSelected={onToggleSelected}
           renamingItem={renamingItem}
           renameValue={renameValue}
           setRenameValue={setRenameValue}

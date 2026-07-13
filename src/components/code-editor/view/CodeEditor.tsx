@@ -20,6 +20,7 @@ import CodeEditorLoadingState from './subcomponents/CodeEditorLoadingState';
 import CodeEditorSurface from './subcomponents/CodeEditorSurface';
 import CodeEditorBinaryFile from './subcomponents/CodeEditorBinaryFile';
 import CodeEditorMediaPreview from './subcomponents/CodeEditorMediaPreview';
+import CodeEditorSqlitePreview from './subcomponents/CodeEditorSqlitePreview';
 
 type CodeEditorProps = {
   file: CodeEditorFile;
@@ -195,6 +196,36 @@ export default function CodeEditor({
 
   // Natively previewable media (image/pdf/audio/video) is rendered inline
   // instead of showing the generic "cannot be displayed" placeholder.
+  if (previewKind === 'sqlite') {
+    return (
+      <CodeEditorSqlitePreview
+        file={file}
+        projectId={fileProjectId}
+        isSidebar={isSidebar}
+        isFullscreen={isFullscreen}
+        onClose={onClose}
+        onToggleFullscreen={() => setIsFullscreen((previous) => !previous)}
+        labels={{
+          loading: t('filePreview.loading', 'Loading preview...'),
+          error: t('filePreview.error', 'Unable to display this file.'),
+          fullscreen: t('actions.fullscreen', 'Fullscreen'),
+          exitFullscreen: t('actions.exitFullscreen', 'Exit fullscreen'),
+          close: t('actions.close', 'Close'),
+          tables: t('filePreview.sqlite.tables', 'tables'),
+          filterTables: t('filePreview.sqlite.filterTables', 'Filter tables...'),
+          noTables: t('filePreview.sqlite.noTables', 'No tables match the filter.'),
+          selectTable: t('filePreview.sqlite.selectTable', 'Select a table to view its rows.'),
+          rows: t('filePreview.sqlite.rows', 'rows'),
+          columns: t('filePreview.sqlite.columns', 'columns'),
+          prev: t('filePreview.sqlite.prev', 'Previous page'),
+          next: t('filePreview.sqlite.next', 'Next page'),
+          emptyTable: t('filePreview.sqlite.emptyTable', 'This table is empty.'),
+          refresh: t('filePreview.sqlite.refresh', 'Refresh'),
+        }}
+      />
+    );
+  }
+
   if (previewKind) {
     return (
       <CodeEditorMediaPreview

@@ -445,7 +445,13 @@ export default function ChatComposer({
             {voice.supported && (
               <VoiceInputButton
                 state={voice.state}
-                onToggle={voice.toggle}
+                onToggle={() => {
+                  // Clear any stale error from a previous attempt so it doesn't
+                  // linger across recordings.
+                  if (voiceErrorTimer.current) clearTimeout(voiceErrorTimer.current);
+                  setVoiceError(null);
+                  voice.toggle();
+                }}
                 errorMsg={voiceError}
               />
             )}

@@ -52,7 +52,17 @@ export type UseFileTreeOperationsResult = {
 
   // Other operations
   handleCopyPath: (item: FileTreeNode) => void;
+  handleCopyPaths: (paths: string[]) => Promise<void>;
   handleDownload: (item: FileTreeNode) => Promise<void>;
+  handleDownloadPaths: (paths: string[]) => Promise<void>;
+  handleDeletePaths: (
+    items: Array<{ path: string; type: 'file' | 'directory' }>,
+  ) => Promise<void>;
+  handleMovePaths: (
+    paths: Array<{ path: string; type: 'file' | 'directory' }>,
+    targetDir: string,
+  ) => Promise<void>;
+  resolveSelectionToItems: (paths: string[]) => FileTreeNode[];
 
   // Loading state
   operationLoading: boolean;
@@ -60,6 +70,40 @@ export type UseFileTreeOperationsResult = {
   // Validation
   validateFilename: (name: string) => string | null;
 };
+
+// Recursively stream a tree node's files into the open ZIP archive.
+// `seen` deduplicates paths so the caller can pass a selection that
+// includes both a folder and one of its descendants without double-adding.
+async function collectNodeIntoZip(
+  node: FileTreeNode,
+  prefix: string,
+  zip: JSZip,
+  projectId: string,
+  seen: Set<string>,
+  onError: (message: string) => void,
+) {
+  if (seen.has(node.path)) return;
+  seen.add(node.path);
+
+  const entryPath = prefix ? `${prefix}/${node.name}` : node.name;
+
+  if (node.type === 'file') {
+    const response = await api.readFileBlob(projectId, node.path);
+    if (!response.ok) {
+      onError(`Failed to read ${node.path}`);
+      return;
+    }
+    const bytes = await response.arrayBuffer();
+    zip.file(entryPath, bytes);
+    return;
+  }
+
+  if (node.children && node.children.length > 0) {
+    for (const child of node.children) {
+      await collectNodeIntoZip(child, entryPath, zip, projectId, seen, onError);
+    }
+  }
+}
 
 export function useFileTreeOperations({
   selectedProject,
@@ -338,6 +382,163 @@ export function useFileTreeOperations({
     showToast(t('fileTree.toast.folderDownloaded', 'Folder downloaded as ZIP'), 'success');
   }, [selectedProject, showToast, t, triggerBrowserDownload]);
 
+  // Resolve a list of selected file paths back to the matching nodes in the
+  // current tree. Falling back to the raw path keeps callers from throwing
+  // when the file disappeared (e.g. external change) but a record exists.
+  const resolveSelectionToItems = useCallback(
+    (paths: string[]): FileTreeNode[] => {
+      if (!selectedProject) return [];
+      return paths.map((path) => ({ name: path.split('/').pop() || path, type: 'file' as const, path }));
+    },
+    [selectedProject],
+  );
+
+  // Copy a list of paths to the clipboard, joined with newlines.
+  const handleCopyPaths = useCallback(
+    async (paths: string[]) => {
+      if (paths.length === 0) return;
+      try {
+        await navigator.clipboard.writeText(paths.join('\n'));
+        showToast(
+          t('fileTree.toast.pathsCopied', '{{count}} paths copied', { count: paths.length }),
+          'success',
+        );
+      } catch {
+        showToast(t('fileTree.toast.copyFailed', 'Failed to copy paths'), 'error');
+      }
+    },
+    [showToast, t],
+  );
+
+  // Bulk delete — sequentially hits the single-item endpoint and reports.
+  const handleDeletePaths = useCallback(
+    async (items: Array<{ path: string; type: 'file' | 'directory' }>) => {
+      if (!selectedProject || items.length === 0) return;
+      setOperationLoading(true);
+      const failed: string[] = [];
+      try {
+        for (const item of items) {
+          try {
+            const response = await api.deleteFile(selectedProject.projectId, {
+              path: item.path,
+              type: item.type,
+            });
+            if (!response.ok) {
+              const data = await response.json().catch(() => ({}));
+              failed.push(item.path + (data?.error ? `: ${data.error}` : ''));
+            }
+          } catch (err) {
+            failed.push(item.path + `: ${(err as Error).message}`);
+          }
+        }
+        if (failed.length === 0) {
+          showToast(
+            t('fileTree.toast.selectionDeleted', '{{count}} items deleted', {
+              count: items.length,
+            }),
+            'success',
+          );
+        } else if (failed.length < items.length) {
+          showToast(
+            t('fileTree.toast.selectionPartialDelete', '{{fail}} of {{total}} items could not be deleted', {
+              fail: failed.length,
+              total: items.length,
+            }),
+            'error',
+          );
+        } else {
+          showToast(t('fileTree.toast.selectionDeleteFailed', 'Failed to delete selection'), 'error');
+          return;
+        }
+        onRefresh();
+      } finally {
+        setOperationLoading(false);
+      }
+    },
+    [selectedProject, showToast, t, onRefresh],
+  );
+
+  // Bulk download — produces a single ZIP that contains every selected item,
+  // preserving the project-relative layout.
+  const handleDownloadPaths = useCallback(
+    async (paths: string[]) => {
+      if (!selectedProject || paths.length === 0) return;
+
+      // Resolve the paths back to nodes by walking the cached tree-style data
+      // via the in-flight tree lookup. We accept the raw paths back into the
+      // helper functions below which already know how to scan the API.
+      const zip = new JSZip();
+      setOperationLoading(true);
+      try {
+        const fetchedRoot = await api.getFiles(selectedProject.projectId);
+        const tree: FileTreeNode[] = fetchedRoot.ok ? await fetchedRoot.json() : [];
+        const pathToNode = new Map<string, FileTreeNode>();
+        const indexTree = (node: FileTreeNode) => {
+          pathToNode.set(node.path, node);
+          if (node.children) node.children.forEach(indexTree);
+        };
+        tree.forEach(indexTree);
+
+        const seen = new Set<string>();
+        for (const path of paths) {
+          const node = pathToNode.get(path);
+          if (!node) {
+            showToast(t('fileTree.toast.pathNotFound', '{{path}} not found, skipping', { path }), 'error');
+            continue;
+          }
+          await collectNodeIntoZip(node, '', zip, selectedProject.projectId, seen, (msg) =>
+            showToast(msg, 'error'),
+          );
+        }
+
+        const blob = await zip.generateAsync({ type: 'blob' });
+        triggerBrowserDownload(blob, `selection-${Date.now()}.zip`);
+        showToast(t('fileTree.toast.selectionDownloaded', 'Selection downloaded'), 'success');
+      } catch (err) {
+        showToast((err as Error).message, 'error');
+      } finally {
+        setOperationLoading(false);
+      }
+    },
+    [selectedProject, showToast, t, triggerBrowserDownload],
+  );
+
+  // Bulk move — uses the new batch endpoint.
+  const handleMovePaths = useCallback(
+    async (
+      paths: Array<{ path: string; type: 'file' | 'directory' }>,
+      targetDir: string,
+    ) => {
+      if (!selectedProject || paths.length === 0) return;
+      setOperationLoading(true);
+      try {
+        const response = await api.moveFiles(selectedProject.projectId, {
+          items: paths,
+          targetDir,
+        });
+        const data = response.ok ? await response.json() : await response.json().catch(() => ({}));
+        if (!response.ok || data?.success === false) {
+          const errorMsg =
+            Array.isArray(data?.errors) && data.errors.length > 0
+              ? data.errors[0].error
+              : data?.error || 'Failed to move';
+          throw new Error(errorMsg);
+        }
+        const movedCount = Array.isArray(data.moved) ? data.moved.length : 0;
+        showToast(
+          t('fileTree.toast.selectionMoved', '{{count}} items moved', { count: movedCount }),
+          'success',
+        );
+        onRefresh();
+      } catch (err) {
+        showToast((err as Error).message, 'error');
+      } finally {
+        setOperationLoading(false);
+      }
+    },
+    [selectedProject, showToast, t, onRefresh],
+  );
+
   return {
     // Rename operations
     renamingItem,
@@ -365,7 +566,12 @@ export function useFileTreeOperations({
 
     // Other operations
     handleCopyPath,
+    handleCopyPaths,
     handleDownload,
+    handleDownloadPaths,
+    handleDeletePaths,
+    handleMovePaths,
+    resolveSelectionToItems,
 
     // Loading state
     operationLoading,

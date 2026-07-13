@@ -14,6 +14,14 @@ function getTabTitle(activeTab: AppTab, t: (key: string) => string) {
     return t('mainContent.projectFiles');
   }
 
+  if (activeTab === 'minimax') {
+    return t('mainContent.subscription');
+  }
+
+  if (activeTab === 'terminal' || activeTab === 'shell') {
+    return t('tabs.terminal');
+  }
+
   if (activeTab === 'browser') {
     return t('tabs.browser');
   }
@@ -65,19 +73,31 @@ export default function MainContentTitle({
             <h2 title={getSessionTitle(selectedSession)} className="truncate text-sm font-semibold leading-tight text-foreground">
               {getSessionTitle(selectedSession)}
             </h2>
-            <div className="truncate text-[11px] leading-tight text-muted-foreground">{selectedProject.displayName}</div>
+            <div className="truncate text-[11px] leading-tight text-muted-foreground" title={selectedProject.fullPath}>
+              {selectedProject.displayName}
+              <span className="mx-1 text-muted-foreground/60">·</span>
+              <span className="font-mono text-[10px] text-muted-foreground/80">{selectedProject.fullPath}</span>
+            </div>
           </div>
         ) : showChatNewSession ? (
           <div className="min-w-0">
             <h2 className="text-base font-semibold leading-tight text-foreground">{t('mainContent.newSession')}</h2>
-            <div className="truncate text-xs leading-tight text-muted-foreground">{selectedProject.displayName}</div>
+            <div className="truncate text-xs leading-tight text-muted-foreground" title={selectedProject.fullPath}>
+              {selectedProject.displayName}
+              <span className="mx-1 text-muted-foreground/60">·</span>
+              <span className="font-mono text-[10px] text-muted-foreground/80">{selectedProject.fullPath}</span>
+            </div>
           </div>
         ) : (
           <div className="min-w-0">
             <h2 className="text-sm font-semibold leading-tight text-foreground">
               {getTabTitle(activeTab, t)}
             </h2>
-            <div className="truncate text-[11px] leading-tight text-muted-foreground">{selectedProject.displayName}</div>
+            <div className="truncate text-[11px] leading-tight text-muted-foreground" title={selectedProject.fullPath}>
+              {selectedProject.displayName}
+              <span className="mx-1 text-muted-foreground/60">·</span>
+              <span className="font-mono text-[10px] text-muted-foreground/80">{selectedProject.fullPath}</span>
+            </div>
           </div>
         )}
       </div>

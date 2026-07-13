@@ -1,5 +1,5 @@
 import type { ReactNode, RefObject } from 'react';
-import { ChevronRight, Folder, FolderOpen } from 'lucide-react';
+import { Check, ChevronRight, Folder, FolderOpen } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import type { FileTreeNode as FileTreeNodeType, FileTreeViewMode } from '../types/types';
 import { Input } from '../../../shared/view/ui';
@@ -21,6 +21,10 @@ type FileTreeNodeProps = {
   onCopyPath?: (item: FileTreeNodeType) => void;
   onDownload?: (item: FileTreeNodeType) => void;
   onRefresh?: () => void;
+  // Multi-select
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelected?: (item: FileTreeNodeType) => void;
   // Rename state for inline editing
   renamingItem?: FileTreeNodeType | null;
   renameValue?: string;
@@ -30,6 +34,51 @@ type FileTreeNodeProps = {
   renameInputRef?: RefObject<HTMLInputElement>;
   operationLoading?: boolean;
 };
+
+type CheckboxProps = {
+  checked: boolean;
+  onToggle: () => void;
+  itemName: string;
+  disabled?: boolean;
+};
+
+function SelectionCheckbox({ checked, onToggle, itemName, disabled }: CheckboxProps) {
+  return (
+    <span
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={checked ? `Deselect ${itemName}` : `Select ${itemName}`}
+      tabIndex={disabled ? -1 : 0}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (disabled) return;
+        onToggle();
+      }}
+      onContextMenu={(event) => {
+        // Suppress the parent row's context menu when right-clicking the
+        // checkbox — selection is its own interaction.
+        event.stopPropagation();
+      }}
+      onKeyDown={(event) => {
+        if (disabled) return;
+        if (event.key === ' ' || event.key === 'Enter') {
+          event.preventDefault();
+          event.stopPropagation();
+          onToggle();
+        }
+      }}
+      className={cn(
+        'flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded border transition-colors',
+        checked
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-border bg-background hover:border-primary/60',
+        disabled && 'pointer-events-none opacity-50',
+      )}
+    >
+      {checked && <Check className="h-3 w-3" strokeWidth={3} />}
+    </span>
+  );
+}
 
 type TreeItemIconProps = {
   item: FileTreeNodeType;
@@ -75,6 +124,9 @@ export default function FileTreeNode({
   onCopyPath,
   onDownload,
   onRefresh,
+  isSelectionMode,
+  isSelected,
+  onToggleSelected,
   renamingItem,
   renameValue,
   setRenameValue,
@@ -87,6 +139,7 @@ export default function FileTreeNode({
   const isOpen = isDirectory && expandedDirs.has(item.path);
   const hasChildren = Boolean(isDirectory && item.children && item.children.length > 0);
   const isRenaming = renamingItem?.path === item.path;
+  const showCheckbox = Boolean(isSelectionMode);
 
   const nameClassName = cn(
     'text-[13px] leading-tight truncate',
@@ -102,6 +155,7 @@ export default function FileTreeNode({
       : 'group flex items-center gap-1.5 py-[3px] pr-2 cursor-pointer rounded-sm hover:bg-accent/60 transition-colors duration-100',
     isDirectory && isOpen && 'border-l-2 border-primary/30',
     (isDirectory && !isOpen) || !isDirectory ? 'border-l-2 border-transparent' : '',
+    showCheckbox && isSelected && 'bg-primary/10 hover:bg-primary/15',
   );
 
   // Render rename input if this item is being renamed
@@ -112,6 +166,14 @@ export default function FileTreeNode({
         style={{ paddingLeft: `${level * 16 + 4}px` }}
         onClick={(e) => e.stopPropagation()}
       >
+        {showCheckbox && (
+          <SelectionCheckbox
+            checked={Boolean(isSelected)}
+            onToggle={() => onToggleSelected?.(item)}
+            itemName={item.name}
+            disabled={operationLoading}
+          />
+        )}
         <TreeItemIcon item={item} isOpen={isOpen} renderFileIcon={renderFileIcon} />
         <Input
           ref={renameInputRef}
@@ -144,6 +206,14 @@ export default function FileTreeNode({
       {viewMode === 'detailed' ? (
         <>
           <div className="col-span-5 flex min-w-0 items-center gap-1.5">
+            {showCheckbox && (
+              <SelectionCheckbox
+                checked={Boolean(isSelected)}
+                onToggle={() => onToggleSelected?.(item)}
+                itemName={item.name}
+                disabled={operationLoading}
+              />
+            )}
             <TreeItemIcon item={item} isOpen={isOpen} renderFileIcon={renderFileIcon} />
             <span className={nameClassName}>{item.name}</span>
           </div>
@@ -156,6 +226,14 @@ export default function FileTreeNode({
       ) : viewMode === 'compact' ? (
         <>
           <div className="flex min-w-0 items-center gap-1.5">
+            {showCheckbox && (
+              <SelectionCheckbox
+                checked={Boolean(isSelected)}
+                onToggle={() => onToggleSelected?.(item)}
+                itemName={item.name}
+                disabled={operationLoading}
+              />
+            )}
             <TreeItemIcon item={item} isOpen={isOpen} renderFileIcon={renderFileIcon} />
             <span className={nameClassName}>{item.name}</span>
           </div>
@@ -170,6 +248,14 @@ export default function FileTreeNode({
         </>
       ) : (
         <>
+          {showCheckbox && (
+            <SelectionCheckbox
+              checked={Boolean(isSelected)}
+              onToggle={() => onToggleSelected?.(item)}
+              itemName={item.name}
+              disabled={operationLoading}
+            />
+          )}
           <TreeItemIcon item={item} isOpen={isOpen} renderFileIcon={renderFileIcon} />
           <span className={nameClassName}>{item.name}</span>
         </>
@@ -224,6 +310,9 @@ export default function FileTreeNode({
               onCopyPath={onCopyPath}
               onDownload={onDownload}
               onRefresh={onRefresh}
+              isSelectionMode={isSelectionMode}
+              isSelected={isSelected}
+              onToggleSelected={onToggleSelected}
               renamingItem={renamingItem}
               renameValue={renameValue}
               setRenameValue={setRenameValue}

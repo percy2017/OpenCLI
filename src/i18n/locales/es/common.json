@@ -26,7 +26,8 @@
     "browser": "Navegador",
     "computer": "Computadora",
     "ragVector": "RAG Vector",
-    "minimax": "Minimax MCP"
+    "minimax": "Minimax MCP",
+    "terminal": "Terminal"
   },
   "status": {
     "loading": "Cargando...",
@@ -97,7 +98,8 @@
     "createProjectDesktop": "Crea un nuevo proyecto haciendo clic en el ícono de carpeta de la barra lateral",
     "newSession": "Nueva sesión",
     "untitledSession": "Sesión sin título",
-    "projectFiles": "Archivos del proyecto"
+    "projectFiles": "Archivos del proyecto",
+    "subscription": "Datos de suscripción"
   },
   "fileTree": {
     "loading": "Cargando archivos...",
@@ -125,6 +127,60 @@
     "collapseAll": "Contraer todo",
     "showIgnored": "Mostrar carpetas ignoradas",
     "hideIgnored": "Ocultar carpetas ignoradas",
+    "selection": {
+      "enterMode": "Seleccionar archivos",
+      "exitMode": "Salir del modo selección",
+      "selectedCount": "{{count}} seleccionados",
+      "clear": "Limpiar",
+      "selectAllVisible": "Seleccionar todo lo visible",
+      "toolbarLabel": "Acciones de selección",
+      "copy": "Copiar",
+      "copyPaths": "Copiar rutas",
+      "download": "Descargar",
+      "downloadZip": "Descargar como ZIP",
+      "move": "Mover",
+      "moveTo": "Mover a...",
+      "delete": "Eliminar selección",
+      "deleteShort": "Eliminar",
+      "deleteTitle": "¿Eliminar {{count}} elementos?",
+      "deleteWarning": "Estos elementos se eliminarán permanentemente.",
+      "deleteConfirmShort": "Eliminar",
+      "andMore": "...y {{count}} más",
+      "moveTitle": "Mover {{count}} elementos a...",
+      "targetDirLabel": "Carpeta destino (relativa al proyecto)",
+      "targetDirPlaceholder": "ej. src/utils o vacío para raíz",
+      "recentFolders": "Selección rápida",
+      "moveConfirm": "Mover"
+    },
+    "toast": {
+      "renamed": "Renombrado correctamente",
+      "folderDeleted": "Carpeta eliminada",
+      "fileDeleted": "Archivo eliminado",
+      "fileCreated": "Archivo creado correctamente",
+      "folderCreated": "Carpeta creada correctamente",
+      "copyFailed": "Error al copiar rutas",
+      "pathCopied": "Ruta copiada al portapapeles",
+      "pathsCopied": "{{count}} rutas copiadas",
+      "folderDownloaded": "Carpeta descargada como ZIP",
+      "selectionDownloaded": "Selección descargada",
+      "selectionDeleted": "{{count}} elementos eliminados",
+      "selectionPartialDelete": "{{fail}} de {{total}} elementos no se pudieron eliminar",
+      "selectionDeleteFailed": "Error al eliminar la selección",
+      "selectionMoved": "{{count}} elementos movidos",
+      "pathNotFound": "{{path}} no existe, se omite"
+    },
+    "validation": {
+      "emptyName": "El nombre no puede estar vacío",
+      "invalidChars": "El nombre contiene caracteres no válidos",
+      "reserved": "El nombre está reservado por el sistema",
+      "dotsOnly": "El nombre no puede consistir solo de puntos"
+    },
+    "delete": {
+      "title": "Eliminar {{type}}",
+      "folderWarning": "Esta carpeta y todo su contenido se eliminarán permanentemente.",
+      "fileWarning": "Este archivo se eliminará permanentemente.",
+      "confirm": "Eliminar"
+    },
     "context": {
       "rename": "Renombrar",
       "delete": "Eliminar",
@@ -139,6 +195,10 @@
   },
   "projectWizard": {
     "title": "Crear nuevo proyecto",
+    "steps": {
+      "configure": "Configurar",
+      "confirm": "Confirmar"
+    },
     "step2": {
       "newPath": "Ruta del espacio de trabajo",
       "newHelp": "Ruta completa al directorio de tu espacio de trabajo"

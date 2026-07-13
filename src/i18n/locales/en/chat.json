@@ -108,7 +108,18 @@
     "stopRecording": "Stop recording",
     "speak": "Read aloud",
     "stopSpeaking": "Stop",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "errors": {
+      "noSpeech": "No speech detected. Try again.",
+      "aborted": "Voice input cancelled.",
+      "audioCapture": "No microphone found. Check your audio device.",
+      "network": "Network error during voice input.",
+      "notAllowed": "Microphone permission denied.",
+      "serviceNotAllowed": "Voice service blocked. Check your browser settings.",
+      "languageNotSupported": "Language not supported by voice input.",
+      "phishing": "Voice input blocked for security reasons.",
+      "unknown": "Voice input failed. Try again."
+    }
   },
   "input": {
     "placeholder": "Type / for commands, @ for files, or ask {{provider}} anything...",

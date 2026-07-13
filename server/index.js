@@ -549,6 +549,194 @@ app.get('/api/projects/:projectId/files/content', authenticateToken, async (req,
     }
 });
 
+// Translate a better-sqlite3 / SQLite error into something a user can act on.
+// The common case is `database is locked` because the running server has its
+// own connection open (auth.db, sessions.db, ...). The raw error code leaks
+// "near "?": syntax error" which is what we saw in the UI.
+function classifySqliteError(error, filePath) {
+    const code = error?.code || '';
+    const raw = (error?.message || String(error)).toLowerCase();
+    const name = path.basename(filePath || '');
+
+    if (code === 'SQLITE_BUSY' || raw.includes('database is locked')) {
+        return `"${name}" is currently in use by the server. Close the connection or inspect the database from another tool.`;
+    }
+    if (code === 'SQLITE_CORRUPT' || raw.includes('database disk image is malformed')) {
+        return `"${name}" is not a readable SQLite database.`;
+    }
+    if (code === 'SQLITE_NOTADB' || raw.includes('file is not a database') || raw.includes('not a database')) {
+        return `"${name}" is not a SQLite database file.`;
+    }
+    if (raw.includes('syntax error')) {
+        return `Could not parse "${name}" as a SQLite database (syntax error). The file may be corrupted or use an unsupported format.`;
+    }
+    return error?.message || String(error);
+}
+
+// Resolve a .db / .sqlite file to its absolute, project-bound path. Used by
+// every endpoint below — keeps the validation in one place.
+async function resolveSqliteFile(projectId, rawPath) {
+    if (!rawPath) {
+        const error = new Error('Invalid file path');
+        error.status = 400;
+        throw error;
+    }
+    const projectRoot = await projectsDb.getProjectPathById(projectId);
+    if (!projectRoot) {
+        const error = new Error('Project not found');
+        error.status = 404;
+        throw error;
+    }
+    const resolved = path.isAbsolute(rawPath)
+        ? path.resolve(rawPath)
+        : path.resolve(projectRoot, rawPath);
+    const normalizedRoot = path.resolve(projectRoot) + path.sep;
+    if (!resolved.startsWith(normalizedRoot)) {
+        const error = new Error('Path must be under project root');
+        error.status = 403;
+        throw error;
+    }
+    try {
+        await fsPromises.access(resolved);
+    } catch {
+        const error = new Error('File not found');
+        error.status = 404;
+        throw error;
+    }
+    return resolved;
+}
+
+// GET /api/projects/:projectId/sqlite/tables?path=...
+// Returns the list of user tables plus row counts. Designed for the file-tree
+// SQLite viewer's left-hand pane.
+app.get('/api/projects/:projectId/sqlite/tables', authenticateToken, async (req, res) => {
+    let db = null;
+    try {
+        const resolved = await resolveSqliteFile(req.params.projectId, req.query.path);
+        db = new Database(resolved, { readonly: true, fileMustExist: true });
+
+        const tableRows = db
+            .prepare(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+            )
+            .all();
+
+        const countStmt = db.prepare('SELECT COUNT(*) AS count FROM ?');
+        const tables = tableRows.map((row) => {
+            // COUNT(*) takes a table identifier; quote it so names with spaces
+            // or hyphens still resolve.
+            const escaped = '"' + String(row.name).replace(/"/g, '""') + '"';
+            try {
+                const result = db.prepare(`SELECT COUNT(*) AS count FROM ${escaped}`).get();
+                return { name: row.name, rowCount: Number(result?.count ?? 0) };
+            } catch {
+                return { name: row.name, rowCount: null, error: 'count failed' };
+            }
+        });
+
+        // Page size + page count (useful when the UI shows "page 1 / 12").
+        const pageSizeRow = db.prepare('PRAGMA page_size').get();
+        const pageCountRow = db.prepare('PRAGMA page_count').get();
+        const pageSize = Number(pageSizeRow?.page_size ?? 0);
+        const pageCount = Number(pageCountRow?.page_count ?? 0);
+
+        res.json({
+            tables,
+            fileSize: (await fsPromises.stat(resolved)).size,
+            pageSize,
+            pageCount,
+        });
+    } catch (error) {
+        console.error('Error reading SQLite tables:', error);
+        res.status(error.status || 500).json({
+            error: classifySqliteError(error, resolved),
+        });
+    } finally {
+        if (db) {
+            try { db.close(); } catch { /* ignore */ }
+        }
+    }
+});
+
+// GET /api/projects/:projectId/sqlite/table?path=...&table=...&limit=100&offset=0
+// Returns the columns + paginated rows for a single table. The UI hydrates
+// this when the user picks a table from the list.
+app.get('/api/projects/:projectId/sqlite/table', authenticateToken, async (req, res) => {
+    let db = null;
+    try {
+        const tableName = String(req.query.table || '').trim();
+        if (!tableName) {
+            return res.status(400).json({ error: 'table is required' });
+        }
+        // Only allow identifiers that match a real table name; better-sqlite3
+        // will refuse unknown ones but we double-check against sqlite_master.
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(tableName)) {
+            return res.status(400).json({ error: 'Invalid table name' });
+        }
+
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 1000);
+        const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+
+        const resolved = await resolveSqliteFile(req.params.projectId, req.query.path);
+        db = new Database(resolved, { readonly: true, fileMustExist: true });
+
+        const exists = db
+            .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?")
+            .get(tableName);
+        if (!exists) {
+            return res.status(404).json({ error: `Table "${tableName}" not found` });
+        }
+
+        const columnRows = db.prepare(`PRAGMA table_info("${tableName}")`).all();
+        const columns = columnRows.map((col) => ({
+            name: col.name,
+            type: col.type || '',
+            notNull: Boolean(col.notnull),
+            defaultValue: col.dflt_value ?? null,
+            primaryKey: Boolean(col.pk),
+        }));
+
+        // Sanitize limit/offset — they come in as query strings, so .all()
+        // cannot bind them as parameters in older sqlite. We do interpolate
+        // them, but only after coercing to bounded integers above.
+        const rows = db
+            .prepare(`SELECT * FROM "${tableName}" LIMIT ${limit} OFFSET ${offset}`)
+            .all();
+
+        const totalRow = db.prepare(`SELECT COUNT(*) AS count FROM "${tableName}"`).get();
+        const total = Number(totalRow?.count ?? 0);
+
+        // Map each row to a plain object so JSON.stringify doesn't choke on
+        // BigInt (sqlite can return INTEGER as bigint for very large ids).
+        const safeRows = rows.map((row) => {
+            const obj = {};
+            for (const col of columns) {
+                const value = row[col.name];
+                obj[col.name] = typeof value === 'bigint' ? value.toString() : value;
+            }
+            return obj;
+        });
+
+        res.json({
+            table: tableName,
+            columns,
+            rows: safeRows,
+            total,
+            limit,
+            offset,
+        });
+    } catch (error) {
+        console.error('Error reading SQLite table:', error);
+        res.status(error.status || 500).json({
+            error: classifySqliteError(error, resolved),
+        });
+    } finally {
+        if (db) {
+            try { db.close(); } catch { /* ignore */ }
+        }
+    }
+});
+
 // Save file content endpoint
 app.put('/api/projects/:projectId/file', authenticateToken, async (req, res) => {
     try {
@@ -826,6 +1014,131 @@ app.put('/api/projects/:projectId/files/rename', authenticateToken, async (req, 
         } else {
             res.status(500).json({ error: error.message });
         }
+    }
+});
+
+// PUT /api/projects/:projectId/files/move - Move file or directory to a new parent directory
+// Body: { items: [{ path: string, type: 'file' | 'directory' }], targetDir: string }
+// `items` lets a single move request carry a batch from the multi-select tree.
+// `targetDir` is an absolute project-relative directory path ("", "src", "src/utils").
+// Empty string means the project root. Validation rejects any item whose source
+// path equals or is a child of `targetDir` (moving a folder into itself).
+app.put('/api/projects/:projectId/files/move', authenticateToken, async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { items, targetDir } = req.body || {};
+
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'items must be a non-empty array' });
+        }
+        if (typeof targetDir !== 'string') {
+            return res.status(400).json({ error: 'targetDir must be a string' });
+        }
+
+        const projectRoot = await projectsDb.getProjectPathById(projectId);
+        if (!projectRoot) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        // Resolve and validate the target directory. We require it to be a
+        // directory that already exists inside the project root.
+        const normalizedTarget = targetDir.replace(/^\/+|\/+$/g, '');
+        const targetValidation = validatePathInProject(
+            projectRoot,
+            normalizedTarget === '' ? '' : normalizedTarget,
+        );
+        if (!targetValidation.valid) {
+            return res.status(403).json({ error: targetValidation.error });
+        }
+
+        let targetStats;
+        try {
+            targetStats = await fsPromises.stat(targetValidation.resolved);
+        } catch {
+            return res.status(404).json({ error: 'Target directory not found' });
+        }
+        if (!targetStats.isDirectory()) {
+            return res.status(400).json({ error: 'Target path is not a directory' });
+        }
+
+        const results = [];
+        const errors = [];
+
+        for (const item of items) {
+            const sourcePath = item?.path;
+            const sourceType = item?.type;
+            if (!sourcePath || (sourceType !== 'file' && sourceType !== 'directory')) {
+                errors.push({ path: sourcePath, error: 'Invalid item shape' });
+                continue;
+            }
+
+            const sourceValidation = validatePathInProject(projectRoot, sourcePath);
+            if (!sourceValidation.valid) {
+                errors.push({ path: sourcePath, error: sourceValidation.error });
+                continue;
+            }
+
+            const resolvedSource = sourceValidation.resolved;
+            if (resolvedSource === path.resolve(projectRoot)) {
+                errors.push({ path: sourcePath, error: 'Cannot move project root' });
+                continue;
+            }
+
+            // Block moving a directory into itself or one of its descendants.
+            const sourceRelToRoot = path.relative(path.resolve(projectRoot), resolvedSource);
+            const targetRelToSource = path.relative(resolvedSource, targetValidation.resolved);
+            if (
+                !sourceRelToRoot.startsWith('..') &&
+                !path.isAbsolute(sourceRelToRoot) &&
+                (!targetRelToSource.startsWith('..') || targetRelToSource === '')
+            ) {
+                errors.push({ path: sourcePath, error: 'Cannot move a directory into itself' });
+                continue;
+            }
+
+            const baseName = path.basename(resolvedSource);
+            const resolvedDest = path.join(targetValidation.resolved, baseName);
+            if (resolvedDest === resolvedSource) {
+                // Source is already inside the target dir — no-op success.
+                results.push({ path: sourcePath, newPath: resolvedDest, noop: true });
+                continue;
+            }
+
+            try {
+                await fsPromises.stat(resolvedDest);
+                errors.push({ path: sourcePath, error: `A file or directory named "${baseName}" already exists in the target` });
+                continue;
+            } catch (e) {
+                if (e.code !== 'ENOENT') {
+                    errors.push({ path: sourcePath, error: e.message });
+                    continue;
+                }
+            }
+
+            try {
+                await fsPromises.rename(resolvedSource, resolvedDest);
+                results.push({ path: sourcePath, newPath: resolvedDest });
+            } catch (err) {
+                if (err.code === 'EACCES') {
+                    errors.push({ path: sourcePath, error: 'Permission denied' });
+                } else if (err.code === 'ENOENT') {
+                    errors.push({ path: sourcePath, error: 'Source not found' });
+                } else if (err.code === 'EXDEV') {
+                    errors.push({ path: sourcePath, error: 'Cannot move across filesystems' });
+                } else {
+                    errors.push({ path: sourcePath, error: err.message });
+                }
+            }
+        }
+
+        res.json({
+            success: errors.length === 0,
+            moved: results,
+            errors,
+        });
+    } catch (error) {
+        console.error('Error moving files:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 

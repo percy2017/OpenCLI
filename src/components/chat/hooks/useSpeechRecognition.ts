@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Web Speech API typings (Chromium / Edge / Safari). The W3C draft exposes the
 // constructor on window.SpeechRecognition; older WebKit prefixes it as
@@ -69,6 +70,7 @@ export type UseSpeechRecognitionOptions = {
  * user speaks.
  */
 export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) {
+  const { t } = useTranslation('chat');
   const SR = resolveSpeechRecognition();
   const supported = SR !== null;
 
@@ -79,6 +81,18 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   const recRef = useRef<SpeechRecognitionLike | null>(null);
   const lang = options.lang;
   const continuous = options.continuous ?? true;
+
+  // Translate Web Speech API error codes (e.g. "no-speech", "audio-capture") into
+  // human-readable, localized messages. Unknown codes fall back to a generic error.
+  const translateError = useCallback((code: string | null | undefined): string => {
+    if (!code) return t('voice.errors.unknown');
+    // Map kebab-case API codes to camelCase i18n keys.
+    const key = code
+      .replace(/-([a-z])/g, (_, ch: string) => ch.toUpperCase())
+      .replace(/^[a-z]/, (ch) => ch.toLowerCase());
+    const translated = t(`voice.errors.${key}`, { defaultValue: '' });
+    return translated || t('voice.errors.unknown');
+  }, [t]);
 
   // Stop recognition if the component unmounts mid-listen.
   useEffect(() => {
@@ -111,7 +125,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     };
 
     rec.onerror = (e) => {
-      setError(e.error || 'recognition error');
+      setError(translateError(e.error));
     };
 
     rec.onend = () => {
@@ -123,11 +137,11 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     setState('listening');
     try {
       rec.start();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'failed to start');
+    } catch {
+      setError(t('voice.errors.unknown'));
       setState('idle');
     }
-  }, [SR, state, lang, continuous]);
+  }, [SR, state, lang, continuous, translateError, t]);
 
   const stop = useCallback(() => {
     try { recRef.current?.stop(); } catch { /* already stopped */ }

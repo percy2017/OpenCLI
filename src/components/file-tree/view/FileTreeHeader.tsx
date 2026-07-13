@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
-import { ChevronDown, Eye, EyeOff, FileText, FolderPlus, List, Loader2, RefreshCw, Search, TableProperties, Upload, X } from 'lucide-react';
+import { CheckSquare, ChevronDown, Eye, EyeOff, FileText, FolderPlus, List, Loader2, RefreshCw, Search, Square, TableProperties, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Input } from '../../../shared/view/ui';
@@ -21,6 +21,11 @@ type FileTreeHeaderProps = {
   onCollapseAll?: () => void;
   showIgnored?: boolean;
   onShowIgnoredChange?: (value: boolean) => void;
+  // Multi-select
+  isSelectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
+  selectedCount?: number;
+  onSelectAllVisible?: () => void;
   // Loading state
   loading?: boolean;
   operationLoading?: boolean;
@@ -40,6 +45,10 @@ export default function FileTreeHeader({
   onCollapseAll,
   showIgnored,
   onShowIgnoredChange,
+  isSelectionMode,
+  onToggleSelectionMode,
+  selectedCount,
+  onSelectAllVisible,
   loading,
   operationLoading,
   isUploading,
@@ -183,6 +192,31 @@ export default function FileTreeHeader({
               )}
             </Button>
           )}
+          {onToggleSelectionMode && (
+            <Button
+              variant={isSelectionMode ? 'default' : 'ghost'}
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={onToggleSelectionMode}
+              title={
+                isSelectionMode
+                  ? t('fileTree.selection.exitMode', 'Exit selection mode')
+                  : t('fileTree.selection.enterMode', 'Select files')
+              }
+              aria-label={
+                isSelectionMode
+                  ? t('fileTree.selection.exitMode', 'Exit selection mode')
+                  : t('fileTree.selection.enterMode', 'Select files')
+              }
+              disabled={operationLoading}
+            >
+              {isSelectionMode ? (
+                <CheckSquare className="h-3.5 w-3.5" />
+              ) : (
+                <Square className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
           {/* Divider */}
           <div className="mx-0.5 h-4 w-px bg-border" />
           {/* View mode buttons */}
@@ -218,6 +252,28 @@ export default function FileTreeHeader({
           </Button>
         </div>
       </div>
+
+      {/* Selection mode summary line */}
+      {isSelectionMode && (
+        <div className="flex items-center justify-between gap-2 pt-1 text-xs text-muted-foreground">
+          <span>
+            {t('fileTree.selection.selectedCount', '{{count}} selected', {
+              count: selectedCount ?? 0,
+            })}
+          </span>
+          {onSelectAllVisible && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={onSelectAllVisible}
+              disabled={operationLoading}
+            >
+              {t('fileTree.selection.selectAllVisible', 'Select all visible')}
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="relative">

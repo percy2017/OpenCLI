@@ -26,7 +26,8 @@
     "browser": "Browser",
     "computer": "Computer",
     "ragVector": "RAG Vector",
-    "minimax": "Minimax MCP"
+    "minimax": "Minimax MCP",
+    "terminal": "Terminal"
   },
   "status": {
     "loading": "Loading...",
@@ -97,7 +98,8 @@
     "createProjectDesktop": "Create a new project by clicking the folder icon in the sidebar",
     "newSession": "New Session",
     "untitledSession": "Untitled Session",
-    "projectFiles": "Project Files"
+    "projectFiles": "Project Files",
+    "subscription": "Subscription"
   },
   "fileTree": {
     "loading": "Loading files...",
@@ -125,6 +127,60 @@
     "collapseAll": "Collapse All",
     "showIgnored": "Show ignored folders",
     "hideIgnored": "Hide ignored folders",
+    "selection": {
+      "enterMode": "Select files",
+      "exitMode": "Exit selection mode",
+      "selectedCount": "{{count}} selected",
+      "clear": "Clear",
+      "selectAllVisible": "Select all visible",
+      "toolbarLabel": "Selection actions",
+      "copy": "Copy",
+      "copyPaths": "Copy paths",
+      "download": "Download",
+      "downloadZip": "Download as ZIP",
+      "move": "Move",
+      "moveTo": "Move to...",
+      "delete": "Delete selection",
+      "deleteShort": "Delete",
+      "deleteTitle": "Delete {{count}} items?",
+      "deleteWarning": "These items will be permanently deleted.",
+      "deleteConfirmShort": "Delete",
+      "andMore": "...and {{count}} more",
+      "moveTitle": "Move {{count}} items to...",
+      "targetDirLabel": "Target folder (project-relative)",
+      "targetDirPlaceholder": "e.g. src/utils or empty for root",
+      "recentFolders": "Quick pick",
+      "moveConfirm": "Move"
+    },
+    "toast": {
+      "renamed": "Renamed successfully",
+      "folderDeleted": "Folder deleted",
+      "fileDeleted": "File deleted",
+      "fileCreated": "File created successfully",
+      "folderCreated": "Folder created successfully",
+      "copyFailed": "Failed to copy paths",
+      "pathCopied": "Path copied to clipboard",
+      "pathsCopied": "{{count}} paths copied",
+      "folderDownloaded": "Folder downloaded as ZIP",
+      "selectionDownloaded": "Selection downloaded",
+      "selectionDeleted": "{{count}} items deleted",
+      "selectionPartialDelete": "{{fail}} of {{total}} items could not be deleted",
+      "selectionDeleteFailed": "Failed to delete selection",
+      "selectionMoved": "{{count}} items moved",
+      "pathNotFound": "{{path}} not found, skipping"
+    },
+    "validation": {
+      "emptyName": "Filename cannot be empty",
+      "invalidChars": "Filename contains invalid characters",
+      "reserved": "Filename is a reserved name",
+      "dotsOnly": "Filename cannot be only dots"
+    },
+    "delete": {
+      "title": "Delete {{type}}",
+      "folderWarning": "This folder and all its contents will be permanently deleted.",
+      "fileWarning": "This file will be permanently deleted.",
+      "confirm": "Delete"
+    },
     "context": {
       "rename": "Rename",
       "delete": "Delete",
@@ -139,6 +195,10 @@
   },
   "projectWizard": {
     "title": "Create New Project",
+    "steps": {
+      "configure": "Configure",
+      "confirm": "Confirm"
+    },
     "step2": {
       "newPath": "Workspace Path",
       "newHelp": "Full path to your workspace directory"

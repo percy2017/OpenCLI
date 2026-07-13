@@ -175,6 +175,22 @@ export const api = {
       body: JSON.stringify({ oldPath, newName }),
     }),
 
+  moveFiles: (projectId, { items, targetDir }) =>
+    authenticatedFetch(`/api/projects/${projectId}/files/move`, {
+      method: 'PUT',
+      body: JSON.stringify({ items, targetDir }),
+    }),
+
+  getSqliteTables: (projectId, filePath) =>
+    authenticatedFetch(
+      `/api/projects/${projectId}/sqlite/tables?path=${encodeURIComponent(filePath)}`,
+    ),
+
+  getSqliteTable: (projectId, { path, table, limit = 100, offset = 0 }) =>
+    authenticatedFetch(
+      `/api/projects/${projectId}/sqlite/table?path=${encodeURIComponent(path)}&table=${encodeURIComponent(table)}&limit=${limit}&offset=${offset}`,
+    ),
+
   deleteFile: (projectId, { path, type }) =>
     authenticatedFetch(`/api/projects/${projectId}/files`, {
       method: 'DELETE',
