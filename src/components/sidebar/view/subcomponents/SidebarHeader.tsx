@@ -27,6 +27,7 @@ type SidebarHeaderProps = {
   isRefreshing: boolean;
   onCreateProject: () => void;
   onCollapseSidebar: () => void;
+  onLogoClick: () => void;
   t: TFunction;
 };
 
@@ -47,6 +48,7 @@ export default function SidebarHeader({
   isRefreshing,
   onCreateProject,
   onCollapseSidebar,
+  onLogoClick,
   t,
 }: SidebarHeaderProps) {
   const showSearchTools = (projectsCount > 0 || runningSessionsCount > 0 || archivedSessionsCount > 0 || isArchivedSessionsLoading) && !isLoading;
@@ -92,7 +94,15 @@ export default function SidebarHeader({
               <LogoBlock />
             </a>
           ) : (
-            <LogoBlock />
+            <button
+              type="button"
+              onClick={onLogoClick}
+              className="flex min-w-0 cursor-pointer items-center rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title={t('sidebarHeader.openCli')}
+              aria-label={t('sidebarHeader.openCli')}
+            >
+              <LogoBlock />
+            </button>
           )}
 
           <div className="flex flex-shrink-0 items-center gap-0.5">
@@ -252,7 +262,15 @@ export default function SidebarHeader({
               <LogoBlock />
             </a>
           ) : (
-            <LogoBlock />
+            <button
+              type="button"
+              onClick={onLogoClick}
+              className="flex min-w-0 cursor-pointer items-center rounded-md transition-opacity active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title={t('sidebarHeader.openCli')}
+              aria-label={t('sidebarHeader.openCli')}
+            >
+              <LogoBlock />
+            </button>
           )}
 
           <div className="flex flex-shrink-0 gap-1.5">

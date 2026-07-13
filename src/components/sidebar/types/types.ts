@@ -51,6 +51,9 @@ export type SidebarProps = {
   // `projectId` is the DB identifier; the sidebar hands it back to the parent
   // when the delete flow completes.
   onProjectDelete?: (projectId: string) => void;
+  // Clicking the OpenCLI logo clears any project/session selection and
+  // returns the user to the empty "choose a project" landing state.
+  onLogoClick: () => void;
   isLoading: boolean;
   loadingProgress: LoadingProgress | null;
   onRefresh: () => Promise<void> | void;

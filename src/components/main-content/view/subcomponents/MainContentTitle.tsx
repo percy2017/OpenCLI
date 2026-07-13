@@ -5,7 +5,7 @@ import type { AppTab, Project, ProjectSession } from '../../../../types/app';
 
 type MainContentTitleProps = {
   activeTab: AppTab;
-  selectedProject: Project;
+  selectedProject: Project | null;
   selectedSession: ProjectSession | null;
 };
 
@@ -31,6 +31,22 @@ export default function MainContentTitle({
   selectedSession,
 }: MainContentTitleProps) {
   const { t } = useTranslation();
+
+  // Empty/landing state (no project selected): render a compact OpenCLI brand
+  // block in place of the project title so the header has identity on mobile
+  // when the user lands on the "Choose Your Project" view.
+  if (!selectedProject) {
+    return (
+      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary/90 shadow-sm">
+          <svg className="h-3.5 w-3.5 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <h2 className="truncate text-sm font-bold tracking-tight text-foreground">OpenCLI</h2>
+      </div>
+    );
+  }
 
   const showSessionIcon = activeTab === 'chat' && Boolean(selectedSession);
   const showChatNewSession = activeTab === 'chat' && !selectedSession;

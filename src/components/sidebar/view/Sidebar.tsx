@@ -27,6 +27,7 @@ function Sidebar({
   onSessionDelete,
   onLoadMoreSessions,
   onProjectDelete,
+  onLogoClick,
   isLoading,
   loadingProgress,
   onRefresh,
@@ -303,6 +304,7 @@ function Sidebar({
             onShowVersionModal={() => setShowVersionModal(true)}
             onShowSettings={onShowSettings}
             onLogout={() => setShowLogoutConfirm(true)}
+            onLogoClick={onLogoClick}
             projectListProps={projectListProps}
             t={t}
           />

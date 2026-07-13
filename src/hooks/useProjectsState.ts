@@ -936,6 +936,15 @@ export function useProjectsState({
     [navigate, selectedProject?.projectId],
   );
 
+  // Drop any selection and return the user to the "choose a project" landing
+  // state. Wired to the sidebar logo so a click always lands on the empty
+  // view, regardless of whether a project/session is currently selected.
+  const handleLogoClick = useCallback(() => {
+    setSelectedProject(null);
+    setSelectedSession(null);
+    navigate('/');
+  }, [navigate]);
+
   const sidebarSharedProps = useMemo(
     () => ({
       projects,
@@ -949,6 +958,7 @@ export function useProjectsState({
       onSessionDelete: handleSessionDelete,
       onLoadMoreSessions: loadMoreProjectSessions,
       onProjectDelete: handleProjectDelete,
+      onLogoClick: handleLogoClick,
       isLoading: isLoadingProjects,
       loadingProgress,
       onRefresh: handleSidebarRefresh,
@@ -962,6 +972,7 @@ export function useProjectsState({
       attentionSessionIds,
       handleNewSession,
       handleProjectDelete,
+      handleLogoClick,
       handleProjectSelect,
       handleSessionDelete,
       loadMoreProjectSessions,
@@ -1007,6 +1018,7 @@ export function useProjectsState({
     handleSessionDelete,
     loadMoreProjectSessions,
     handleProjectDelete,
+    handleLogoClick,
     handleSidebarRefresh,
   };
 }

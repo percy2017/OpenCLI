@@ -147,6 +147,7 @@ type SidebarContentProps = {
   onShowVersionModal: () => void;
   onShowSettings: () => void;
   onLogout: () => void;
+  onLogoClick: () => void;
   projectListProps: SidebarProjectListProps;
   t: TFunction;
 };
@@ -185,6 +186,7 @@ export default function SidebarContent({
   onShowVersionModal,
   onShowSettings,
   onLogout,
+  onLogoClick,
   projectListProps,
   t,
 }: SidebarContentProps) {
@@ -214,6 +216,7 @@ export default function SidebarContent({
         isRefreshing={isRefreshing}
         onCreateProject={onCreateProject}
         onCollapseSidebar={onCollapseSidebar}
+        onLogoClick={onLogoClick}
         t={t}
       />
 

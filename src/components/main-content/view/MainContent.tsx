@@ -199,6 +199,30 @@ function MainContent({
   }
 
   if (!selectedProject) {
+    // On mobile we still want to show the brand header so the title "OpenCLI"
+    // is visible while the user lands on the empty "Choose Your Project" view.
+    // On desktop the empty state stands alone — the sidebar already carries
+    // the brand, so the header would be redundant.
+    if (isMobile) {
+      return (
+        <div className="flex h-full flex-col">
+          <MainContentHeader
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            selectedProject={null}
+            selectedSession={null}
+            shouldShowBrowserTab={shouldShowBrowserTab}
+            shouldShowRagVectorTab={shouldShowRagVectorTab}
+            shouldShowMinimaxTab={shouldShowMinimaxTab}
+            shouldShowTerminalModuleTab={shouldShowTerminalModuleTab}
+            shouldShowShellTab={shouldShowShellTab}
+            isMobile={isMobile}
+            onMenuClick={onMenuClick}
+          />
+          <MainContentStateView mode="empty" isMobile={isMobile} onMenuClick={onMenuClick} />
+        </div>
+      );
+    }
     return <MainContentStateView mode="empty" isMobile={isMobile} onMenuClick={onMenuClick} />;
   }
 
