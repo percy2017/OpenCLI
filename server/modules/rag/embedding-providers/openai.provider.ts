@@ -33,7 +33,7 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
   readonly defaultModel = 'text-embedding-3-small';
   readonly defaultDimensions = 1536;
 
-  getConfig(): EmbeddingProviderConfig {
+  async getConfig(): Promise<EmbeddingProviderConfig> {
     const model = (process.env.OPENAI_EMBEDDING_MODEL as string | undefined) ?? this.defaultModel;
     const baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
     return {

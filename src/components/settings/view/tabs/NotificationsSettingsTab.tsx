@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '../../../../shared/view/ui';
 import { playChatCompletionSound } from '../../../../utils/notificationSound';
+import InstallAppCard from '../../../pwa/InstallAppCard';
 import type { NotificationPreferencesState } from '../../types/types';
 
 type NotificationsSettingsTabProps = {
@@ -148,6 +149,8 @@ export default function NotificationsSettingsTab({
           )}
         </div>
       )}
+
+      <InstallAppCard />
 
       <div className="space-y-4 rounded-lg border border-border bg-card p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

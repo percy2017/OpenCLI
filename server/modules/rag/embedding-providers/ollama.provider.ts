@@ -41,7 +41,7 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
   readonly defaultModel = 'mxbai-embed-large';
   readonly defaultDimensions = 1024;
 
-  getConfig(): EmbeddingProviderConfig {
+  async getConfig(): Promise<EmbeddingProviderConfig> {
     const model = (process.env.OLLAMA_EMBEDDING_MODEL as string | undefined) ?? this.defaultModel;
     const baseUrl = process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434';
     return {

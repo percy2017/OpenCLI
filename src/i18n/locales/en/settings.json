@@ -105,12 +105,38 @@
     "git": "Git",
     "apiTokens": "API & Tokens",
     "voice": "Voice",
-    "browser": "Browser MCP",
+    "mcpTools": "MCP & Tools",
     "notifications": "Notifications",
     "about": "About",
-    "mmxCli": "Rag MCP",
-    "terminal": "Terminal",
-    "minimaxMcp": "Minimax MCP"
+    "terminal": "Terminal"
+  },
+  "mcpTools": {
+    "sectionTitle": "MCP & Tools",
+    "sectionDescription": "Manage the MCP servers registered with Claude Code and Codex, and inspect the tools each server exposes.",
+    "subTabs": {
+      "browser": {
+        "label": "Browser",
+        "description": "Playwright-based browser sessions monitored from the Browser tab."
+      },
+      "minimax": {
+        "label": "Minimax",
+        "description": "Official MiniMax coding plan MCP server (uvx)."
+      },
+      "rag": {
+        "label": "RAG",
+        "description": "Local knowledge base — uploads, embeddings, and cloudcli-rag."
+      }
+    },
+    "tools": {
+      "title": "Exposed tools",
+      "loading": "Loading tools...",
+      "empty": "No tools exposed by this server.",
+      "unavailable": "Server not reachable on this machine.",
+      "schemaToggle": "Show JSON schema",
+      "schemaHide": "Hide JSON schema",
+      "count_one": "{{count}} tool",
+      "count_other": "{{count}} tools"
+    }
   },
   "notifications": {
     "title": "Notifications",

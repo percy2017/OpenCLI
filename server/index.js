@@ -53,6 +53,7 @@ import mcpMinimaxRoutes from './modules/mcp-minimax/mcp-minimax.routes.js';
 import featureFlagsRoutes from './modules/feature-flags/feature-flags.routes.js';
 import ragRoutes from './modules/rag/rag.routes.js';
 import ragMcpToggleRoutes from './modules/rag-mcp-toggle/rag-mcp-toggle.routes.js';
+import mcpToolsRoutes from './modules/mcp-tools/mcp-tools.routes.js';
 import terminalRoutes from './modules/terminal/terminal.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
 import browserUseMcpRoutes from './modules/browser-use/browser-use-mcp.routes.js';
@@ -206,6 +207,9 @@ app.use('/api/rag', authenticateToken, ragRoutes);
 
 // RAG MCP toggle (registers cloudli-rag with Claude + Codex)
 app.use('/api/rag-mcp', authenticateToken, ragMcpToggleRoutes);
+
+// MCP tools catalog — aggregated tool listings for the "MCP y Tools" settings tab.
+app.use('/api/mcp-tools', authenticateToken, mcpToolsRoutes);
 
 // Terminal kill-switch (gates the /shell WebSocket)
 app.use('/api/terminal', authenticateToken, terminalRoutes);

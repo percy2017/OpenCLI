@@ -3,7 +3,21 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { LLMProvider } from '../../../types/app';
 import type { ProviderAuthStatus } from '../../provider-auth/types';
 
-export type SettingsMainTab = 'agents' | 'appearance' | 'api' | 'voice' | 'browser' | 'minimaxMcp' | 'mmxCli' | 'notifications' | 'terminal';
+export type SettingsMainTab =
+  | 'agents'
+  | 'appearance'
+  | 'api'
+  | 'voice'
+  | 'mcpTools'
+  | 'notifications'
+  | 'terminal';
+
+export type McpSubTab = 'browser' | 'minimax' | 'rag';
+
+/** Legacy tab ids that callers may still pass as `initialTab`. The settings
+ * controller remaps them to `'mcpTools'` and seeds `activeMcpSubTab` with the
+ * matching sub-tab. */
+export type LegacySettingsMainTab = 'browser' | 'minimaxMcp' | 'mmxCli';
 export type AgentProvider = LLMProvider;
 export type AgentCategory = 'account' | 'permissions' | 'mcp' | 'skills';
 export type ProjectSortOrder = 'name' | 'date';

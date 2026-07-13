@@ -105,12 +105,38 @@
     "git": "Git",
     "apiTokens": "API y tokens",
     "voice": "Voz",
-    "browser": "Navegador MCP",
+    "mcpTools": "MCP y herramientas",
     "notifications": "Notificaciones",
     "about": "Acerca de",
-    "mmxCli": "Rag MCP",
-    "terminal": "Terminal",
-    "minimaxMcp": "Minimax MCP"
+    "terminal": "Terminal"
+  },
+  "mcpTools": {
+    "sectionTitle": "MCP y herramientas",
+    "sectionDescription": "Administra los servidores MCP registrados en Claude Code y Codex, e inspecciona las herramientas que expone cada uno.",
+    "subTabs": {
+      "browser": {
+        "label": "Navegador",
+        "description": "Sesiones de navegador basadas en Playwright monitoreadas desde la pestaña Navegador."
+      },
+      "minimax": {
+        "label": "Minimax",
+        "description": "Servidor MCP oficial del plan de programación MiniMax (uvx)."
+      },
+      "rag": {
+        "label": "RAG",
+        "description": "Base de conocimiento local — subidas, embeddings y cloudcli-rag."
+      }
+    },
+    "tools": {
+      "title": "Herramientas expuestas",
+      "loading": "Cargando herramientas...",
+      "empty": "Este servidor no expone herramientas.",
+      "unavailable": "El servidor no está disponible en esta máquina.",
+      "schemaToggle": "Mostrar esquema JSON",
+      "schemaHide": "Ocultar esquema JSON",
+      "count_one": "{{count}} herramienta",
+      "count_other": "{{count}} herramientas"
+    }
   },
   "notifications": {
     "title": "Notificaciones",

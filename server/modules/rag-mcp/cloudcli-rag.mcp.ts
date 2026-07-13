@@ -19,6 +19,7 @@
 
 import process from 'node:process';
 
+import { RAG_MCP_TOOLS } from './rag-mcp.tools.js';
 import { ragTools } from './rag-tools.js';
 
 const SERVER_INFO = {
@@ -30,67 +31,7 @@ const CAPABILITIES = {
   tools: {},
 };
 
-const TOOLS = [
-  {
-    name: 'search_knowledge_base',
-    description:
-      'Search the user’s local knowledge base for documents relevant to a query. ' +
-      'Returns the top matching chunks plus a synthesized answer when the MiniMax API key is available. ' +
-      'Use this whenever the user references documents they have uploaded, asks about content that could be in their files, ' +
-      'or asks a question whose answer should come from their own corpus.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description: 'Natural language search query. Be specific: include the topic, document name, or keyword you expect to find.',
-        },
-        topK: {
-          type: 'integer',
-          minimum: 1,
-          maximum: 20,
-          description: 'How many chunks to return. Defaults to 5.',
-        },
-      },
-      required: ['query'],
-      additionalProperties: false,
-    },
-  },
-  {
-    name: 'list_documents',
-    description:
-      'List every document in the user’s knowledge base with status, chunk count, and indexed timestamp. ' +
-      'Use this before answering questions about file inventory, or to verify a document was uploaded successfully.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-      additionalProperties: false,
-    },
-  },
-  {
-    name: 'get_document_chunks',
-    description:
-      'Return the indexed chunks for a single document. Useful for inspecting what was extracted from a file, ' +
-      'debugging retrieval results, or quoting the user’s own content back to them with citations.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        documentId: {
-          type: 'string',
-          description: 'The document id returned by list_documents.',
-        },
-        limit: {
-          type: 'integer',
-          minimum: 1,
-          maximum: 200,
-          description: 'Maximum number of chunks to return. Defaults to 50.',
-        },
-      },
-      required: ['documentId'],
-      additionalProperties: false,
-    },
-  },
-];
+const TOOLS = RAG_MCP_TOOLS;
 
 type JsonRpcRequest = {
   jsonrpc?: '2.0';
@@ -211,7 +152,7 @@ async function handle(line: string): Promise<string | null> {
     if (method === 'initialize') {
       return respond(id, {
         result: {
-          protocolVersion: '2024-11-05',
+          protocolVersion: '2025-03-26',
           serverInfo: SERVER_INFO,
           capabilities: CAPABILITIES,
         },
@@ -266,31 +207,53 @@ async function main() {
   installSignalHandlers();
 
   let buffer = '';
+  // Track in-flight handler promises so a premature stdin close doesn't kill
+  // them mid-await. Hosts like Codex close stdin immediately after writing the
+  // last request line, but tool calls can take seconds (RAG embeddings + chat
+  // synthesis). We let the handlers complete and only exit once stdout drains.
+  let inFlight = 0;
+  let settled = false;
+
+  const tryExit = () => {
+    if (settled && inFlight === 0) {
+      process.exit(0);
+    }
+  };
+
   process.stdin.setEncoding('utf8');
-  process.stdin.on('data', async (chunk: string) => {
+  process.stdin.on('data', (chunk: string) => {
     buffer += chunk;
     let newlineIndex = buffer.indexOf('\n');
     while (newlineIndex >= 0) {
       const line = buffer.slice(0, newlineIndex).trim();
       buffer = buffer.slice(newlineIndex + 1);
       if (line.length > 0) {
-        try {
-          const response = await handle(line);
-          if (response) {
-            process.stdout.write(response + '\n');
-          }
-        } catch (error) {
-          // Never crash the server on a single bad request.
-          const message = error instanceof Error ? error.message : 'Unknown error';
-          process.stderr.write(`[cloudcli-rag] handler error: ${message}\n`);
-        }
+        inFlight += 1;
+        handle(line)
+          .then((response) => {
+            if (response) {
+              process.stdout.write(response + '\n');
+            }
+          })
+          .catch((error) => {
+            // Never crash the server on a single bad request.
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            process.stderr.write(`[cloudcli-rag] handler error: ${message}\n`);
+          })
+          .finally(() => {
+            inFlight -= 1;
+            tryExit();
+          });
       }
       newlineIndex = buffer.indexOf('\n');
     }
   });
 
   process.stdin.on('end', () => {
-    process.exit(0);
+    // stdin closed by the host. Don't kill the process — wait for in-flight
+    // handlers to finish writing their responses, then exit.
+    settled = true;
+    tryExit();
   });
 }
 

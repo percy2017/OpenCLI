@@ -253,18 +253,31 @@ export const ragService = {
 
     const userPrompt = `Context:\n${context}\n\nQuestion: ${trimmed}`;
 
-    const completion = await chatComplete(
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      { temperature: 0.3, maxTokens: 1024 },
-    );
+    let answer: string;
+    let model: string;
+    try {
+      const completion = await chatComplete(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        { temperature: 0.3, maxTokens: 1024 },
+      );
+      answer = completion.content;
+      model = completion.model;
+    } catch (error) {
+      // The chat synthesis is a nice-to-have — the chunks themselves are the
+      // primary payload. If synthesis fails (no API key, missing chat model,
+      // upstream 5xx) we still return the hits so the agent can quote them.
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      answer = `Found ${hits.length} relevant chunk${hits.length === 1 ? '' : 's'} but could not synthesize a natural-language answer (${message}). The raw chunks are below.`;
+      model = 'fallback';
+    }
 
     return {
-      answer: completion.content,
+      answer,
       hits,
-      model: completion.model,
+      model,
     };
   },
 

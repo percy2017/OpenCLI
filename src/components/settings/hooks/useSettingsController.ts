@@ -12,6 +12,7 @@ import type {
   ClaudePermissionsState,
   CodeEditorSettingsState,
   CodexPermissionMode,
+  McpSubTab,
   NotificationPreferencesState,
   ProjectSortOrder,
   SettingsMainTab,
@@ -45,16 +46,35 @@ type NotificationPreferencesResponse = {
 
 type ActiveLoginProvider = AgentProvider | '';
 
-const KNOWN_MAIN_TABS: SettingsMainTab[] = ['agents', 'appearance', 'api', 'browser', 'minimaxMcp', 'mmxCli', 'notifications', 'terminal'];
+const KNOWN_MAIN_TABS: SettingsMainTab[] = ['agents', 'appearance', 'api', 'mcpTools', 'notifications', 'terminal'];
 
-const normalizeMainTab = (tab: string): SettingsMainTab => {
-  // Keep backwards compatibility with older callers that still pass "tools".
-  if (tab === 'tools') {
-    return 'agents';
-  }
-
-  return KNOWN_MAIN_TABS.includes(tab as SettingsMainTab) ? (tab as SettingsMainTab) : 'agents';
+const LEGACY_MCP_TAB_TO_SUB: Record<string, McpSubTab> = {
+  browser: 'browser',
+  minimaxMcp: 'minimax',
+  mmxCli: 'rag',
 };
+
+/**
+ * Resolve the canonical main tab + (optional) MCP sub-tab for a string coming
+ * from props or URL query. Legacy values get remapped:
+ *   - 'browser' | 'minimaxMcp' | 'mmxCli' → 'mcpTools' (+ correct sub-tab)
+ *   - 'tools' → 'agents' (another legacy alias)
+ *   - unknown  → 'agents'
+ */
+function normalizeMainTab(input: string): { tab: SettingsMainTab; mcpSubTab?: McpSubTab } {
+  if (input === 'tools') return { tab: 'agents' };
+  if (typeof input === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_MCP_TAB_TO_SUB, input)) {
+    return { tab: 'mcpTools', mcpSubTab: LEGACY_MCP_TAB_TO_SUB[input] };
+  }
+  if (KNOWN_MAIN_TABS.includes(input as SettingsMainTab)) {
+    return { tab: input as SettingsMainTab };
+  }
+  return { tab: 'agents' };
+}
+
+function normalizeMainTabLegacy(tab: string): SettingsMainTab {
+  return normalizeMainTab(tab).tab;
+}
 
 const parseJson = <T>(value: string | null, fallback: T): T => {
   if (!value) {
@@ -129,7 +149,11 @@ export function useSettingsController({ isOpen, initialTab }: UseSettingsControl
   const { isDarkMode, toggleDarkMode } = useTheme() as ThemeContextValue;
   const closeTimerRef = useRef<number | null>(null);
 
-  const [activeTab, setActiveTab] = useState<SettingsMainTab>(() => normalizeMainTab(initialTab));
+  const [activeTab, setActiveTab] = useState<SettingsMainTab>(() => normalizeMainTabLegacy(initialTab));
+  const [activeMcpSubTab, setActiveMcpSubTab] = useState<McpSubTab>(() => {
+    const initial = normalizeMainTab(initialTab);
+    return initial.mcpSubTab ?? 'browser';
+  });
   const [saveStatus, setSaveStatus] = useState<'success' | 'error' | null>(null);
   const [projectSortOrder, setProjectSortOrder] = useState<ProjectSortOrder>('name');
   const [codeEditorSettings, setCodeEditorSettings] = useState<CodeEditorSettingsState>(() => (
@@ -269,7 +293,11 @@ export function useSettingsController({ isOpen, initialTab }: UseSettingsControl
       return;
     }
 
-    setActiveTab(normalizeMainTab(initialTab));
+    setActiveTab(normalizeMainTabLegacy(initialTab));
+    {
+      const next = normalizeMainTab(initialTab);
+      setActiveMcpSubTab(next.mcpSubTab ?? 'browser');
+    }
     void loadSettings();
     void refreshProviderAuthStatuses();
   }, [initialTab, isOpen, loadSettings, refreshProviderAuthStatuses]);
@@ -343,6 +371,8 @@ export function useSettingsController({ isOpen, initialTab }: UseSettingsControl
   return {
     activeTab,
     setActiveTab,
+    activeMcpSubTab,
+    setActiveMcpSubTab,
     isDarkMode,
     toggleDarkMode,
     saveStatus,

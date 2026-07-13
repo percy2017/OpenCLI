@@ -9,9 +9,7 @@ import AgentsSettingsTab from '../view/tabs/agents-settings/AgentsSettingsTab';
 import AppearanceSettingsTab from '../view/tabs/AppearanceSettingsTab';
 import CredentialsSettingsTab from '../view/tabs/api-settings/CredentialsSettingsTab';
 import VoiceSettingsTab from '../view/tabs/VoiceSettingsTab';
-import BrowserUseSettingsTab from '../view/tabs/browser-use-settings/BrowserUseSettingsTab';
-import McpMinimaxSettingsTab from '../view/tabs/minimax-mcp/McpMinimaxSettingsTab';
-import MmxCliSettingsTab from '../view/tabs/mmx-cli/MmxCliSettingsTab';
+import McpToolsSettingsTab from '../view/tabs/mcp-tools/McpToolsSettingsTab';
 import TerminalSettingsTab from '../view/tabs/terminal/TerminalSettingsTab';
 import NotificationsSettingsTab from '../view/tabs/NotificationsSettingsTab';
 import { useSettingsController } from '../hooks/useSettingsController';
@@ -37,6 +35,8 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
   const {
     activeTab,
     setActiveTab,
+    activeMcpSubTab,
+    setActiveMcpSubTab,
     saveStatus,
     projectSortOrder,
     setProjectSortOrder,
@@ -182,11 +182,12 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
                 />
               )}
 
-              {activeTab === 'browser' && <BrowserUseSettingsTab />}
-
-              {activeTab === 'minimaxMcp' && <McpMinimaxSettingsTab />}
-
-              {activeTab === 'mmxCli' && <MmxCliSettingsTab />}
+              {activeTab === 'mcpTools' && (
+                <McpToolsSettingsTab
+                  activeSubTab={activeMcpSubTab}
+                  onSubTabChange={setActiveMcpSubTab}
+                />
+              )}
 
               {activeTab === 'notifications' && (
                 <NotificationsSettingsTab

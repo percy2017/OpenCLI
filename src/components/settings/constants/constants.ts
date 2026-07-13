@@ -3,8 +3,8 @@ import {
   Bell,
   Bot,
   KeyRound,
-  MonitorPlay,
   Palette,
+  Wrench,
 } from 'lucide-react';
 
 import type {
@@ -26,7 +26,7 @@ export const SETTINGS_MAIN_TABS: SettingsMainTabMeta[] = [
   { id: 'agents', label: 'Agents', keywords: 'agents subagents claude code', icon: Bot },
   { id: 'appearance', label: 'Appearance', keywords: 'appearance theme dark light language', icon: Palette },
   { id: 'api', label: 'API Tokens', keywords: 'api tokens auth keys', icon: KeyRound },
-  { id: 'browser', label: 'Browser MCP', keywords: 'browser playwright chromium automation mcp', icon: MonitorPlay },
+  { id: 'mcpTools', label: 'MCP Tools', keywords: 'mcp tools integrations servers browser minimax rag', icon: Wrench },
   { id: 'notifications', label: 'Notifications', keywords: 'notifications alerts push', icon: Bell },
 ];
 

@@ -8,26 +8,28 @@ import SettingsRow from '../../SettingsRow';
 import SettingsSection from '../../SettingsSection';
 import SettingsToggle from '../../SettingsToggle';
 
-type RagVectorState = {
+import McpToolsList from './McpToolsList';
+
+type McpMinimaxState = {
   enabled: boolean;
   lastChangedAt: string | null;
 };
 
-type RagMcpProviders = {
+type McpMinimaxProviders = {
   codex: { configured: boolean };
   claude: { configured: boolean };
 };
 
-type RagMcpStatusResponse = {
+type McpMinimaxStatusResponse = {
   data: {
-    state: RagVectorState;
-    providers: RagMcpProviders;
+    state: McpMinimaxState;
+    providers: McpMinimaxProviders;
   };
 };
 
-type RagMcpUpdateResponse = {
+type McpMinimaxUpdateResponse = {
   data: {
-    state: RagVectorState;
+    state: McpMinimaxState;
     results: Array<{ provider: string; ok: boolean; error?: string }>;
   };
 };
@@ -40,20 +42,17 @@ async function readJson<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-export default function MmxCliSettingsTab() {
+export default function MinimaxMcpPanel() {
   const { t } = useTranslation('common');
-
-  // Unified state — single switch governs both the RAG Vector UI tab and the
-  // cloudli-rag MCP server registration. They share one boolean.
-  const [mcpState, setMcpState] = useState<RagVectorState | null>(null);
-  const [mcpProviders, setMcpProviders] = useState<RagMcpProviders | null>(null);
+  const [mcpState, setMcpState] = useState<McpMinimaxState | null>(null);
+  const [mcpProviders, setMcpProviders] = useState<McpMinimaxProviders | null>(null);
   const [isMcpLoading, setIsMcpLoading] = useState(true);
   const [isMcpSaving, setIsMcpSaving] = useState(false);
   const [mcpError, setMcpError] = useState<string | null>(null);
 
   const loadMcpState = useCallback(async () => {
-    const response = await authenticatedFetch('/api/rag-mcp/state');
-    const data = await readJson<RagMcpStatusResponse>(response);
+    const response = await authenticatedFetch('/api/mcp-minimax/state');
+    const data = await readJson<McpMinimaxStatusResponse>(response);
     setMcpState(data.data.state);
     setMcpProviders(data.data.providers);
   }, []);
@@ -62,7 +61,7 @@ export default function MmxCliSettingsTab() {
     setMcpError(null);
     setIsMcpLoading(true);
     void loadMcpState()
-      .catch((err) => setMcpError(err instanceof Error ? err.message : t('mmxCli.errors.loadState')))
+      .catch((err) => setMcpError(err instanceof Error ? err.message : t('browserUse.minimax.errors.loadState')))
       .finally(() => setIsMcpLoading(false));
   }, [loadMcpState, t]);
 
@@ -70,66 +69,45 @@ export default function MmxCliSettingsTab() {
     setIsMcpSaving(true);
     setMcpError(null);
     try {
-      // Update the MCP server registration first — it's the slower operation
-      // (writes to provider configs). If it fails the feature-flag stays in
-      // its current state and the user sees the error.
-      const mcpResponse = await authenticatedFetch('/api/rag-mcp/state', {
+      const response = await authenticatedFetch('/api/mcp-minimax/state', {
         method: 'PUT',
         body: JSON.stringify({ enabled }),
       });
-      const mcpData = await readJson<RagMcpUpdateResponse>(mcpResponse);
-      setMcpState(mcpData.data.state);
-
-      const failures = (mcpData.data.results || []).filter((result) => !result.ok);
+      const data = await readJson<McpMinimaxUpdateResponse>(response);
+      setMcpState(data.data.state);
+      const failures = (data.data.results || []).filter((result) => !result.ok);
       if (failures.length > 0) {
-        setMcpError(t('mmxCli.errors.partialFailure', {
+        setMcpError(t('browserUse.minimax.errors.partialFailure', {
           providers: failures.map((failure) => failure.provider).join(', '),
         }));
       }
-
-      // Mirror the same boolean into the RAG Vector feature flag so the header
-      // tab gains/loses visibility in lockstep with the MCP toggle. Failures
-      // here are non-fatal — the feature flag still updates and the event
-      // fires on success.
-      try {
-        const flagResponse = await authenticatedFetch('/api/feature-flags/rag-vector', {
-          method: 'PUT',
-          body: JSON.stringify({ enabled }),
-        });
-        await readJson(flagResponse);
-        window.dispatchEvent(new Event('ragVectorStateChanged'));
-      } catch (flagErr) {
-        console.error('[mmxCli] failed to mirror RAG Vector flag:', flagErr);
-      }
-
+      window.dispatchEvent(new Event('mcpMinimaxStateChanged'));
       await loadMcpState();
     } catch (err) {
-      setMcpError(err instanceof Error ? err.message : t('mmxCli.errors.saveState'));
+      setMcpError(err instanceof Error ? err.message : t('browserUse.minimax.errors.saveState'));
     } finally {
       setIsMcpSaving(false);
     }
   };
 
-  const mcpEnabled = mcpState?.enabled === true;
-
   return (
     <div className="space-y-8">
       <SettingsSection
-        title={t('mmxCli.sectionTitle')}
-        description={t('mmxCli.sectionDescription')}
+        title={t('browserUse.minimax.sectionTitle')}
+        description={t('browserUse.minimax.sectionDescription')}
       >
         <SettingsCard divided>
           <SettingsRow
-            label={t('mmxCli.enableLabel')}
-            description={t('mmxCli.enableDescription')}
+            label={t('browserUse.minimax.enableLabel')}
+            description={t('browserUse.minimax.enableDescription')}
           >
             {isMcpLoading && !mcpState ? (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             ) : (
               <SettingsToggle
-                checked={mcpEnabled}
+                checked={mcpState?.enabled === true}
                 onChange={(value) => void updateMcpState(value)}
-                ariaLabel={t('mmxCli.enableAria')}
+                ariaLabel={t('browserUse.minimax.enableAria')}
                 disabled={isMcpSaving}
               />
             )}
@@ -138,24 +116,24 @@ export default function MmxCliSettingsTab() {
           <div className="space-y-3 px-4 py-4">
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-md border border-border px-2 py-1">
-                {t('mmxCli.stateLabel', {
-                  state: mcpEnabled
-                    ? t('mmxCli.stateEnabled')
-                    : t('mmxCli.stateDisabled'),
+                {t('browserUse.minimax.stateLabel', {
+                  state: mcpState?.enabled
+                    ? t('browserUse.minimax.stateEnabled')
+                    : t('browserUse.minimax.stateDisabled'),
                 })}
               </span>
               <span className="rounded-md border border-border px-2 py-1">
-                {t('mmxCli.codexStatus', {
+                {t('browserUse.minimax.codexStatus', {
                   state: mcpProviders?.codex.configured
-                    ? t('mmxCli.providerConfigured')
-                    : t('mmxCli.providerMissing'),
+                    ? t('browserUse.minimax.providerConfigured')
+                    : t('browserUse.minimax.providerMissing'),
                 })}
               </span>
               <span className="rounded-md border border-border px-2 py-1">
-                {t('mmxCli.claudeStatus', {
+                {t('browserUse.minimax.claudeStatus', {
                   state: mcpProviders?.claude.configured
-                    ? t('mmxCli.providerConfigured')
-                    : t('mmxCli.providerMissing'),
+                    ? t('browserUse.minimax.providerConfigured')
+                    : t('browserUse.minimax.providerMissing'),
                 })}
               </span>
             </div>
@@ -167,6 +145,8 @@ export default function MmxCliSettingsTab() {
             )}
           </div>
         </SettingsCard>
+
+        <McpToolsList serverId="minimax" />
       </SettingsSection>
     </div>
   );

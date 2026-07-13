@@ -9,6 +9,8 @@ import SettingsRow from '../../SettingsRow';
 import SettingsSection from '../../SettingsSection';
 import SettingsToggle from '../../SettingsToggle';
 
+import McpToolsList from './McpToolsList';
+
 type BrowserUseSettings = {
   enabled: boolean;
 };
@@ -22,7 +24,6 @@ type BrowserUseStatus = {
   message: string;
 };
 
-
 async function readJson<T>(response: Response): Promise<T> {
   const data = await response.json();
   if (!response.ok || data.success === false) {
@@ -31,7 +32,7 @@ async function readJson<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-export default function BrowserUseSettingsTab() {
+export default function BrowserMcpPanel() {
   const { t } = useTranslation('common');
   const [settings, setSettings] = useState<BrowserUseSettings | null>(null);
   const [status, setStatus] = useState<BrowserUseStatus | null>(null);
@@ -40,6 +41,7 @@ export default function BrowserUseSettingsTab() {
   const [isSaving, setIsSaving] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const loadSettings = useCallback(async () => {
     const settingsResponse = await authenticatedFetch('/api/browser-use/settings');
     const settingsData = await readJson<{ data: { settings: BrowserUseSettings } }>(settingsResponse);
@@ -191,8 +193,9 @@ export default function BrowserUseSettingsTab() {
             )}
           </div>
         </SettingsCard>
-      </SettingsSection>
 
+        <McpToolsList serverId="browser" />
+      </SettingsSection>
     </div>
   );
 }
