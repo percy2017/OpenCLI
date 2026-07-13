@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "OpenCLI UI",
   "short_name": "OpenCLI UI",
   "description": "OpenCLI UI web application",
@@ -54,8 +55,7 @@
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ],
   "screenshots": [
