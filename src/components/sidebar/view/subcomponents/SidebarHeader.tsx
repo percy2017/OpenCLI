@@ -5,6 +5,7 @@ import { Button, Input, Tooltip } from '../../../../shared/view/ui';
 import { CLOUDCLI_WORDMARK_FONT_FAMILY } from '../../../../constants/branding';
 import { IS_PLATFORM } from '../../../../constants/config';
 import { cn } from '../../../../lib/utils';
+import InstallPwaButton from '../../../pwa/InstallPwaButton';
 import type { SidebarSearchMode } from '../../types/types';
 
 const MOD_KEY =
@@ -242,6 +243,11 @@ export default function SidebarHeader({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Install app CTA — only renders when the browser offers the PWA prompt. */}
+      <div className="px-3 pb-2">
+        <InstallPwaButton />
       </div>
 
       {/* Desktop divider */}

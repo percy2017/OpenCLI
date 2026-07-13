@@ -8,6 +8,8 @@
  * Streaming can be layered on top later via SSE without changing this client.
  */
 
+import { getMmxApiKey } from '@/shared/mmx-config.js';
+
 import { getEmbeddingsConfig } from './embeddings.js';
 import { getEmbeddingProvider } from './embedding-providers/registry.js';
 
@@ -28,25 +30,25 @@ export type ChatResponse = {
   finishReason?: string;
 };
 
-function resolveApiKey(): string {
-  const key = process.env.MINIMAX_API_KEY || process.env.MMX_API_KEY;
-  if (!key || key.trim().length === 0) {
+async function resolveApiKey(): Promise<string> {
+  const key = await getMmxApiKey();
+  if (!key) {
     throw new Error(
-      'MiniMax API key not configured. Set MINIMAX_API_KEY (or MMX_API_KEY) in your environment.',
+      'MiniMax API key not configured. Run `mmx auth login` or set MINIMAX_API_KEY in your environment.',
     );
   }
-  return key.trim();
+  return key;
 }
 
 export async function chatComplete(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResponse> {
-  const config = getEmbeddingsConfig();
-  const apiKey = resolveApiKey();
+  const config = await getEmbeddingsConfig();
+  const apiKey = await resolveApiKey();
   // Resolve chat model from (in order): explicit option → MiniMax env
   // (chat is still MiniMax-only) → provider's advertised chatModel.
   // If none resolves, throw — better than silently calling the API with
   // an unknown model.
   const envChatModel = process.env.MINIMAX_CHAT_MODEL;
-  const providerChatModel = getEmbeddingProvider().getConfig().chatModel;
+  const providerChatModel = (await getEmbeddingProvider().getConfig()).chatModel;
   const model = options.model ?? envChatModel ?? providerChatModel;
   if (!model) {
     throw new Error(

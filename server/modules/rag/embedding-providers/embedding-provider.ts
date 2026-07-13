@@ -44,7 +44,7 @@ export interface EmbeddingProvider {
   readonly label: string;
   readonly defaultModel: string;
   readonly defaultDimensions: number;
-  getConfig(): EmbeddingProviderConfig;
+  getConfig(): Promise<EmbeddingProviderConfig>;
   embed(input: EmbeddingRequest): Promise<EmbeddingResponse>;
 }
 

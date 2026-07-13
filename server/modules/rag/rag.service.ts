@@ -60,7 +60,7 @@ function mapDocument(row: RagDocumentRow) {
 }
 
 export const ragService = {
-  getConfig() {
+  async getConfig() {
     return getEmbeddingProvider().getConfig();
   },
 
@@ -154,7 +154,7 @@ export const ragService = {
 
     try {
       const provider = getEmbeddingProvider();
-      const config = provider.getConfig();
+      const config = await provider.getConfig();
       const parsed = await parseFile(input.storagePath, input.name);
       const chunks = chunkText(parsed.text, config.chunkSize, config.chunkOverlap);
 
@@ -215,7 +215,7 @@ export const ragService = {
     }
 
     const provider = getEmbeddingProvider();
-    const config = provider.getConfig();
+    const config = await provider.getConfig();
     const queryEmbedding = await embedTexts({ texts: [trimmed], isQuery: true });
     const vector = queryEmbedding.vectors[0];
     if (!vector) {

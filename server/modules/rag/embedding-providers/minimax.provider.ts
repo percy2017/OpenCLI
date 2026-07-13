@@ -12,6 +12,8 @@
  * `indexing`.
  */
 
+import { getMmxApiKey } from '@/shared/mmx-config.js';
+
 import type {
   EmbeddingProvider,
   EmbeddingProviderConfig,
@@ -34,7 +36,7 @@ export class MiniMaxEmbeddingProvider implements EmbeddingProvider {
   readonly defaultModel = 'embo-01';
   readonly defaultDimensions = 1024;
 
-  getConfig(): EmbeddingProviderConfig {
+  async getConfig(): Promise<EmbeddingProviderConfig> {
     const model = (process.env.MINIMAX_EMBEDDING_MODEL as string | undefined) ?? this.defaultModel;
     const baseUrl = process.env.MINIMAX_BASE_URL ?? 'https://api.minimax.io';
     return {
@@ -42,7 +44,7 @@ export class MiniMaxEmbeddingProvider implements EmbeddingProvider {
       providerLabel: this.label,
       model,
       dimensions: MODEL_DIMENSIONS[model] ?? this.defaultDimensions,
-      apiKeyPresent: Boolean(this.resolveApiKey()),
+      apiKeyPresent: Boolean(await this.resolveApiKey()),
       baseUrl,
       chunkSize: this.parseChunkSize(),
       chunkOverlap: this.parseChunkOverlap(),
@@ -52,10 +54,10 @@ export class MiniMaxEmbeddingProvider implements EmbeddingProvider {
 
   async embed(input: EmbeddingRequest): Promise<EmbeddingResponse> {
     if (input.texts.length === 0) {
-      return { vectors: [], model: this.getConfig().model, dimensions: 0 };
+      return { vectors: [], model: (await this.getConfig()).model, dimensions: 0 };
     }
-    const config = this.getConfig();
-    const apiKey = this.resolveApiKey();
+    const config = await this.getConfig();
+    const apiKey = await this.resolveApiKey();
     const url = `${config.baseUrl.replace(/\/+$/, '')}/v1/embeddings`;
 
     const batchSize = Math.max(
@@ -96,14 +98,14 @@ export class MiniMaxEmbeddingProvider implements EmbeddingProvider {
     return { vectors: allVectors, model: lastModel, dimensions: lastDims };
   }
 
-  private resolveApiKey(): string {
-    const key = process.env.MINIMAX_API_KEY || process.env.MMX_API_KEY;
-    if (!key || key.trim().length === 0) {
+  private async resolveApiKey(): Promise<string> {
+    const key = await getMmxApiKey();
+    if (!key) {
       throw new EmbeddingsConfigError(
-        'MiniMax API key not configured. Set MINIMAX_API_KEY (or MMX_API_KEY) in your environment.',
+        'MiniMax API key not configured. Run `mmx auth login` or set MINIMAX_API_KEY in your environment.',
       );
     }
-    return key.trim();
+    return key;
   }
 
   private parseChunkSize(): number {

@@ -6,6 +6,7 @@ import TOML from '@iarna/toml';
 
 import { appConfigDb } from '@/modules/database/index.js';
 import { providerMcpService } from '@/modules/providers/index.js';
+import { getMmxApiKey } from '@/shared/mmx-config.js';
 import type { LLMProvider, UpsertProviderMcpServerInput } from '@/shared/types.js';
 
 const MCP_SERVER_NAME = 'cloudcli-minimax';
@@ -205,13 +206,23 @@ async function isClaudeConfigured(): Promise<boolean> {
   return block !== null;
 }
 
-function getCanonicalServerConfig(): Omit<UpsertProviderMcpServerInput, 'scope'> {
+async function getCanonicalServerConfig(): Promise<Omit<UpsertProviderMcpServerInput, 'scope'>> {
+  // Resolve the API key from `mmx` config (or env override). The Python
+  // `minimax-coding-plan-mcp` server started via uvx hard-crashes if the key
+  // is missing — host then reports "handshaking failed: connection closed".
+  // Bake the key into the env block at write time so the spawned process
+  // has it without us needing a Claude/Codex env-passthrough feature.
+  const apiKey = await getMmxApiKey();
+  const env: Record<string, string> = { MINIMAX_API_HOST: API_HOST };
+  if (apiKey) {
+    env.MINIMAX_API_KEY = apiKey;
+  }
   return {
     name: MCP_SERVER_NAME,
     transport: SERVER_TRANSPORT,
     command: SERVER_COMMAND,
     args: SERVER_ARGS,
-    env: { MINIMAX_API_HOST: API_HOST },
+    env,
     envVars: [],
   };
 }
@@ -228,7 +239,7 @@ function normalizeResults(results: Array<{ provider: LLMProvider; created?: bool
 }
 
 async function enable(): Promise<ProviderResult[]> {
-  const config = getCanonicalServerConfig();
+  const config = await getCanonicalServerConfig();
   const results = await providerMcpService.addMcpServerToAllProviders({
     ...config,
     scope: SERVER_SCOPE,

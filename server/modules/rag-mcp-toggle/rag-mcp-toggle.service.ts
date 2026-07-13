@@ -1,5 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
+import { existsSync as fsExistsSync } from 'node:fs';
 
 import { appConfigDb } from '@/modules/database/index.js';
 import { findAppRoot } from '@/utils/runtime-paths.js';
@@ -24,16 +25,26 @@ const DEFAULT_STATE: PersistedState = {
   lastChangedAt: null,
 };
 
+/**
+ * Strip URL-style scheme prefixes from a path ("file:/foo" -> "/foo",
+ * "path:/foo" -> "/foo"). Defensive against any future writer that might
+ * accidentally prepend one — Node treats "file:foo" as a relative path,
+ * which silently breaks `spawn`.
+ */
+function stripPathScheme(rawPath: string): string {
+  return rawPath.replace(/^[a-z][a-z0-9+.-]*:(?=\/)/i, '');
+}
+
 function resolveServerEntry(): { command: string; args: string[] } {
   // The MCP server is the compiled `.js` file. In dev we run from `server/`,
   // in prod from `dist-server/server/`. `findAppRoot` collapses both layouts.
   const appRoot = findAppRoot(import.meta.url);
   const candidates = [
-    path.join(appRoot, 'dist-server', 'server', 'modules', 'rag-mcp', 'cloudcli-rag.mcp.js'),
-    path.join(appRoot, 'server', 'modules', 'rag-mcp', 'cloudcli-rag.mcp.js'),
+    stripPathScheme(path.join(appRoot, 'dist-server', 'server', 'modules', 'rag-mcp', 'cloudcli-rag.mcp.js')),
+    stripPathScheme(path.join(appRoot, 'server', 'modules', 'rag-mcp', 'cloudcli-rag.mcp.js')),
   ];
   for (const candidate of candidates) {
-    if (existsSync(candidate)) {
+    if (fsExistsSync(candidate)) {
       return { command: 'node', args: [candidate] };
     }
   }
@@ -44,17 +55,6 @@ function resolveServerEntry(): { command: string; args: string[] } {
     command: 'node',
     args: [candidates[0]],
   };
-}
-
-// Tiny local sync exists check to avoid importing fs/promises on every read.
-function existsSync(filePath: string): boolean {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fs = require('node:fs') as typeof import('node:fs');
-    return fs.existsSync(filePath);
-  } catch {
-    return false;
-  }
 }
 
 function readState(): PersistedState {

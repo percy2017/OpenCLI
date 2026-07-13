@@ -150,13 +150,23 @@ function getPlaywright(): any | null {
 }
 
 function getMcpCommand(): { command: string; args: string[] } {
+  // Prefer the compiled `browser-use-mcp.js` from either the dist-server
+  // layout (production) or the source tree (dev). Falling back to the
+  // globally-installed `cloudcli` binary only as a last resort because
+  // most self-hosted installs don't run `npm link -g` and would otherwise
+  // get "Permission denied" from spawn.
   const serverDir = path.resolve(__dirname, '..', '..');
-  const mcpScriptPath = path.join(serverDir, 'browser-use-mcp.js');
-  if (fs.existsSync(mcpScriptPath)) {
-    return {
-      command: process.execPath,
-      args: [mcpScriptPath],
-    };
+  const candidates = [
+    path.join(serverDir, 'browser-use-mcp.js'),
+    path.resolve(serverDir, '..', '..', 'dist-server', 'server', 'browser-use-mcp.js'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return {
+        command: process.execPath,
+        args: [candidate],
+      };
+    }
   }
 
   return {

@@ -113,6 +113,7 @@ QWEN.md
 mcp.json
 .mcp.json
 .gemini/
+.codex/
 
 # Database files
 *.db

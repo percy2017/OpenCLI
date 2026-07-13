@@ -4,9 +4,16 @@ import { ragService } from '@/modules/rag/rag.service.js';
 
 const router = express.Router();
 
-router.get('/config', (_req, res) => {
-  const config = ragService.getConfig();
-  res.json({ success: true, data: config });
+router.get('/config', async (_req, res) => {
+  try {
+    const config = await ragService.getConfig();
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to load RAG config.',
+    });
+  }
 });
 
 router.post('/reap-stuck', (_req, res) => {

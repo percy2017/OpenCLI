@@ -522,5 +522,18 @@
       "uploadFailed": "Failed to upload document.",
       "dismiss": "Dismiss"
     }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install OpenCLI",
+      "button": "Install app",
+      "iosTitle": "Install OpenCLI on your iPhone",
+      "iosStep1": "Tap the Share button in Safari’s toolbar.",
+      "iosStep2": "Scroll down and choose “Add to Home Screen”.",
+      "iosStep3": "Tap “Add” to install. OpenCLI will appear on your home screen."
+    }
+  },
+  "common": {
+    "gotIt": "Got it"
   }
 }

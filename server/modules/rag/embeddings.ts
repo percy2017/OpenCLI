@@ -16,6 +16,6 @@ export { embedTexts, getEmbeddingProvider };
  * @deprecated Use `getEmbeddingProvider().getConfig()` instead.
  * Kept for callers that still expect the flat legacy shape.
  */
-export function getEmbeddingsConfig() {
+export async function getEmbeddingsConfig() {
   return getEmbeddingProvider().getConfig();
 }

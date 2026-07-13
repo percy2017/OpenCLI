@@ -1,7 +1,0 @@
-[mcp_servers.cloudcli-minimax]
-command = "uvx"
-args = [ "minimax-coding-plan-mcp", "-y" ]
-env_vars = [ ]
-
-  [mcp_servers.cloudcli-minimax.env]
-  MINIMAX_API_HOST = "https://api.minimax.io"

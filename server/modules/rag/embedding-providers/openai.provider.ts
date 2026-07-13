@@ -50,10 +50,10 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
 
   async embed(input: EmbeddingRequest): Promise<EmbeddingResponse> {
     if (input.texts.length === 0) {
-      return { vectors: [], model: this.getConfig().model, dimensions: 0 };
+      return { vectors: [], model: (await this.getConfig()).model, dimensions: 0 };
     }
 
-    const config = this.getConfig();
+    const config = await this.getConfig();
     const apiKey = this.resolveApiKey();
     const url = `${config.baseUrl.replace(/\/+$/, '')}/v1/embeddings`;
     const batchSize = Math.max(
