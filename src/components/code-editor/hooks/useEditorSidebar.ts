@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
+
 import type { Project } from '../../../types/app';
 import type { CodeEditorDiffInfo, CodeEditorFile } from '../types/types';
 
@@ -22,16 +23,21 @@ export const useEditorSidebar = ({
   const resizeHandleRef = useRef<HTMLDivElement | null>(null);
 
   const handleFileOpen = useCallback(
-    (filePath: string, diffInfo: CodeEditorDiffInfo | null = null) => {
+    (
+      filePath: string,
+      diffInfo: CodeEditorDiffInfo | null = null,
+      source: CodeEditorFile['source'] = 'project',
+    ) => {
       const normalizedPath = filePath.replace(/\\/g, '/');
       const fileName = normalizedPath.split('/').pop() || filePath;
 
       setEditingFile({
         name: fileName,
         path: filePath,
-        // DB projectId is forwarded to the editor so it can read/save files
-        // via `/api/projects/:projectId/file` endpoints.
-        projectId: selectedProject?.projectId,
+        source,
+        ...(source === 'project' && selectedProject?.projectId
+          ? { projectId: selectedProject.projectId }
+          : {}),
         diffInfo,
       });
     },

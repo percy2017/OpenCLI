@@ -10,6 +10,7 @@ export type CodeEditorFile = {
   // DB projectId; used by the editor to build `/api/projects/:projectId/file`
   // URLs for reading and saving content.
   projectId?: string;
+  source?: 'project' | 'workspace';
   diffInfo?: CodeEditorDiffInfo | null;
   [key: string]: unknown;
 };

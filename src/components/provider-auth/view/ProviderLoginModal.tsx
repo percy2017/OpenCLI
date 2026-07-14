@@ -29,16 +29,11 @@ const getProviderCommand = ({
     return 'claude --dangerously-skip-permissions /login';
   }
 
-  if (provider === 'codex') {
-    return IS_PLATFORM ? 'codex login --device-auth' : 'codex login';
-  }
-
   return 'claude --dangerously-skip-permissions /login';
 };
 
 const getProviderTitle = (provider: LLMProvider) => {
   if (provider === 'claude') return 'Claude CLI Login';
-  if (provider === 'codex') return 'Codex CLI Login';
   return 'Claude CLI Login';
 };
 

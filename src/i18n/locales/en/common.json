@@ -26,8 +26,47 @@
     "browser": "Browser",
     "computer": "Computer",
     "ragVector": "RAG Vector",
-    "minimax": "Minimax MCP",
-    "terminal": "Terminal"
+    "minimax": "Minimax MCP"
+  },
+  "fileManager": {
+    "actions": "Actions",
+    "copied": "Entry copied",
+    "copy": "Copy",
+    "createDirectory": "Create directory",
+    "createFile": "Create file",
+    "destination": "Destination directory",
+    "directoryCreated": "Directory created",
+    "emptyDirectory": "This directory is empty",
+    "emptyTrash": "Empty trash",
+    "emptyTrashConfirmation": "Permanently delete every item in trash?",
+    "fileCreated": "File created",
+    "mode": "Mode",
+    "modified": "Modified",
+    "move": "Move",
+    "moved": "Entry moved",
+    "moveToTrash": "Move to trash",
+    "name": "Name",
+    "newDirectory": "New directory",
+    "newFile": "New file",
+    "noMatches": "No matching entries",
+    "openDirectory": "Open directory",
+    "openFile": "Open file",
+    "permanentlyDeleted": "Entry permanently deleted",
+    "permanentDeleteConfirmation": "Permanently delete this item? This cannot be undone.",
+    "relativeDestinationHelp": "Use a path relative to WORKSPACES_ROOT. Leave it empty for the root.",
+    "renamed": "Entry renamed",
+    "rename": "Rename",
+    "restored": "Entry restored",
+    "restore": "Restore",
+    "search": "Search current directory",
+    "size": "Size",
+    "trash": "Trash",
+    "trashed": "Entry moved to trash",
+    "trashConfirmation": "This entry will be moved to the recoverable trash.",
+    "trashEmptied": "Trash emptied",
+    "trashEmpty": "Trash is empty",
+    "uploaded_one": "{{count}} file uploaded",
+    "uploaded_other": "{{count}} files uploaded"
   },
   "status": {
     "loading": "Loading...",
@@ -59,19 +98,7 @@
     "logout": "Logout"
   },
   "common": {
-    "language": "Language",
-    "theme": "Theme",
-    "darkMode": "Dark Mode",
-    "lightMode": "Light Mode",
-    "name": "Name",
-    "description": "Description",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "optional": "Optional",
-    "version": "Version",
-    "select": "Select",
-    "selectAll": "Select All",
-    "deselectAll": "Deselect All"
+    "gotIt": "Got it"
   },
   "time": {
     "justNow": "Just now",
@@ -98,100 +125,7 @@
     "createProjectDesktop": "Create a new project by clicking the folder icon in the sidebar",
     "newSession": "New Session",
     "untitledSession": "Untitled Session",
-    "projectFiles": "Project Files",
     "subscription": "Subscription"
-  },
-  "fileTree": {
-    "loading": "Loading files...",
-    "files": "Files",
-    "simpleView": "Simple view",
-    "compactView": "Compact view",
-    "detailedView": "Detailed view",
-    "searchPlaceholder": "Search files and folders...",
-    "clearSearch": "Clear search",
-    "name": "Name",
-    "size": "Size",
-    "modified": "Modified",
-    "permissions": "Permissions",
-    "noFilesFound": "No files found",
-    "checkProjectPath": "Check if the project path is accessible",
-    "noMatchesFound": "No matches found",
-    "tryDifferentSearch": "Try a different search term or clear the search",
-    "justNow": "just now",
-    "minAgo": "{{count}} min ago",
-    "hoursAgo": "{{count}} hours ago",
-    "daysAgo": "{{count}} days ago",
-    "newFile": "New File (Cmd+N)",
-    "newFolder": "New Folder (Cmd+Shift+N)",
-    "refresh": "Refresh",
-    "collapseAll": "Collapse All",
-    "showIgnored": "Show ignored folders",
-    "hideIgnored": "Hide ignored folders",
-    "selection": {
-      "enterMode": "Select files",
-      "exitMode": "Exit selection mode",
-      "selectedCount": "{{count}} selected",
-      "clear": "Clear",
-      "selectAllVisible": "Select all visible",
-      "toolbarLabel": "Selection actions",
-      "copy": "Copy",
-      "copyPaths": "Copy paths",
-      "download": "Download",
-      "downloadZip": "Download as ZIP",
-      "move": "Move",
-      "moveTo": "Move to...",
-      "delete": "Delete selection",
-      "deleteShort": "Delete",
-      "deleteTitle": "Delete {{count}} items?",
-      "deleteWarning": "These items will be permanently deleted.",
-      "deleteConfirmShort": "Delete",
-      "andMore": "...and {{count}} more",
-      "moveTitle": "Move {{count}} items to...",
-      "targetDirLabel": "Target folder (project-relative)",
-      "targetDirPlaceholder": "e.g. src/utils or empty for root",
-      "recentFolders": "Quick pick",
-      "moveConfirm": "Move"
-    },
-    "toast": {
-      "renamed": "Renamed successfully",
-      "folderDeleted": "Folder deleted",
-      "fileDeleted": "File deleted",
-      "fileCreated": "File created successfully",
-      "folderCreated": "Folder created successfully",
-      "copyFailed": "Failed to copy paths",
-      "pathCopied": "Path copied to clipboard",
-      "pathsCopied": "{{count}} paths copied",
-      "folderDownloaded": "Folder downloaded as ZIP",
-      "selectionDownloaded": "Selection downloaded",
-      "selectionDeleted": "{{count}} items deleted",
-      "selectionPartialDelete": "{{fail}} of {{total}} items could not be deleted",
-      "selectionDeleteFailed": "Failed to delete selection",
-      "selectionMoved": "{{count}} items moved",
-      "pathNotFound": "{{path}} not found, skipping"
-    },
-    "validation": {
-      "emptyName": "Filename cannot be empty",
-      "invalidChars": "Filename contains invalid characters",
-      "reserved": "Filename is a reserved name",
-      "dotsOnly": "Filename cannot be only dots"
-    },
-    "delete": {
-      "title": "Delete {{type}}",
-      "folderWarning": "This folder and all its contents will be permanently deleted.",
-      "fileWarning": "This file will be permanently deleted.",
-      "confirm": "Delete"
-    },
-    "context": {
-      "rename": "Rename",
-      "delete": "Delete",
-      "copyPath": "Copy Path",
-      "download": "Download",
-      "newFile": "New File",
-      "newFolder": "New Folder",
-      "refresh": "Refresh",
-      "menuLabel": "File context menu",
-      "loading": "Loading..."
-    }
   },
   "projectWizard": {
     "title": "Create New Project",
@@ -206,7 +140,7 @@
     "step3": {
       "reviewConfig": "Review Your Configuration",
       "path": "Path:",
-      "newEmpty": "The workspace will be added to your project list and will be available for Claude/Codex sessions."
+      "newEmpty": "The workspace will be added to your project list and will be available for Claude sessions."
     },
     "buttons": {
       "cancel": "Cancel",
@@ -307,14 +241,13 @@
     },
     "minimax": {
       "sectionTitle": "MiniMax MCP",
-      "sectionDescription": "Connect the official MiniMax coding plan MCP server so Codex and Claude can browse, plan, and act on the web through the MiniMax API.",
+      "sectionDescription": "Connect the official MiniMax coding plan MCP server so Claude can browse, plan, and act on the web through the MiniMax API.",
       "enableLabel": "Enable MiniMax MCP",
-      "enableDescription": "Registers the official MiniMax MCP server with both Codex and Claude. Requires the MiniMax CLI to be installed (uvx) and a valid MiniMax API key in your environment.",
+      "enableDescription": "Registers the official MiniMax MCP server with both Claude. Requires the MiniMax CLI to be installed (uvx) and a valid MiniMax API key in your environment.",
       "enableAria": "Toggle MiniMax MCP",
       "stateLabel": "State: {{state}}",
       "stateEnabled": "active",
       "stateDisabled": "inactive",
-      "codexStatus": "Codex: {{state}}",
       "claudeStatus": "Claude: {{state}}",
       "providerConfigured": "registered",
       "providerMissing": "not registered",
@@ -393,14 +326,13 @@
   },
   "mmxCli": {
     "sectionTitle": "Rag MCP",
-    "sectionDescription": "Enable the RAG Vector knowledge base backed by MiniMax embeddings and register cloudcli-rag with Claude Code and Codex so agents can search your documents via MCP tools.",
+    "sectionDescription": "Enable the RAG Vector knowledge base backed by MiniMax embeddings so you can upload and search documents locally.",
     "enableLabel": "Enable RAG Vector",
-    "enableDescription": "When enabled, the \"RAG Vector\" tab appears in the header to upload and manage documents, and the cloudcli-rag MCP server is registered with Claude Code and Codex.",
-    "enableAria": "Toggle RAG Vector and cloudcli-rag",
+    "enableDescription": "When enabled, the \"RAG Vector\" tab appears in the header to upload and manage documents in your local knowledge base.",
+    "enableAria": "Toggle RAG Vector",
     "stateLabel": "State: {{state}}",
     "stateEnabled": "Enabled",
     "stateDisabled": "Disabled",
-    "codexStatus": "Codex: {{state}}",
     "claudeStatus": "Claude: {{state}}",
     "providerConfigured": "registered",
     "providerMissing": "not registered",
@@ -414,28 +346,6 @@
     "empty": {
       "title": "RAG Vector",
       "description": "Knowledge base coming soon. You will be able to upload documents and chat against them here."
-    }
-  },
-  "terminal": {
-    "sectionTitle": "Terminal",
-    "sectionDescription": "Enable or disable the integrated terminal that exposes a full shell via WebSocket.",
-    "enableLabel": "Enable terminal",
-    "enableDescription": "When enabled, the Terminal tab is available and new WebSocket connections to /shell are accepted.",
-    "enableAria": "Toggle terminal",
-    "stateLabel": "State: {{state}}",
-    "stateEnabled": "Enabled",
-    "stateDisabled": "Disabled",
-    "panelTitle": "Terminal module",
-    "panelDescription": "Manage the Terminal toggle that gates the WebSocket /shell endpoint. Configure it in Settings.",
-    "openSettings": "Open terminal settings",
-    "disabledTitle": "Terminal disabled",
-    "disabledDescription": "The Terminal module is turned off. Enable it in Settings to use the integrated shell.",
-    "overlayConnecting": "Connecting to terminal module…",
-    "overlayError": "Connection error",
-    "overlayClosed": "Shell closed. Reload the tab to reconnect.",
-    "errors": {
-      "loadState": "Failed to load terminal state.",
-      "saveState": "Failed to save terminal state."
     }
   },
   "knowledgeBase": {
@@ -540,8 +450,5 @@
       "dismissed": "Install dismissed. You can try again any time.",
       "unsupported": "This browser does not expose an install prompt."
     }
-  },
-  "common": {
-    "gotIt": "Got it"
   }
 }

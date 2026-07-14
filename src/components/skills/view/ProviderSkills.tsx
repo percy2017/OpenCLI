@@ -6,6 +6,7 @@ import {
   FileText,
   FileUp,
   FolderUp,
+  Github,
   Loader2,
   Plus,
   RefreshCw,
@@ -33,6 +34,8 @@ import type {
   SkillsScope,
 } from '../types';
 
+import GithubInstallDialog from './GithubInstallDialog';
+
 type ProviderSkillsProps = {
   selectedProvider: SkillsProvider;
   currentProjects: SkillsProject[];
@@ -57,12 +60,10 @@ const MAX_SKILL_FOLDER_BYTES = 30 * 1024 * 1024;
 
 const PROVIDER_NAMES: Record<SkillsProvider, string> = {
   claude: 'Claude',
-  codex: 'Codex',
 };
 
 const PROVIDER_SKILL_PATHS: Record<SkillsProvider, string> = {
   claude: '~/.claude/skills/<skill-name>/SKILL.md',
-  codex: '~/.agents/skills/<skill-name>/SKILL.md',
 };
 
 const SCOPE_LABELS: Record<SkillsScope, string> = {
@@ -101,6 +102,37 @@ const formatFileSize = (size: number): string => {
   }
 
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const GITHUB_ERROR_CODE_PATTERNS: Array<{ code: string; key: string }> = [
+  { code: 'PROVIDER_SKILL_GITHUB_INVALID_URL', key: 'skillsManagement.githubError.invalidUrl' },
+  { code: 'PROVIDER_SKILL_GITHUB_NON_GITHUB_HOST', key: 'skillsManagement.githubError.nonGithubHost' },
+  { code: 'PROVIDER_SKILL_GITHUB_NOT_FOUND', key: 'skillsManagement.githubError.notFound' },
+  { code: 'PROVIDER_SKILL_GITHUB_RATE_LIMIT', key: 'skillsManagement.githubError.rateLimit' },
+  { code: 'PROVIDER_SKILL_GITHUB_FORBIDDEN', key: 'skillsManagement.githubError.rateLimit' },
+  { code: 'PROVIDER_SKILL_GITHUB_ARCHIVE_TOO_LARGE', key: 'skillsManagement.githubError.archiveTooLarge' },
+  { code: 'PROVIDER_SKILL_GITHUB_ENTRY_TOO_LARGE', key: 'skillsManagement.githubError.archiveTooLarge' },
+  { code: 'PROVIDER_SKILL_GITHUB_EXTRACTED_TOO_LARGE', key: 'skillsManagement.githubError.extractedTooLarge' },
+  { code: 'PROVIDER_SKILL_GITHUB_NO_SKILLS', key: 'skillsManagement.githubError.noSkillsFound' },
+  { code: 'PROVIDER_SKILL_GITHUB_PATH_TRAVERSAL', key: 'skillsManagement.githubError.invalidUrl' },
+  { code: 'PROVIDER_SKILL_GITHUB_NETWORK', key: 'skillsManagement.githubError.network' },
+  { code: 'PROVIDER_SKILL_GITHUB_URL_REQUIRED', key: 'skillsManagement.githubError.invalidUrl' },
+  { code: 'PROVIDER_SKILLS_WRITE_UNSUPPORTED', key: 'skillsManagement.githubError.unsupportedProvider' },
+];
+
+const matchGithubErrorCodeToTranslation = (
+  t: (key: string, options?: Record<string, unknown>) => string,
+  rawMessage: string,
+): string | null => {
+  for (const { code, key } of GITHUB_ERROR_CODE_PATTERNS) {
+    if (rawMessage.includes(code)) {
+      const translated = t(key, { defaultValue: '' });
+      if (translated) {
+        return translated;
+      }
+    }
+  }
+  return null;
 };
 
 const getBrowserRelativePath = (file: File): string => {
@@ -204,6 +236,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
     loadError,
     saveStatus,
     addSkills,
+    installFromGithub,
     refreshSkills,
   } = useProviderSkills({ selectedProvider, currentProjects });
   const [queuedFiles, setQueuedFiles] = useState<QueuedSkillFile[]>([]);
@@ -212,6 +245,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
   const [justInstalled, setJustInstalled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isGithubDialogOpen, setIsGithubDialogOpen] = useState(false);
   const [showInstallPath, setShowInstallPath] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement | null>(null);
@@ -225,6 +259,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
     setIsSubmitting(false);
     setSearchQuery('');
     setIsAddDialogOpen(false);
+    setIsGithubDialogOpen(false);
     setShowInstallPath(false);
     setJustInstalled(false);
   }, [selectedProvider]);
@@ -383,6 +418,36 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
     setJustInstalled(false);
     setIsAddDialogOpen(false);
   }, []);
+
+  const handleGithubDialogOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      setSubmitError(null);
+      setJustInstalled(false);
+      setIsGithubDialogOpen(true);
+      return;
+    }
+
+    setSubmitError(null);
+    setIsGithubDialogOpen(false);
+  }, []);
+
+  const handleGithubInstall = useCallback(async (payload: { url: string; ref?: string }) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await installFromGithub(payload);
+      setJustInstalled(true);
+      setIsGithubDialogOpen(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('skillsManagement.importError');
+      // Map server-side codes to localized keys when possible.
+      const localized = matchGithubErrorCodeToTranslation(t, message);
+      setSubmitError(localized ?? message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [installFromGithub]);
 
   const uploadPanel = (
     <div className="space-y-4">
@@ -556,6 +621,16 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             {t('skillsManagement.addSkill')}
           </Button>
           <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => handleGithubDialogOpenChange(true)}
+          >
+            <Github className="h-4 w-4" />
+            {t('skillsManagement.addFromGithub')}
+          </Button>
+          <Button
             onClick={() => void refreshSkills({ force: true })}
             variant="outline"
             size="sm"
@@ -653,6 +728,15 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
           </div>
         </DialogContent>
       </Dialog>
+
+      <GithubInstallDialog
+        open={isGithubDialogOpen}
+        providerName={providerName}
+        isSubmitting={isSubmitting}
+        submitError={submitError}
+        onOpenChange={handleGithubDialogOpenChange}
+        onSubmit={handleGithubInstall}
+      />
 
       {!isAddDialogOpen && (submitError || loadError) && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-200">

@@ -20,10 +20,6 @@ const agentConfig: Record<AgentProvider, AgentConfig> = {
     name: 'Claude',
     color: 'blue',
   },
-  codex: {
-    name: 'Codex',
-    color: 'gray',
-  },
 };
 
 const colorClasses = {

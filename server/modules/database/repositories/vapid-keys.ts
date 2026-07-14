@@ -40,18 +40,5 @@ export const vapidKeysDb = {
       'INSERT INTO vapid_keys (public_key, private_key) VALUES (?, ?)'
     ).run(publicKey, privateKey);
   },
-
-  /** Replaces all existing keys with a fresh pair. */
-  updateVapidKeys(publicKey: string, privateKey: string): void {
-    const db = getConnection();
-    db.prepare('DELETE FROM vapid_keys').run();
-    vapidKeysDb.createVapidKeys(publicKey, privateKey);
-  },
-
-  /** Deletes all VAPID key rows. */
-  deleteVapidKeys(): void {
-    const db = getConnection();
-    db.prepare('DELETE FROM vapid_keys').run();
-  },
 };
 

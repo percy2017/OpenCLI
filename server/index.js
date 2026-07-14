@@ -28,10 +28,6 @@ import {
     getPendingApprovalsForSession,
 } from './claude-sdk.js';
 import {
-    queryCodex,
-    abortCodexSession,
-} from './openai-codex.js';
-import {
     stripAnsiSequences,
     normalizeDetectedUrl,
     extractUrlsFromText,
@@ -46,17 +42,13 @@ import projectModuleRoutes from './modules/projects/projects.routes.js';
 import notificationRoutes from './modules/notifications/notifications.routes.js';
 import userRoutes from './routes/user.js';
 import providerRoutes from './modules/providers/provider.routes.js';
-import voiceRoutes from './voice-proxy.js';
+import { skillsGithubRoutes } from './modules/skills-github/index.js';
 import minimaxRoutes from './minimax-proxy.js';
 import browserUseRoutes from './modules/browser-use/browser-use.routes.js';
-import mcpMinimaxRoutes from './modules/mcp-minimax/mcp-minimax.routes.js';
 import featureFlagsRoutes from './modules/feature-flags/feature-flags.routes.js';
 import ragRoutes from './modules/rag/rag.routes.js';
-import ragMcpToggleRoutes from './modules/rag-mcp-toggle/rag-mcp-toggle.routes.js';
-import mcpToolsRoutes from './modules/mcp-tools/mcp-tools.routes.js';
-import terminalRoutes from './modules/terminal/terminal.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
-import browserUseMcpRoutes from './modules/browser-use/browser-use-mcp.routes.js';
+import { fileManagerRoutes } from './modules/file-manager/index.js';
 import { browserUseService } from './modules/browser-use/browser-use.service.js';
 import { initializeDatabase, projectsDb, sessionsDb } from './modules/database/index.js';
 import { runFirstRunOnStartup } from './modules/first-run/first-run.service.js';
@@ -84,9 +76,6 @@ const RUNNING_VERSION = (() => {
         return null;
     }
 })();
-const MAX_FILE_UPLOAD_SIZE_MB = 200;
-const MAX_FILE_UPLOAD_SIZE_BYTES = MAX_FILE_UPLOAD_SIZE_MB * 1024 * 1024;
-const MAX_FILE_UPLOAD_COUNT = 20;
 
 console.log('SERVER_PORT from env:', process.env.SERVER_PORT);
 
@@ -98,10 +87,9 @@ function readUsageNumber(value) {
 const app = express();
 const server = http.createServer(app);
 
-// Single WebSocket server that handles chat, shell, terminal-shell, and desktop-notifications paths.
+// Single WebSocket server that handles chat, shell, and desktop-notifications paths.
 const providerAbortRegistry = {
     claude: abortClaudeSDKSession,
-    codex: abortCodexSession,
 };
 // Expose the registry so the provider reset route can call the same abort
 // functions the websocket uses, without re-importing from this file.
@@ -115,7 +103,6 @@ const wss = createWebSocketServer(server, {
     chat: {
         spawnFns: {
             claude: queryClaudeSDK,
-            codex: queryCodex,
         },
         abortFns: providerAbortRegistry,
         resolveToolApproval,
@@ -176,6 +163,9 @@ app.use('/api/projects', authenticateToken, projectModuleRoutes);
 // Chat image asset upload/serving (global ~/.cloudcli/assets store, protected)
 app.use('/api/assets', authenticateToken, assetsRoutes);
 
+// Full file manager rooted at WORKSPACES_ROOT (protected)
+app.use('/api/file-manager', authenticateToken, fileManagerRoutes);
+
 // Git API Routes (protected)
 app.use('/api/git', authenticateToken, gitRoutes);
 
@@ -190,14 +180,8 @@ app.use('/api/notifications', authenticateToken, notificationRoutes);
 // User API Routes (protected)
 app.use('/api/user', authenticateToken, userRoutes);
 
-// Browser MCP bridge API (local token protected)
-app.use('/api/browser-use-mcp', browserUseMcpRoutes);
-
 // Browser API Routes (protected)
 app.use('/api/browser-use', authenticateToken, browserUseRoutes);
-
-// MiniMax MCP toggle (protected)
-app.use('/api/mcp-minimax', authenticateToken, mcpMinimaxRoutes);
 
 // Feature flags (protected)
 app.use('/api/feature-flags', authenticateToken, featureFlagsRoutes);
@@ -205,22 +189,12 @@ app.use('/api/feature-flags', authenticateToken, featureFlagsRoutes);
 // RAG (knowledge base)
 app.use('/api/rag', authenticateToken, ragRoutes);
 
-// RAG MCP toggle (registers cloudli-rag with Claude + Codex)
-app.use('/api/rag-mcp', authenticateToken, ragMcpToggleRoutes);
-
-// MCP tools catalog — aggregated tool listings for the "MCP y Tools" settings tab.
-app.use('/api/mcp-tools', authenticateToken, mcpToolsRoutes);
-
-// Terminal kill-switch (gates the /shell WebSocket)
-app.use('/api/terminal', authenticateToken, terminalRoutes);
-
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);
+app.use('/api/providers', authenticateToken, skillsGithubRoutes);
 
 // Agent API Routes (uses API key authentication)
 app.use('/api/agent', agentRoutes);
-
-app.use('/api/voice', authenticateToken, voiceRoutes);
 
 app.use('/api/minimax', authenticateToken, minimaxRoutes);
 
@@ -866,521 +840,6 @@ function validateFilename(name) {
     return { valid: true };
 }
 
-// POST /api/projects/:projectId/files/create - Create new file or directory
-app.post('/api/projects/:projectId/files/create', authenticateToken, async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        const { path: parentPath, type, name } = req.body;
-
-        // Validate input
-        if (!name || !type) {
-            return res.status(400).json({ error: 'Name and type are required' });
-        }
-
-        if (!['file', 'directory'].includes(type)) {
-            return res.status(400).json({ error: 'Type must be "file" or "directory"' });
-        }
-
-        const nameValidation = validateFilename(name);
-        if (!nameValidation.valid) {
-            return res.status(400).json({ error: nameValidation.error });
-        }
-
-        // Resolve the project directory through the DB using the new projectId.
-        const projectRoot = await projectsDb.getProjectPathById(projectId);
-        if (!projectRoot) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
-
-        // Build and validate target path
-        const targetDir = parentPath || '';
-        const targetPath = targetDir ? path.join(targetDir, name) : name;
-        const validation = validatePathInProject(projectRoot, targetPath);
-        if (!validation.valid) {
-            return res.status(403).json({ error: validation.error });
-        }
-
-        const resolvedPath = validation.resolved;
-
-        // Check if already exists
-        try {
-            await fsPromises.access(resolvedPath);
-            return res.status(409).json({ error: `${type === 'file' ? 'File' : 'Directory'} already exists` });
-        } catch {
-            // Doesn't exist, which is what we want
-        }
-
-        // Create file or directory
-        if (type === 'directory') {
-            await fsPromises.mkdir(resolvedPath, { recursive: false });
-        } else {
-            // Ensure parent directory exists
-            const parentDir = path.dirname(resolvedPath);
-            try {
-                await fsPromises.access(parentDir);
-            } catch {
-                await fsPromises.mkdir(parentDir, { recursive: true });
-            }
-            await fsPromises.writeFile(resolvedPath, '', 'utf8');
-        }
-
-        res.json({
-            success: true,
-            path: resolvedPath,
-            name,
-            type,
-            message: `${type === 'file' ? 'File' : 'Directory'} created successfully`
-        });
-    } catch (error) {
-        console.error('Error creating file/directory:', error);
-        if (error.code === 'EACCES') {
-            res.status(403).json({ error: 'Permission denied' });
-        } else if (error.code === 'ENOENT') {
-            res.status(404).json({ error: 'Parent directory not found' });
-        } else {
-            res.status(500).json({ error: error.message });
-        }
-    }
-});
-
-// PUT /api/projects/:projectId/files/rename - Rename file or directory
-app.put('/api/projects/:projectId/files/rename', authenticateToken, async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        const { oldPath, newName } = req.body;
-
-        // Validate input
-        if (!oldPath || !newName) {
-            return res.status(400).json({ error: 'oldPath and newName are required' });
-        }
-
-        const nameValidation = validateFilename(newName);
-        if (!nameValidation.valid) {
-            return res.status(400).json({ error: nameValidation.error });
-        }
-
-        // Resolve the project directory through the DB using the new projectId.
-        const projectRoot = await projectsDb.getProjectPathById(projectId);
-        if (!projectRoot) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
-
-        // Validate old path
-        const oldValidation = validatePathInProject(projectRoot, oldPath);
-        if (!oldValidation.valid) {
-            return res.status(403).json({ error: oldValidation.error });
-        }
-
-        const resolvedOldPath = oldValidation.resolved;
-
-        // Check if old path exists
-        try {
-            await fsPromises.access(resolvedOldPath);
-        } catch {
-            return res.status(404).json({ error: 'File or directory not found' });
-        }
-
-        // Build and validate new path
-        const parentDir = path.dirname(resolvedOldPath);
-        const resolvedNewPath = path.join(parentDir, newName);
-        const newValidation = validatePathInProject(projectRoot, resolvedNewPath);
-        if (!newValidation.valid) {
-            return res.status(403).json({ error: newValidation.error });
-        }
-
-        // Check if new path already exists
-        try {
-            await fsPromises.access(resolvedNewPath);
-            return res.status(409).json({ error: 'A file or directory with this name already exists' });
-        } catch {
-            // Doesn't exist, which is what we want
-        }
-
-        // Rename
-        await fsPromises.rename(resolvedOldPath, resolvedNewPath);
-
-        res.json({
-            success: true,
-            oldPath: resolvedOldPath,
-            newPath: resolvedNewPath,
-            newName,
-            message: 'Renamed successfully'
-        });
-    } catch (error) {
-        console.error('Error renaming file/directory:', error);
-        if (error.code === 'EACCES') {
-            res.status(403).json({ error: 'Permission denied' });
-        } else if (error.code === 'ENOENT') {
-            res.status(404).json({ error: 'File or directory not found' });
-        } else if (error.code === 'EXDEV') {
-            res.status(400).json({ error: 'Cannot move across different filesystems' });
-        } else {
-            res.status(500).json({ error: error.message });
-        }
-    }
-});
-
-// PUT /api/projects/:projectId/files/move - Move file or directory to a new parent directory
-// Body: { items: [{ path: string, type: 'file' | 'directory' }], targetDir: string }
-// `items` lets a single move request carry a batch from the multi-select tree.
-// `targetDir` is an absolute project-relative directory path ("", "src", "src/utils").
-// Empty string means the project root. Validation rejects any item whose source
-// path equals or is a child of `targetDir` (moving a folder into itself).
-app.put('/api/projects/:projectId/files/move', authenticateToken, async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        const { items, targetDir } = req.body || {};
-
-        if (!Array.isArray(items) || items.length === 0) {
-            return res.status(400).json({ error: 'items must be a non-empty array' });
-        }
-        if (typeof targetDir !== 'string') {
-            return res.status(400).json({ error: 'targetDir must be a string' });
-        }
-
-        const projectRoot = await projectsDb.getProjectPathById(projectId);
-        if (!projectRoot) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
-
-        // Resolve and validate the target directory. We require it to be a
-        // directory that already exists inside the project root.
-        const normalizedTarget = targetDir.replace(/^\/+|\/+$/g, '');
-        const targetValidation = validatePathInProject(
-            projectRoot,
-            normalizedTarget === '' ? '' : normalizedTarget,
-        );
-        if (!targetValidation.valid) {
-            return res.status(403).json({ error: targetValidation.error });
-        }
-
-        let targetStats;
-        try {
-            targetStats = await fsPromises.stat(targetValidation.resolved);
-        } catch {
-            return res.status(404).json({ error: 'Target directory not found' });
-        }
-        if (!targetStats.isDirectory()) {
-            return res.status(400).json({ error: 'Target path is not a directory' });
-        }
-
-        const results = [];
-        const errors = [];
-
-        for (const item of items) {
-            const sourcePath = item?.path;
-            const sourceType = item?.type;
-            if (!sourcePath || (sourceType !== 'file' && sourceType !== 'directory')) {
-                errors.push({ path: sourcePath, error: 'Invalid item shape' });
-                continue;
-            }
-
-            const sourceValidation = validatePathInProject(projectRoot, sourcePath);
-            if (!sourceValidation.valid) {
-                errors.push({ path: sourcePath, error: sourceValidation.error });
-                continue;
-            }
-
-            const resolvedSource = sourceValidation.resolved;
-            if (resolvedSource === path.resolve(projectRoot)) {
-                errors.push({ path: sourcePath, error: 'Cannot move project root' });
-                continue;
-            }
-
-            // Block moving a directory into itself or one of its descendants.
-            const sourceRelToRoot = path.relative(path.resolve(projectRoot), resolvedSource);
-            const targetRelToSource = path.relative(resolvedSource, targetValidation.resolved);
-            if (
-                !sourceRelToRoot.startsWith('..') &&
-                !path.isAbsolute(sourceRelToRoot) &&
-                (!targetRelToSource.startsWith('..') || targetRelToSource === '')
-            ) {
-                errors.push({ path: sourcePath, error: 'Cannot move a directory into itself' });
-                continue;
-            }
-
-            const baseName = path.basename(resolvedSource);
-            const resolvedDest = path.join(targetValidation.resolved, baseName);
-            if (resolvedDest === resolvedSource) {
-                // Source is already inside the target dir — no-op success.
-                results.push({ path: sourcePath, newPath: resolvedDest, noop: true });
-                continue;
-            }
-
-            try {
-                await fsPromises.stat(resolvedDest);
-                errors.push({ path: sourcePath, error: `A file or directory named "${baseName}" already exists in the target` });
-                continue;
-            } catch (e) {
-                if (e.code !== 'ENOENT') {
-                    errors.push({ path: sourcePath, error: e.message });
-                    continue;
-                }
-            }
-
-            try {
-                await fsPromises.rename(resolvedSource, resolvedDest);
-                results.push({ path: sourcePath, newPath: resolvedDest });
-            } catch (err) {
-                if (err.code === 'EACCES') {
-                    errors.push({ path: sourcePath, error: 'Permission denied' });
-                } else if (err.code === 'ENOENT') {
-                    errors.push({ path: sourcePath, error: 'Source not found' });
-                } else if (err.code === 'EXDEV') {
-                    errors.push({ path: sourcePath, error: 'Cannot move across filesystems' });
-                } else {
-                    errors.push({ path: sourcePath, error: err.message });
-                }
-            }
-        }
-
-        res.json({
-            success: errors.length === 0,
-            moved: results,
-            errors,
-        });
-    } catch (error) {
-        console.error('Error moving files:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// DELETE /api/projects/:projectId/files - Delete file or directory
-app.delete('/api/projects/:projectId/files', authenticateToken, async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        const { path: targetPath, type } = req.body;
-
-        // Validate input
-        if (!targetPath) {
-            return res.status(400).json({ error: 'Path is required' });
-        }
-
-        // Resolve the project directory through the DB using the new projectId.
-        const projectRoot = await projectsDb.getProjectPathById(projectId);
-        if (!projectRoot) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
-
-        // Validate path
-        const validation = validatePathInProject(projectRoot, targetPath);
-        if (!validation.valid) {
-            return res.status(403).json({ error: validation.error });
-        }
-
-        const resolvedPath = validation.resolved;
-
-        // Check if path exists and get stats
-        let stats;
-        try {
-            stats = await fsPromises.stat(resolvedPath);
-        } catch {
-            return res.status(404).json({ error: 'File or directory not found' });
-        }
-
-        // Prevent deleting the project root itself
-        if (resolvedPath === path.resolve(projectRoot)) {
-            return res.status(403).json({ error: 'Cannot delete project root directory' });
-        }
-
-        // Delete based on type
-        if (stats.isDirectory()) {
-            await fsPromises.rm(resolvedPath, { recursive: true, force: true });
-        } else {
-            await fsPromises.unlink(resolvedPath);
-        }
-
-        res.json({
-            success: true,
-            path: resolvedPath,
-            type: stats.isDirectory() ? 'directory' : 'file',
-            message: 'Deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error deleting file/directory:', error);
-        if (error.code === 'EACCES') {
-            res.status(403).json({ error: 'Permission denied' });
-        } else if (error.code === 'ENOENT') {
-            res.status(404).json({ error: 'File or directory not found' });
-        } else if (error.code === 'ENOTEMPTY') {
-            res.status(400).json({ error: 'Directory is not empty' });
-        } else {
-            res.status(500).json({ error: error.message });
-        }
-    }
-});
-
-// POST /api/projects/:projectId/files/upload - Upload files
-// Dynamic import of multer for file uploads
-const uploadFilesHandler = async (req, res) => {
-    // Dynamic import of multer
-    const multer = (await import('multer')).default;
-
-    const uploadMiddleware = multer({
-        storage: multer.diskStorage({
-            destination: (req, file, cb) => {
-                cb(null, os.tmpdir());
-            },
-            filename: (req, file, cb) => {
-                // Use a unique temp name, but preserve original name in file.originalname
-                // Note: file.originalname may contain path separators for folder uploads
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-                // For temp file, just use a safe unique name without the path
-                cb(null, `upload-${uniqueSuffix}`);
-            }
-        }),
-        limits: {
-            fileSize: MAX_FILE_UPLOAD_SIZE_BYTES,
-            files: MAX_FILE_UPLOAD_COUNT
-        }
-    });
-
-    // Use multer middleware
-    uploadMiddleware.array('files', MAX_FILE_UPLOAD_COUNT)(req, res, async (err) => {
-        if (err) {
-            console.error('Multer error:', err);
-            if (err.code === 'LIMIT_FILE_SIZE') {
-                return res.status(400).json({ error: `File too large. Maximum size is ${MAX_FILE_UPLOAD_SIZE_MB}MB.` });
-            }
-            if (err.code === 'LIMIT_FILE_COUNT') {
-                return res.status(400).json({ error: `Too many files. Maximum is ${MAX_FILE_UPLOAD_COUNT} files.` });
-            }
-            return res.status(500).json({ error: err.message });
-        }
-
-        try {
-            const { projectId } = req.params;
-            const { targetPath, relativePaths, requestedFileCount: requestedFileCountRaw } = req.body;
-
-            // Parse relative paths if provided (for folder uploads)
-            let filePaths = [];
-            if (relativePaths) {
-                try {
-                    filePaths = JSON.parse(relativePaths);
-                } catch (e) {
-                    console.log('[DEBUG] Failed to parse relativePaths:', relativePaths);
-                }
-            }
-
-            console.log('[DEBUG] File upload request:', {
-                projectId,
-                targetPath: JSON.stringify(targetPath),
-                targetPathType: typeof targetPath,
-                filesCount: req.files?.length,
-                relativePaths: filePaths
-            });
-
-            if (!req.files || req.files.length === 0) {
-                return res.status(400).json({ error: 'No files provided' });
-            }
-
-            const parsedRequestedFileCount = Number.parseInt(requestedFileCountRaw, 10);
-            const requestedFileCount = Number.isFinite(parsedRequestedFileCount) && parsedRequestedFileCount > 0
-                ? parsedRequestedFileCount
-                : req.files.length;
-
-            // Resolve the project directory through the DB using the new projectId.
-            const projectRoot = await projectsDb.getProjectPathById(projectId);
-            if (!projectRoot) {
-                return res.status(404).json({ error: 'Project not found' });
-            }
-
-            console.log('[DEBUG] Project root:', projectRoot);
-
-            // Validate and resolve target path
-            // If targetPath is empty or '.', use project root directly
-            const targetDir = targetPath || '';
-            let resolvedTargetDir;
-
-            console.log('[DEBUG] Target dir:', JSON.stringify(targetDir));
-
-            if (!targetDir || targetDir === '.' || targetDir === './') {
-                // Empty path means upload to project root
-                resolvedTargetDir = path.resolve(projectRoot);
-                console.log('[DEBUG] Using project root as target:', resolvedTargetDir);
-            } else {
-                const validation = validatePathInProject(projectRoot, targetDir);
-                if (!validation.valid) {
-                    console.log('[DEBUG] Path validation failed:', validation.error);
-                    return res.status(403).json({ error: validation.error });
-                }
-                resolvedTargetDir = validation.resolved;
-                console.log('[DEBUG] Resolved target dir:', resolvedTargetDir);
-            }
-
-            // Ensure target directory exists
-            try {
-                await fsPromises.access(resolvedTargetDir);
-            } catch {
-                await fsPromises.mkdir(resolvedTargetDir, { recursive: true });
-            }
-
-            // Move uploaded files from temp to target directory
-            const uploadedFiles = [];
-            console.log('[DEBUG] Processing files:', req.files.map(f => ({ originalname: f.originalname, path: f.path })));
-            for (let i = 0; i < req.files.length; i++) {
-                const file = req.files[i];
-                // Use relative path if provided (for folder uploads), otherwise use originalname
-                const fileName = (filePaths && filePaths[i]) ? filePaths[i] : file.originalname;
-                console.log('[DEBUG] Processing file:', fileName, '(originalname:', file.originalname + ')');
-                const destPath = path.join(resolvedTargetDir, fileName);
-
-                // Validate destination path
-                const destValidation = validatePathInProject(projectRoot, destPath);
-                if (!destValidation.valid) {
-                    console.log('[DEBUG] Destination validation failed for:', destPath);
-                    // Clean up temp file
-                    await fsPromises.unlink(file.path).catch(() => {});
-                    continue;
-                }
-
-                // Ensure parent directory exists (for nested files from folder upload)
-                const parentDir = path.dirname(destPath);
-                try {
-                    await fsPromises.access(parentDir);
-                } catch {
-                    await fsPromises.mkdir(parentDir, { recursive: true });
-                }
-
-                // Move file (copy + unlink to handle cross-device scenarios)
-                await fsPromises.copyFile(file.path, destPath);
-                await fsPromises.unlink(file.path);
-
-                uploadedFiles.push({
-                    name: fileName,
-                    path: destPath,
-                    size: file.size,
-                    mimeType: file.mimetype
-                });
-            }
-
-            res.json({
-                success: true,
-                files: uploadedFiles,
-                uploadedCount: uploadedFiles.length,
-                requestedFileCount,
-                targetPath: resolvedTargetDir,
-                message: `Uploaded ${uploadedFiles.length} ${uploadedFiles.length === 1 ? 'file' : 'files'} successfully`
-            });
-        } catch (error) {
-            console.error('Error uploading files:', error);
-            // Clean up any remaining temp files
-            if (req.files) {
-                for (const file of req.files) {
-                    await fsPromises.unlink(file.path).catch(() => {});
-                }
-            }
-            if (error.code === 'EACCES') {
-                res.status(403).json({ error: 'Permission denied' });
-            } else {
-                res.status(500).json({ error: error.message });
-            }
-        }
-    });
-};
-
-app.post('/api/projects/:projectId/files/upload', authenticateToken, uploadFilesHandler);
-
 // Chat image uploads moved to POST /api/assets/images (server/modules/assets),
 // which stores them in the global ~/.cloudcli/assets folder.
 
@@ -1408,98 +867,6 @@ app.get('/api/projects/:projectId/sessions/:sessionId/token-usage', authenticate
 
         const provider = sessionRow.provider || 'claude';
         const providerNativeSessionId = sessionRow?.provider_session_id || safeSessionId;
-
-        // Handle Codex sessions
-        if (provider === 'codex') {
-            const codexSessionsDir = path.join(homeDir, '.codex', 'sessions');
-
-            // Find the session file by searching for the session ID
-            const findSessionFile = async (dir) => {
-                try {
-                    const entries = await fsPromises.readdir(dir, { withFileTypes: true });
-                    for (const entry of entries) {
-                        const fullPath = path.join(dir, entry.name);
-                        if (entry.isDirectory()) {
-                            const found = await findSessionFile(fullPath);
-                            if (found) return found;
-                        } else if (entry.name.includes(providerNativeSessionId) && entry.name.endsWith('.jsonl')) {
-                            return fullPath;
-                        }
-                    }
-                } catch (error) {
-                    // Skip directories we can't read
-                }
-                return null;
-            };
-
-            const sessionFilePath = await findSessionFile(codexSessionsDir);
-
-            if (!sessionFilePath) {
-                return res.status(404).json({ error: 'Codex session file not found', sessionId: safeSessionId });
-            }
-
-            // Read and parse the Codex JSONL file
-            let fileContent;
-            try {
-                fileContent = await fsPromises.readFile(sessionFilePath, 'utf8');
-            } catch (error) {
-                if (error.code === 'ENOENT') {
-                    return res.status(404).json({ error: 'Session file not found', path: sessionFilePath });
-                }
-                throw error;
-            }
-            const lines = fileContent.trim().split('\n');
-            let inputTokens = 0;
-            let outputTokens = 0;
-            let totalTokens = 0;
-            // Default for Codex/OpenAI. Can be overridden via CONTEXT_WINDOW in .env.
-            // Some upstream providers report a smaller `model_context_window` in the
-            // token_count event than the model actually supports; we honor the
-            // higher of the two when CONTEXT_WINDOW is configured.
-            const parsedEnvContextWindow = parseInt(process.env.CONTEXT_WINDOW, 10);
-            const envContextWindow = Number.isFinite(parsedEnvContextWindow) && parsedEnvContextWindow > 0
-                ? parsedEnvContextWindow
-                : 0;
-            let contextWindow = Math.max(200000, envContextWindow); // Default for Codex/OpenAI
-
-            // Find the latest token_count event with info (scan from end)
-            for (let i = lines.length - 1; i >= 0; i--) {
-                try {
-                    const entry = JSON.parse(lines[i]);
-
-                    // Codex stores token info in event_msg with type: "token_count"
-                    if (entry.type === 'event_msg' && entry.payload?.type === 'token_count' && entry.payload?.info) {
-                        const tokenInfo = entry.payload.info;
-                        if (tokenInfo.total_token_usage) {
-                            inputTokens = tokenInfo.total_token_usage.input_tokens || 0;
-                            outputTokens = tokenInfo.total_token_usage.output_tokens || 0;
-                            totalTokens = tokenInfo.total_token_usage.total_tokens || inputTokens + outputTokens;
-                        }
-                        if (tokenInfo.model_context_window) {
-                            // Use the larger of: provider-reported window vs env override.
-                            // This lets `CONTEXT_WINDOW=1000000` in .env fix providers that
-                            // report a smaller window than the model actually supports.
-                            contextWindow = Math.max(tokenInfo.model_context_window, envContextWindow);
-                        }
-                        break; // Stop after finding the latest token count
-                    }
-                } catch (parseError) {
-                    // Skip lines that can't be parsed
-                    continue;
-                }
-            }
-
-            return res.json({
-                used: totalTokens,
-                total: contextWindow,
-                inputTokens,
-                outputTokens,
-                breakdown: {
-                    input: inputTokens,
-                    output: outputTokens
-                }
-            });
-        }
 
         // Handle Claude sessions (default)
         // Resolve the project path through the DB using the caller-supplied

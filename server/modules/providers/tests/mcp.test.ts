@@ -93,83 +93,6 @@ test('providerMcpService handles claude MCP scopes/transports with file-backed p
 });
 
 /**
- * This test covers Codex MCP support for user/project scopes, stdio/http formats,
- * and validation for unsupported scope/transport combinations.
- */
-test('providerMcpService handles codex MCP TOML config and capability validation', { concurrency: false }, async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'llm-mcp-codex-'));
-  const workspacePath = path.join(tempRoot, 'workspace');
-  await fs.mkdir(workspacePath, { recursive: true });
-
-  const restoreHomeDir = patchHomeDir(tempRoot);
-  try {
-    await providerMcpService.upsertProviderMcpServer('codex', {
-      name: 'codex-user-stdio',
-      scope: 'user',
-      transport: 'stdio',
-      command: 'python',
-      args: ['server.py'],
-      env: { API_KEY: 'x' },
-      envVars: ['API_KEY'],
-      cwd: '/tmp',
-    });
-
-    await providerMcpService.upsertProviderMcpServer('codex', {
-      name: 'codex-project-http',
-      scope: 'project',
-      transport: 'http',
-      url: 'https://codex.example.com/mcp',
-      headers: { 'X-Custom-Header': 'value' },
-      envHttpHeaders: { 'X-API-Key': 'MY_API_KEY_ENV' },
-      bearerTokenEnvVar: 'MY_API_TOKEN',
-      workspacePath,
-    });
-
-    const userTomlPath = path.join(tempRoot, '.codex', 'config.toml');
-    const userConfig = TOML.parse(await fs.readFile(userTomlPath, 'utf8')) as Record<string, unknown>;
-    const userServers = userConfig.mcp_servers as Record<string, unknown>;
-    const userStdio = userServers['codex-user-stdio'] as Record<string, unknown>;
-    assert.equal(userStdio.command, 'python');
-
-    const projectTomlPath = path.join(workspacePath, '.codex', 'config.toml');
-    const projectConfig = TOML.parse(await fs.readFile(projectTomlPath, 'utf8')) as Record<string, unknown>;
-    const projectServers = projectConfig.mcp_servers as Record<string, unknown>;
-    const projectHttp = projectServers['codex-project-http'] as Record<string, unknown>;
-    assert.equal(projectHttp.url, 'https://codex.example.com/mcp');
-
-    await assert.rejects(
-      providerMcpService.upsertProviderMcpServer('codex', {
-        name: 'codex-local',
-        scope: 'local',
-        transport: 'stdio',
-        command: 'node',
-      }),
-      (error: unknown) =>
-        error instanceof AppError &&
-        error.code === 'MCP_SCOPE_NOT_SUPPORTED' &&
-        error.statusCode === 400,
-    );
-
-    await assert.rejects(
-      providerMcpService.upsertProviderMcpServer('codex', {
-        name: 'codex-sse',
-        scope: 'project',
-        transport: 'sse',
-        url: 'https://example.com/sse',
-        workspacePath,
-      }),
-      (error: unknown) =>
-        error instanceof AppError &&
-        error.code === 'MCP_TRANSPORT_NOT_SUPPORTED' &&
-        error.statusCode === 400,
-    );
-  } finally {
-    restoreHomeDir();
-    await fs.rm(tempRoot, { recursive: true, force: true });
-  }
-});
-
-/**
  * This test covers OpenCode MCP support for user/project config files, JSONC-compatible
  * reads, and validation for unsupported scope/transport combinations.
  */
@@ -318,9 +241,6 @@ test('providerMcpService global adder writes to all providers and rejects unsupp
 
     const claudeProject = await readJson(path.join(workspacePath, '.mcp.json'));
     assert.ok((claudeProject.mcpServers as Record<string, unknown>)['global-http']);
-
-    const codexProject = TOML.parse(await fs.readFile(path.join(workspacePath, '.codex', 'config.toml'), 'utf8')) as Record<string, unknown>;
-    assert.ok((codexProject.mcp_servers as Record<string, unknown>)['global-http']);
 
     const opencodeProject = await readJson(path.join(workspacePath, 'opencode.json'));
     assert.ok((opencodeProject.mcp as Record<string, unknown>)['global-http']);

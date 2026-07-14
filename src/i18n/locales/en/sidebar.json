@@ -12,7 +12,6 @@
     "all": "All",
     "untitledSession": "Untitled Session",
     "newSession": "New Session",
-    "codexSession": "Codex Session",
     "fetchingProjects": "Fetching your Claude projects and sessions",
     "projects": "projects",
     "noMatchingProjects": "No matching projects",
@@ -54,9 +53,7 @@
   },
   "navigation": {
     "chat": "Chat",
-    "files": "Files",
     "git": "Git",
-    "terminal": "Terminal",
     "tasks": "Tasks"
   },
   "actions": {

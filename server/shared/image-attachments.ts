@@ -8,7 +8,6 @@ import path from 'node:path';
  * Uploaded chat images are persisted once in the global `~/.cloudcli/assets`
  * folder and referenced by absolute path everywhere else:
  * - Claude: paths are read back into base64 `image` content blocks.
- * - Codex: paths become `local_image` input items.
  * - Cursor/OpenCode: paths are appended to the prompt inside an
  *   `<images_input>` tag, which is stripped again when history is read.
  *
@@ -313,29 +312,3 @@ export async function buildClaudeUserContent(
   return blocks;
 }
 
-type CodexInputItem =
-  | { type: 'text'; text: string }
-  | { type: 'local_image'; path: string };
-
-/**
- * Builds the Codex `runStreamed` input list: prompt text plus one
- * `local_image` item per attachment, resolved to absolute paths so the Codex
- * runtime can read them regardless of its own working directory handling.
- */
-export function buildCodexInputItems(prompt: string, images: unknown, cwd?: string): CodexInputItem[] {
-  const items: CodexInputItem[] = [{ type: 'text', text: prompt }];
-  for (const descriptor of normalizeImageDescriptors(images)) {
-    const resolvedPath = resolveImageAbsolutePath(cwd, descriptor.path);
-    if (!isAllowedImageSourcePath(resolvedPath, cwd)) {
-      // Same trust boundary as buildClaudeUserContent — the Codex runtime
-      // reads this file, so it must stay within the allowed roots.
-      console.warn(`[Images] Refusing to attach image outside allowed roots: ${descriptor.path}`);
-      continue;
-    }
-    items.push({
-      type: 'local_image',
-      path: resolvedPath,
-    });
-  }
-  return items;
-}

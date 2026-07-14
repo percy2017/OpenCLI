@@ -71,13 +71,13 @@ test('app sessions get the provider id assigned without creating a duplicate row
 
 test('assignProviderSessionId merges a watcher-created duplicate into the app row', async () => {
   await withIsolatedDatabase(() => {
-    sessionsDb.createAppSession('app-id-2', 'codex', '/workspace/demo');
+    sessionsDb.createAppSession('app-id-2', 'claude', '/workspace/demo');
 
     // Simulate the race: the filesystem watcher indexed the provider
     // transcript before the runtime announced its session id to the gateway.
     sessionsDb.createSession(
       'provider-race',
-      'codex',
+      'claude',
       '/workspace/demo',
       'Watcher Name',
       undefined,

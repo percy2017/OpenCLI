@@ -17,10 +17,6 @@ const PROVIDER_WATCH_PATHS: Array<{ provider: LLMProvider; rootPath: string }> =
     provider: 'claude',
     rootPath: path.join(os.homedir(), '.claude', 'projects'),
   },
-  {
-    provider: 'codex',
-    rootPath: path.join(os.homedir(), '.codex', 'sessions'),
-  },
 ];
 
 const WATCHER_IGNORED_PATTERNS = [

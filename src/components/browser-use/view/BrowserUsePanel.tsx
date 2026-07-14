@@ -358,7 +358,7 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              onClick={() => onShowSettings('browser')}
+              onClick={() => onShowSettings()}
               title={t('browserUse.panel.openSettingsTitle')}
               aria-label={t('browserUse.panel.openSettingsAria')}
             >
@@ -434,7 +434,7 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
                   </Badge>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-foreground">
-                      {selectedSession?.title || getDomain(selectedSession?.url || null)}
+                      {selectedSession?.title || getDomain(t, selectedSession?.url || null)}
                     </div>
                     <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                       <ExternalLink className="h-3.5 w-3.5 shrink-0" />
@@ -442,7 +442,7 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
                     </div>
                   </div>
                   <div className="hidden text-xs text-muted-foreground md:block">
-                    {formatAction(selectedSession?.lastAction || null)}
+                    {formatAction(t, selectedSession?.lastAction || null)}
                   </div>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setIsFullscreen(true)} disabled={!selectedSession?.screenshotDataUrl} title="Full screen" aria-label="Full screen">
                     <Expand className="h-4 w-4" />
@@ -494,7 +494,7 @@ export default function BrowserUsePanel({ isVisible, onShowSettings }: BrowserUs
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Last action</span>
-                  <span className="truncate font-medium text-foreground">{formatAction(selectedSession?.lastAction || null)}</span>
+                  <span className="truncate font-medium text-foreground">{formatAction(t, selectedSession?.lastAction || null)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Profile</span>

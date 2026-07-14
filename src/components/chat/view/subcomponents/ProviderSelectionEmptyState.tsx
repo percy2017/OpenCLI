@@ -24,7 +24,6 @@ import {
 
 const PROVIDER_META: { id: LLMProvider; name: string }[] = [
   { id: "claude", name: "Anthropic" },
-  { id: "codex", name: "OpenAI" },
 ];
 
 const MOD_KEY =
@@ -49,8 +48,6 @@ type ProviderSelectionEmptyStateProps = {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   claudeModel: string;
   setClaudeModel: (model: string) => void;
-  codexModel: string;
-  setCodexModel: (model: string) => void;
   providerModelCatalog: Partial<Record<LLMProvider, ProviderModelsDefinition>>;
   providerModelsLoading: boolean;
   setInput: React.Dispatch<React.SetStateAction<string>>;
@@ -71,16 +68,13 @@ function getModelConfig(
 }
 
 function getCurrentModel(
-  p: LLMProvider,
+  _p: LLMProvider,
   c: string,
-  co: string,
 ) {
-  if (p === "claude") return c;
-  return co;
+  return c;
 }
 
-function getProviderDisplayName(p: LLMProvider) {
-  if (p === "codex") return "Codex";
+function getProviderDisplayName(_p: LLMProvider) {
   return "Claude";
 }
 
@@ -92,8 +86,6 @@ export default function ProviderSelectionEmptyState({
   textareaRef,
   claudeModel,
   setClaudeModel,
-  codexModel,
-  setCodexModel,
   providerModelCatalog,
   providerModelsLoading,
   setInput,
@@ -112,7 +104,6 @@ export default function ProviderSelectionEmptyState({
   const currentModel = getCurrentModel(
     provider,
     claudeModel,
-    codexModel,
   );
 
   const currentModelLabel = useMemo(() => {
@@ -124,16 +115,11 @@ export default function ProviderSelectionEmptyState({
   }, [provider, currentModel, providerModelCatalog]);
 
   const setModelForProvider = useCallback(
-    (providerId: LLMProvider, modelValue: string) => {
-      if (providerId === "codex") {
-        setCodexModel(modelValue);
-        localStorage.setItem("codex-model", modelValue);
-      } else {
-        setClaudeModel(modelValue);
-        localStorage.setItem("claude-model", modelValue);
-      }
+    (_providerId: LLMProvider, modelValue: string) => {
+      setClaudeModel(modelValue);
+      localStorage.setItem("claude-model", modelValue);
     },
-    [setClaudeModel, setCodexModel],
+    [setClaudeModel],
   );
 
   const handleModelSelect = useCallback(
@@ -266,14 +252,9 @@ export default function ProviderSelectionEmptyState({
 
           <p className="mt-4 text-center text-sm text-muted-foreground/70">
             {
-              {
-                claude: t("providerSelection.readyPrompt.claude", {
-                  model: claudeModel,
-                }),
-                codex: t("providerSelection.readyPrompt.codex", {
-                  model: codexModel,
-                }),
-              }[provider]
+              t("providerSelection.readyPrompt.claude", {
+                model: claudeModel,
+              })
             }
           </p>
 

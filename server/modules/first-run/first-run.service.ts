@@ -9,7 +9,6 @@ const SEEDED_KEY = 'skills_bundled_v1';
 const SEEDED_VERSION = '1';
 const SKILL_FILE_NAME = 'SKILL.md';
 
-const CODEX_SKILLS_ROOT = path.join(os.homedir(), '.agents', 'skills');
 const CLAUDE_SKILLS_ROOT = path.join(os.homedir(), '.claude', 'skills');
 
 function resolveBundledSkillsRoot(): string {
@@ -81,12 +80,11 @@ async function writeSkillToHome(skillName: string, markdown: string, targetRoot:
 }
 
 type SeedTarget = {
-  label: 'codex' | 'claude';
+  label: 'claude';
   rootDir: string;
 };
 
 const SEED_TARGETS: SeedTarget[] = [
-  { label: 'codex', rootDir: CODEX_SKILLS_ROOT },
   { label: 'claude', rootDir: CLAUDE_SKILLS_ROOT },
 ];
 

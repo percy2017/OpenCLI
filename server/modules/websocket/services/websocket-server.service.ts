@@ -2,11 +2,10 @@ import type { Server as HttpServer } from 'node:http';
 
 import { WebSocketServer, type VerifyClientCallbackSync } from 'ws';
 
+import { handleFileManagerConnection } from '@/modules/file-manager/index.js';
 import { handleChatConnection } from '@/modules/websocket/services/chat-websocket.service.js';
 import { verifyWebSocketClient } from '@/modules/websocket/services/websocket-auth.service.js';
 import { handleShellConnection } from '@/modules/websocket/services/shell-websocket.service.js';
-import { terminalService } from '@/modules/terminal/terminal.service.js';
-import { handleTerminalShellConnection } from '@/modules/terminal/terminal-websocket.service.js';
 import { handleDesktopNotificationsConnection } from '@/modules/notifications/index.js';
 import type { AuthenticatedWebSocketRequest } from '@/shared/types.js';
 
@@ -18,7 +17,7 @@ type WebSocketServerDependencies = {
 
 /**
  * Creates and wires the server-wide websocket gateway used for chat, shell,
- * terminal-shell, and desktop-notifications paths.
+ * file-manager events, and desktop-notifications paths.
  */
 export function createWebSocketServer(
   server: HttpServer,
@@ -55,26 +54,7 @@ export function createWebSocketServer(
     const pathname = new URL(url, 'http://localhost').pathname;
 
     if (pathname === '/shell') {
-      // Kill-switch: when the user disables Terminal in Settings, refuse new
-      // WS upgrades. Already-open PTY sessions are NOT killed (they continue
-      // until the client closes the socket or `ptySessionsMap` reaps them
-      // after 30 minutes of inactivity).
-      if (!terminalService.isEnabled()) {
-        ws.close(4403, 'Terminal disabled');
-        return;
-      }
       handleShellConnection(ws, dependencies.shell);
-      return;
-    }
-
-    if (pathname === '/terminal-shell') {
-      // Plain bash PTY for the Terminal module — independent of the agent's
-      // /shell session lifecycle. Subject to the same kill-switch above.
-      if (!terminalService.isEnabled()) {
-        ws.close(4403, 'Terminal disabled');
-        return;
-      }
-      handleTerminalShellConnection(ws);
       return;
     }
 
@@ -85,6 +65,11 @@ export function createWebSocketServer(
 
     if (pathname === '/desktop-notifications') {
       handleDesktopNotificationsConnection(ws, incomingRequest);
+      return;
+    }
+
+    if (pathname === '/file-manager-events') {
+      handleFileManagerConnection(ws);
       return;
     }
 

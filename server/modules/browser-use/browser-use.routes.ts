@@ -30,18 +30,6 @@ router.get('/settings', async (_req, res) => {
   }
 });
 
-router.put('/settings', async (req, res) => {
-  try {
-    const settings = await browserUseService.updateSettings(req.body || {});
-    res.json({ success: true, data: { settings } });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to save Browser settings.',
-    });
-  }
-});
-
 router.post('/runtime/install', async (_req, res) => {
   try {
     const result = await browserUseService.installRuntime();

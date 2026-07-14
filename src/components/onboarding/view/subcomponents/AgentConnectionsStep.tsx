@@ -16,13 +16,6 @@ const providerCards = [
     iconContainerClassName: 'bg-blue-100 dark:bg-blue-900/30',
     loginButtonClassName: 'bg-blue-600 hover:bg-blue-700',
   },
-  {
-    provider: 'codex' as const,
-    title: 'OpenAI Codex',
-    connectedClassName: 'bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600',
-    iconContainerClassName: 'bg-gray-100 dark:bg-gray-800',
-    loginButtonClassName: 'bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600',
-  },
 ];
 
 export default function AgentConnectionsStep({

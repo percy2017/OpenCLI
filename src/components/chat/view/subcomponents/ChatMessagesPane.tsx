@@ -34,8 +34,6 @@ interface ChatMessagesPaneProps {
   textareaRef: RefObject<HTMLTextAreaElement>;
   claudeModel: string;
   setClaudeModel: (model: string) => void;
-  codexModel: string;
-  setCodexModel: (model: string) => void;
   providerModelCatalog: Partial<Record<LLMProvider, ProviderModelsDefinition>>;
   providerModelsLoading: boolean;
   setInput: Dispatch<SetStateAction<string>>;
@@ -75,8 +73,6 @@ function ChatMessagesPane({
   textareaRef,
   claudeModel,
   setClaudeModel,
-  codexModel,
-  setCodexModel,
   providerModelCatalog,
   providerModelsLoading,
   setInput,
@@ -150,7 +146,7 @@ function ChatMessagesPane({
         hasActivityIndicator ? 'pb-12 sm:pb-14' : 'pb-3 sm:pb-4'
       }`}
     >
-      <div className="mx-auto w-full max-w-[54.25rem] space-y-3 px-4 sm:space-y-4">
+      <div className="mx-auto w-full max-w-[80rem] space-y-3 px-4 sm:space-y-4">
       {(isLoadingSessionMessages || isProcessing) && chatMessages.length === 0 ? (
         <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
           <div className="flex items-center justify-center space-x-2">
@@ -167,8 +163,6 @@ function ChatMessagesPane({
           textareaRef={textareaRef}
           claudeModel={claudeModel}
           setClaudeModel={setClaudeModel}
-          codexModel={codexModel}
-          setCodexModel={setCodexModel}
           providerModelCatalog={providerModelCatalog}
           providerModelsLoading={providerModelsLoading}
           setInput={setInput}

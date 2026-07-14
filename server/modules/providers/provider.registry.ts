@@ -1,12 +1,10 @@
 import { ClaudeProvider } from '@/modules/providers/list/claude/claude.provider.js';
-import { CodexProvider } from '@/modules/providers/list/codex/codex.provider.js';
 import type { IProvider } from '@/shared/interfaces.js';
 import type { LLMProvider } from '@/shared/types.js';
 import { AppError } from '@/shared/utils.js';
 
 const providers: Record<LLMProvider, IProvider> = {
   claude: new ClaudeProvider(),
-  codex: new CodexProvider(),
 };
 
 /**

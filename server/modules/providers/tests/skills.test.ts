@@ -319,65 +319,6 @@ test('providerSkillsService lists claude user, project, and enabled plugin skill
 });
 
 /**
- * This test covers Codex repository/user/system skill folders and verifies that
- * repository lookup includes cwd, parent, and git root skill locations.
- */
-test('providerSkillsService lists codex repository, user, and system skills', { concurrency: false }, async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'llm-skills-codex-'));
-  const repoRoot = path.join(tempRoot, 'repo');
-  const workspacePath = path.join(repoRoot, 'packages', 'app');
-  await fs.mkdir(path.join(repoRoot, '.git'), { recursive: true });
-  await fs.mkdir(workspacePath, { recursive: true });
-
-  const restoreHomeDir = patchHomeDir(tempRoot);
-  try {
-    await writeSkill(
-      path.join(workspacePath, '.agents', 'skills'),
-      'codex-cwd-dir',
-      'codex-cwd',
-      'Codex cwd skill',
-    );
-    await writeSkill(
-      path.join(repoRoot, 'packages', '.agents', 'skills'),
-      'codex-parent-dir',
-      'codex-parent',
-      'Codex parent skill',
-    );
-    await writeSkill(
-      path.join(repoRoot, '.agents', 'skills'),
-      'codex-root-dir',
-      'codex-root',
-      'Codex root skill',
-    );
-    await writeSkill(
-      path.join(tempRoot, '.agents', 'skills'),
-      'codex-user-dir',
-      'codex-user',
-      'Codex user skill',
-    );
-    await writeSkill(
-      path.join(tempRoot, '.codex', 'skills', '.system'),
-      'codex-system-dir',
-      'codex-system',
-      'Codex system skill',
-    );
-
-    const skills = await providerSkillsService.listProviderSkills('codex', { workspacePath });
-    const byName = new Map(skills.map((skill) => [skill.name, skill]));
-
-    assert.equal(byName.get('codex-cwd')?.scope, 'repo');
-    assert.equal(byName.get('codex-parent')?.scope, 'repo');
-    assert.equal(byName.get('codex-root')?.scope, 'repo');
-    assert.equal(byName.get('codex-user')?.scope, 'user');
-    assert.equal(byName.get('codex-system')?.scope, 'system');
-    assert.equal(byName.get('codex-root')?.command, '$codex-root');
-  } finally {
-    restoreHomeDir();
-    await fs.rm(tempRoot, { recursive: true, force: true });
-  }
-});
-
-/**
  * This test covers OpenCode skill lookup across cwd-to-git-root project folders
  * plus the global OpenCode/Claude/Agents compatibility locations.
  */
@@ -495,7 +436,7 @@ test('providerSkillsService lists cursor skills from its configured directories'
  * This test covers managed global skill creation for providers that own a
  * writable user skill directory.
  */
-test('providerSkillsService adds global skills for claude, codex, and cursor', { concurrency: false }, async () => {
+test('providerSkillsService adds global skills for claude and cursor', { concurrency: false }, async () => {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'llm-skills-create-'));
   const restoreHomeDir = patchHomeDir(tempRoot);
 
@@ -520,84 +461,6 @@ test('providerSkillsService adds global skills for claude, codex, and cursor', {
       /Claude body\./,
     );
 
-    const createdCodexSkills = await providerSkillsService.addProviderSkills('codex', {
-      entries: [
-        {
-          directoryName: 'uploaded-codex-folder',
-          fileName: 'SKILL.md',
-          content: '---\nname: codex-global\ndescription: Codex global skill\n---\n\nCodex body.\n',
-          files: [
-            {
-              relativePath: 'scripts/run.js',
-              content: Buffer.from('console.log("codex skill");\n').toString('base64'),
-              encoding: 'base64',
-            },
-          ],
-        },
-      ],
-    });
-    const createdCodexSkill = createdCodexSkills[0];
-    assert.ok(createdCodexSkill);
-    assert.equal(createdCodexSkill.command, '$codex-global');
-    assert.equal(
-      createdCodexSkill.sourcePath.endsWith(path.join('.agents', 'skills', 'uploaded-codex-folder', 'SKILL.md')),
-      true,
-    );
-    assert.equal(
-      await fs.readFile(path.join(path.dirname(createdCodexSkill.sourcePath), 'scripts', 'run.js'), 'utf8'),
-      'console.log("codex skill");\n',
-    );
-
-    const fallbackNamedSkills = await providerSkillsService.addProviderSkills('codex', {
-      entries: [
-        {
-          fileName: 'fallback / skill.md',
-          content: '---\ndescription: Normalized fallback skill\n---\n\nFallback body.\n',
-        },
-      ],
-    });
-    const fallbackNamedSkill = fallbackNamedSkills[0];
-    assert.ok(fallbackNamedSkill);
-    assert.equal(fallbackNamedSkill.name, 'fallback-skill');
-    assert.equal(fallbackNamedSkill.command, '$fallback-skill');
-    assert.equal(
-      fallbackNamedSkill.sourcePath.endsWith(path.join('.agents', 'skills', 'fallback-skill', 'SKILL.md')),
-      true,
-    );
-
-    const replacedCodexSkills = await providerSkillsService.addProviderSkills('codex', {
-      entries: [
-        {
-          directoryName: 'uploaded-codex-folder',
-          content: '---\nname: replacement\ndescription: Replacement skill\n---\n\nReplacement body.\n',
-        },
-      ],
-    });
-    assert.equal(replacedCodexSkills[0]?.command, '$replacement');
-    assert.match(await fs.readFile(createdCodexSkill.sourcePath, 'utf8'), /Replacement body\./);
-    await assert.rejects(
-      fs.stat(path.join(path.dirname(createdCodexSkill.sourcePath), 'scripts', 'run.js')),
-      { code: 'ENOENT' },
-    );
-
-    const pendingBatchSkillPath = path.join(tempRoot, '.agents', 'skills', 'pending-batch', 'SKILL.md');
-    await assert.rejects(
-      providerSkillsService.addProviderSkills('codex', {
-        entries: [
-          {
-            directoryName: 'pending-batch',
-            content: '---\nname: pending-batch\n---\n\nPending body.\n',
-          },
-          {
-            directoryName: 'pending-batch',
-            content: '---\nname: duplicate-batch\n---\n\nDuplicate body.\n',
-          },
-        ],
-      }),
-      /duplicate skill target/i,
-    );
-    await assert.rejects(fs.stat(pendingBatchSkillPath), { code: 'ENOENT' });
-
     const createdCursorSkills = await providerSkillsService.addProviderSkills('cursor', {
       entries: [
         {
@@ -617,42 +480,8 @@ test('providerSkillsService adds global skills for claude, codex, and cursor', {
     const listedClaudeSkills = await providerSkillsService.listProviderSkills('claude');
     assert.equal(listedClaudeSkills.some((skill) => skill.name === 'claude-global'), true);
 
-    const listedCodexSkills = await providerSkillsService.listProviderSkills('codex');
-    assert.equal(listedCodexSkills.some((skill) => skill.name === 'replacement'), true);
-
     const listedCursorSkills = await providerSkillsService.listProviderSkills('cursor');
     assert.equal(listedCursorSkills.some((skill) => skill.name === 'cursor-global'), true);
-
-    const removedCodexSkill = await providerSkillsService.removeProviderSkill('codex', {
-      directoryName: 'uploaded-codex-folder',
-    });
-    assert.equal(removedCodexSkill.removed, true);
-    assert.equal(removedCodexSkill.provider, 'codex');
-    assert.equal(removedCodexSkill.directoryName, 'uploaded-codex-folder');
-    await assert.rejects(fs.stat(path.dirname(createdCodexSkill.sourcePath)), { code: 'ENOENT' });
-
-    const removedMissingSkill = await providerSkillsService.removeProviderSkill('codex', {
-      directoryName: 'uploaded-codex-folder',
-    });
-    assert.equal(removedMissingSkill.removed, false);
-
-    await assert.rejects(
-      providerSkillsService.addProviderSkills('codex', {
-        entries: [
-          {
-            content: '---\nname: unsafe-skill\n---\n',
-            files: [
-              {
-                relativePath: '../outside.js',
-                content: '',
-                encoding: 'utf8',
-              },
-            ],
-          },
-        ],
-      }),
-      /invalid supporting file path/i,
-    );
   } finally {
     restoreHomeDir();
     await fs.rm(tempRoot, { recursive: true, force: true });

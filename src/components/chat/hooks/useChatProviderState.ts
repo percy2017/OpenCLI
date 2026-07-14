@@ -18,10 +18,9 @@ import {
 
 const FALLBACK_DEFAULT_MODEL: Record<LLMProvider, string> = {
   claude: 'default',
-  codex: 'gpt-5.4',
 };
 
-const PROVIDERS: LLMProvider[] = ['claude', 'codex'];
+const PROVIDERS: LLMProvider[] = ['claude'];
 
 const readStoredProvider = (): LLMProvider => {
   const storedProvider = localStorage.getItem('selected-provider');
@@ -38,7 +37,6 @@ const readStoredProvider = (): LLMProvider => {
  */
 const FALLBACK_PERMISSION_MODES: Record<LLMProvider, PermissionMode[]> = {
   claude: ['default', 'auto', 'acceptEdits', 'bypassPermissions', 'plan'],
-  codex: ['default', 'acceptEdits', 'bypassPermissions'],
 };
 
 type ProviderCapabilities = {
@@ -91,9 +89,6 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
   const [claudeModel, setClaudeModel] = useState<string>(() => {
     return localStorage.getItem('claude-model') || FALLBACK_DEFAULT_MODEL.claude;
   });
-  const [codexModel, setCodexModel] = useState<string>(() => {
-    return localStorage.getItem('codex-model') || FALLBACK_DEFAULT_MODEL.codex;
-  });
   const [providerEfforts, setProviderEfforts] = useState<Partial<Record<LLMProvider, string>>>(() => {
     return PROVIDERS.reduce<Partial<Record<LLMProvider, string>>>((acc, targetProvider) => {
       acc[targetProvider] = localStorage.getItem(`${targetProvider}-effort`) || DEFAULT_EFFORT_VALUE;
@@ -120,7 +115,7 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
   >({});
   /**
    * Backend-reported "currently active" model per provider (e.g. from
-   * `~/.codex/config.toml`). Hydrated once on mount and used as the preferred
+   * `~/.claude/settings.json`). Hydrated once on mount and used as the preferred
    * fallback in `pickStoredOrCurrent` so the UI starts on the model the
    * runtime is actually configured to use, instead of a hardcoded alternative
    * that may be rejected by the provider.
@@ -137,12 +132,6 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
     if (targetProvider === 'claude') {
       setClaudeModel(model);
       localStorage.setItem('claude-model', model);
-      return;
-    }
-
-    if (targetProvider === 'codex') {
-      setCodexModel(model);
-      localStorage.setItem('codex-model', model);
       return;
     }
   }, []);
@@ -202,7 +191,11 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
 
         let modelsDefinition = entry.models;
         const activeModelValue = entry.activeModel?.model?.trim();
-        if (activeModelValue && !modelsDefinition.OPTIONS.some((o) => o.value === activeModelValue)) {
+        if (
+          modelsDefinition &&
+          activeModelValue &&
+          !modelsDefinition.OPTIONS.some((o) => o.value === activeModelValue)
+        ) {
           // The backend's active model isn't in the catalog (e.g. a custom
           // `model_provider` the CLI doesn't surface in models_cache.json).
           // Splice it into OPTIONS so the UI dropdown shows it as a
@@ -216,7 +209,9 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
             ],
           };
         }
-        nextCatalog[p] = modelsDefinition;
+        if (modelsDefinition) {
+          nextCatalog[p] = modelsDefinition;
+        }
         nextCacheCatalog[p] = entry.cache;
         if (activeModelValue) {
           nextActiveModels[p] = activeModelValue;
@@ -375,8 +370,7 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
 
   const providerModels = useMemo<Record<LLMProvider, string>>(() => ({
     claude: claudeModel,
-    codex: codexModel,
-  }), [claudeModel, codexModel]);
+  }), [claudeModel]);
 
   useEffect(() => {
     const claude = providerModelCatalog.claude;
@@ -390,19 +384,6 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
       }
     }
   }, [providerModelCatalog.claude, claudeModel, providerActiveModels.claude]);
-
-  useEffect(() => {
-    const codex = providerModelCatalog.codex;
-    if (codex) {
-      const next = pickStoredOrCurrent('codex-model', codexModel, codex, providerActiveModels.codex);
-      if (next !== codexModel) {
-        setCodexModel(next);
-      }
-      if (localStorage.getItem('codex-model') !== next) {
-        localStorage.setItem('codex-model', next);
-      }
-    }
-  }, [providerModelCatalog.codex, codexModel, providerActiveModels.codex]);
 
   useEffect(() => {
     const nextEfforts: Partial<Record<LLMProvider, string>> = {};
@@ -536,8 +517,6 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
     setProvider,
     claudeModel,
     setClaudeModel,
-    codexModel,
-    setCodexModel,
     currentProviderEffort,
     currentProviderEffortOptions,
     permissionMode,

@@ -30,11 +30,10 @@ import { useSessionsSource } from './sources/useSessionsSource';
 import { useFilesSource } from './sources/useFilesSource';
 import { useSessionMessageSearch } from './sources/useSessionMessageSearch';
 
-type Page = 'actions' | 'files' | 'sessions';
+type Page = 'actions' | 'sessions';
 
 const PAGE_LABELS: Record<Page, string> = {
   actions: 'Actions',
-  files: 'Files',
   sessions: 'Sessions',
 };
 
@@ -47,9 +46,7 @@ type CommandPaletteProps = {
 
 const NAV_TABS: Array<{ id: AppTab; label: string; keywords: string }> = [
   { id: 'chat', label: 'Go to Chat', keywords: 'chat messages conversation' },
-  { id: 'files', label: 'Go to Files', keywords: 'files file tree explorer' },
   { id: 'shell', label: 'Go to Shell', keywords: 'shell terminal console' },
-  { id: 'minimax', label: 'Go to MiniMax MCP', keywords: 'minimax mcp subscription quota plan' },
 ];
 
 export default function CommandPalette({
@@ -89,11 +86,10 @@ export default function CommandPalette({
 
   const showActions = !page || page === 'actions';
   const showSessions = !page || page === 'sessions';
-  const showFiles = !page || page === 'files';
 
   const sessions = useSessionsSource(projectId, open && showSessions);
   const messageMatches = useSessionMessageSearch(projectId, search, open && showSessions);
-  const files = useFilesSource(projectId, open && showFiles);
+  const files = useFilesSource(projectId, open && showActions);
 
   const sessionRows = React.useMemo(() => {
     if (!showSessions) return [];
@@ -142,7 +138,7 @@ export default function CommandPalette({
 
   const startNewChatDisabled = !selectedProject;
   const browseLimit = 5;
-  const filesShown = page === 'files' ? files : files.slice(0, browseLimit);
+  const filesShown = files.slice(0, browseLimit);
   const sessionsShown = page === 'sessions' ? sessionRows : sessionRows.slice(0, browseLimit);
 
   return (
@@ -256,7 +252,7 @@ export default function CommandPalette({
               </CommandGroup>
             )}
 
-            {showFiles && projectId && filesShown.length > 0 && (
+            {showActions && projectId && filesShown.length > 0 && (
               <CommandGroup heading="Files">
                 {filesShown.map((f) => (
                   <CommandItem
@@ -269,9 +265,6 @@ export default function CommandPalette({
                     <span className="truncate text-xs text-muted-foreground">{f.path}</span>
                   </CommandItem>
                 ))}
-                {!page && files.length > browseLimit && (
-                  <BrowseAllItem label={`Browse all files (${files.length})`} onSelect={() => pushPage('files')} />
-                )}
               </CommandGroup>
             )}
 

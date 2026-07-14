@@ -303,7 +303,7 @@ const removeSessionFromProject = (project: Project, sessionIdToDelete: string): 
   return updatedProject;
 };
 
-const VALID_TABS: Set<string> = new Set(['chat', 'files', 'shell', 'git', 'browser', 'rag-vector', 'minimax']);
+const VALID_TABS: Set<string> = new Set(['chat', 'shell', 'files', 'git', 'browser', 'rag-vector', 'minimax']);
 
 const isValidTab = (tab: string): tab is AppTab => {
   return VALID_TABS.has(tab);

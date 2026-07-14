@@ -11,8 +11,6 @@ export default function MainContentHeader({
   selectedSession,
   shouldShowBrowserTab,
   shouldShowRagVectorTab,
-  shouldShowMinimaxTab,
-  shouldShowTerminalModuleTab,
   shouldShowShellTab,
   isMobile,
   onMenuClick,
@@ -63,9 +61,6 @@ export default function MainContentHeader({
               setActiveTab={setActiveTab}
               shouldShowBrowserTab={shouldShowBrowserTab}
               shouldShowRagVectorTab={shouldShowRagVectorTab}
-
-              shouldShowMinimaxTab={shouldShowMinimaxTab}
-              shouldShowTerminalModuleTab={shouldShowTerminalModuleTab}
             shouldShowShellTab={shouldShowShellTab}
             />
           </div>

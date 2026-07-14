@@ -8,9 +8,6 @@ import SettingsSidebar from '../view/SettingsSidebar';
 import AgentsSettingsTab from '../view/tabs/agents-settings/AgentsSettingsTab';
 import AppearanceSettingsTab from '../view/tabs/AppearanceSettingsTab';
 import CredentialsSettingsTab from '../view/tabs/api-settings/CredentialsSettingsTab';
-import VoiceSettingsTab from '../view/tabs/VoiceSettingsTab';
-import McpToolsSettingsTab from '../view/tabs/mcp-tools/McpToolsSettingsTab';
-import TerminalSettingsTab from '../view/tabs/terminal/TerminalSettingsTab';
 import NotificationsSettingsTab from '../view/tabs/NotificationsSettingsTab';
 import { useSettingsController } from '../hooks/useSettingsController';
 import { useWebPush } from '../../../hooks/useWebPush';
@@ -35,8 +32,6 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
   const {
     activeTab,
     setActiveTab,
-    activeMcpSubTab,
-    setActiveMcpSubTab,
     saveStatus,
     projectSortOrder,
     setProjectSortOrder,
@@ -46,8 +41,6 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
     setClaudePermissions,
     notificationPreferences,
     setNotificationPreferences,
-    codexPermissionMode,
-    setCodexPermissionMode,
     providerAuthStatus,
     openLoginForProvider,
     showLoginModal,
@@ -176,16 +169,7 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
                   onProviderLogin={openLoginForProvider}
                   claudePermissions={claudePermissions}
                   onClaudePermissionsChange={setClaudePermissions}
-                  codexPermissionMode={codexPermissionMode}
-                  onCodexPermissionModeChange={setCodexPermissionMode}
                   projects={projects}
-                />
-              )}
-
-              {activeTab === 'mcpTools' && (
-                <McpToolsSettingsTab
-                  activeSubTab={activeMcpSubTab}
-                  onSubTabChange={setActiveMcpSubTab}
                 />
               )}
 
@@ -206,10 +190,6 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
               )}
 
               {activeTab === 'api' && <CredentialsSettingsTab />}
-
-              {activeTab === 'voice' && <VoiceSettingsTab />}
-
-              {activeTab === 'terminal' && <TerminalSettingsTab />}
 
             </div>
           </main>

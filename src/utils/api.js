@@ -162,24 +162,79 @@ export const api = {
     return authenticatedFetch(`/api/projects/${projectId}/files${qs}`, fetchOptions);
   },
 
-  // File operations
-  createFile: (projectId, { path, type, name }) =>
-    authenticatedFetch(`/api/projects/${projectId}/files/create`, {
+  fileManager: {
+    root: () => authenticatedFetch('/api/file-manager/root'),
+    entries: (filePath = '') => {
+      const params = new URLSearchParams({ path: filePath });
+      return authenticatedFetch(`/api/file-manager/entries?${params.toString()}`);
+    },
+    readFile: (filePath) => {
+      const params = new URLSearchParams({ path: filePath });
+      return authenticatedFetch(`/api/file-manager/file?${params.toString()}`);
+    },
+    saveFile: (filePath, content) => authenticatedFetch('/api/file-manager/file', {
+      method: 'PUT',
+      body: JSON.stringify({ path: filePath, content }),
+    }),
+    createEntry: (parentPath, name, type) => authenticatedFetch('/api/file-manager/entries', {
       method: 'POST',
-      body: JSON.stringify({ path, type, name }),
+      body: JSON.stringify({ parentPath, name, type }),
     }),
-
-  renameFile: (projectId, { oldPath, newName }) =>
-    authenticatedFetch(`/api/projects/${projectId}/files/rename`, {
-      method: 'PUT',
-      body: JSON.stringify({ oldPath, newName }),
+    renameEntry: (filePath, newName) => authenticatedFetch('/api/file-manager/entries/rename', {
+      method: 'PATCH',
+      body: JSON.stringify({ path: filePath, newName }),
     }),
-
-  moveFiles: (projectId, { items, targetDir }) =>
-    authenticatedFetch(`/api/projects/${projectId}/files/move`, {
-      method: 'PUT',
-      body: JSON.stringify({ items, targetDir }),
+    copyEntry: (sourcePath, targetDirectory, newName) => authenticatedFetch('/api/file-manager/entries/copy', {
+      method: 'POST',
+      body: JSON.stringify({ sourcePath, targetDirectory, ...(newName ? { newName } : {}) }),
     }),
+    moveEntry: (sourcePath, targetDirectory, newName) => authenticatedFetch('/api/file-manager/entries/move', {
+      method: 'POST',
+      body: JSON.stringify({ sourcePath, targetDirectory, ...(newName ? { newName } : {}) }),
+    }),
+    copyEntries: (paths, targetDirectory) => authenticatedFetch('/api/file-manager/entries/batch/copy', {
+      method: 'POST',
+      body: JSON.stringify({ paths, targetDirectory }),
+    }),
+    moveEntries: (paths, targetDirectory) => authenticatedFetch('/api/file-manager/entries/batch/move', {
+      method: 'POST',
+      body: JSON.stringify({ paths, targetDirectory }),
+    }),
+    trashEntries: (paths) => authenticatedFetch('/api/file-manager/entries/batch', {
+      method: 'DELETE',
+      body: JSON.stringify({ paths }),
+    }),
+    downloadArchive: (paths) => authenticatedFetch('/api/file-manager/download/archive', {
+      method: 'POST',
+      body: JSON.stringify({ paths }),
+    }),
+    trashEntry: (filePath) => authenticatedFetch('/api/file-manager/entries', {
+      method: 'DELETE',
+      body: JSON.stringify({ path: filePath }),
+    }),
+    upload: (targetDirectory, files) => {
+      const body = new FormData();
+      body.append('targetDirectory', targetDirectory);
+      files.forEach((file) => body.append('files', file));
+      return authenticatedFetch('/api/file-manager/upload', { method: 'POST', body });
+    },
+    download: (filePath) => {
+      const params = new URLSearchParams({ path: filePath });
+      return authenticatedFetch(`/api/file-manager/download?${params.toString()}`);
+    },
+    raw: (filePath, options = {}) => {
+      const params = new URLSearchParams({ path: filePath });
+      return authenticatedFetch(`/api/file-manager/raw?${params.toString()}`, options);
+    },
+    trash: () => authenticatedFetch('/api/file-manager/trash'),
+    restoreTrash: (id) => authenticatedFetch(`/api/file-manager/trash/${encodeURIComponent(id)}/restore`, {
+      method: 'POST',
+    }),
+    deleteTrash: (id) => authenticatedFetch(`/api/file-manager/trash/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
+    emptyTrash: () => authenticatedFetch('/api/file-manager/trash', { method: 'DELETE' }),
+  },
 
   getSqliteTables: (projectId, filePath) =>
     authenticatedFetch(
@@ -190,19 +245,6 @@ export const api = {
     authenticatedFetch(
       `/api/projects/${projectId}/sqlite/table?path=${encodeURIComponent(path)}&table=${encodeURIComponent(table)}&limit=${limit}&offset=${offset}`,
     ),
-
-  deleteFile: (projectId, { path, type }) =>
-    authenticatedFetch(`/api/projects/${projectId}/files`, {
-      method: 'DELETE',
-      body: JSON.stringify({ path, type }),
-    }),
-
-  uploadFiles: (projectId, formData) =>
-    authenticatedFetch(`/api/projects/${projectId}/files/upload`, {
-      method: 'POST',
-      body: formData,
-      headers: {}, // Let browser set Content-Type for FormData
-    }),
 
   // Browse filesystem for project suggestions
   browseFilesystem: (dirPath = null) => {

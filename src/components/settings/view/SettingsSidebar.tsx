@@ -1,4 +1,4 @@
-import { Bell, Bot, Key, Mic, Palette, Terminal, Wrench } from 'lucide-react';
+import { Bell, Bot, Key, Palette } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '../../../lib/utils';
@@ -20,10 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'agents', labelKey: 'mainTabs.agents', icon: Bot },
   { id: 'appearance', labelKey: 'mainTabs.appearance', icon: Palette },
   { id: 'api', labelKey: 'mainTabs.apiTokens', icon: Key },
-  { id: 'voice', labelKey: 'mainTabs.voice', icon: Mic },
-  { id: 'mcpTools', labelKey: 'mainTabs.mcpTools', icon: Wrench },
   { id: 'notifications', labelKey: 'mainTabs.notifications', icon: Bell },
-  { id: 'terminal', labelKey: 'mainTabs.terminal', icon: Terminal },
 ];
 
 export default function SettingsSidebar({ activeTab, onChange }: SettingsSidebarProps) {

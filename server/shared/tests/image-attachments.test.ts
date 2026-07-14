@@ -7,7 +7,6 @@ import test from 'node:test';
 import {
   appendImagesInputTag,
   buildClaudeUserContent,
-  buildCodexInputItems,
   isAllowedImageSourcePath,
   normalizeImageDescriptors,
   parseImagesInputTag,
@@ -257,18 +256,6 @@ test('buildClaudeUserContent accepts images under a symlinked cwd', async (t) =>
   }
 });
 
-test('buildCodexInputItems emits text plus absolute local_image paths', () => {
-  const cwd = path.join(os.tmpdir(), 'codex-project');
-  const items = buildCodexInputItems('Describe this image:', [{ path: '.cloudcli/assets/pic.jpg' }], cwd);
-
-  assert.equal(items.length, 2);
-  assert.deepEqual(items[0], { type: 'text', text: 'Describe this image:' });
-  assert.equal(items[1].type, 'local_image');
-  const imageItem = items[1] as Extract<(typeof items)[number], { type: 'local_image' }>;
-  assert.ok(path.isAbsolute(imageItem.path));
-  assert.equal(imageItem.path, path.resolve(cwd, '.cloudcli/assets/pic.jpg'));
-});
-
 test('isAllowedImageSourcePath only accepts the upload store and the run cwd', () => {
   const cwd = path.join(os.tmpdir(), 'some-project');
   const uploadStore = path.join(os.homedir(), '.cloudcli', 'assets');
@@ -283,11 +270,8 @@ test('isAllowedImageSourcePath only accepts the upload store and the run cwd', (
 });
 
 test('provider builders refuse descriptors outside the allowed roots', async () => {
-  const cwd = path.join(os.tmpdir(), 'codex-project');
+  const cwd = path.join(os.tmpdir(), 'claude-project');
   const outsidePath = path.join(os.homedir(), '.ssh', 'id_rsa.png');
-
-  const codexItems = buildCodexInputItems('prompt', [{ path: outsidePath }], cwd);
-  assert.deepEqual(codexItems, [{ type: 'text', text: 'prompt' }]);
 
   const claudeContent = await buildClaudeUserContent(
     'prompt',

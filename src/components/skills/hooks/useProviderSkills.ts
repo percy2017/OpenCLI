@@ -197,6 +197,28 @@ const saveProviderSkills = async (
   return (data.data.skills || []).map((skill) => normalizeSkill(provider, skill));
 };
 
+const installSkillsFromGithub = async (
+  provider: SkillsProvider,
+  payload: { url: string; ref?: string },
+): Promise<{ skills: ProviderSkill[]; total: number; repo: { owner: string; repo: string; ref: string } }> => {
+  const response = await authenticatedFetch(`/api/providers/${provider}/skills/github-install`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  const data = await toResponseJson<ApiResponse<{
+    provider: SkillsProvider;
+    repo: { owner: string; repo: string; ref: string };
+    skills: Array<Partial<ProviderSkill>>;
+    total: number;
+  }>>(response);
+  if (!response.ok || !data.success) {
+    throw new Error(getApiErrorMessage(data, 'Failed to install skills from GitHub'));
+  }
+
+  const skills = (data.data.skills || []).map((skill) => normalizeSkill(provider, skill));
+  return { skills, total: data.data.total, repo: data.data.repo };
+};
+
 const getCacheKey = (provider: SkillsProvider, projects: ProjectTarget[]): string => {
   const projectKey = projects.map((project) => project.path).sort().join('|');
   return `${provider}:${projectKey}`;
@@ -319,6 +341,19 @@ export function useProviderSkills({ selectedProvider, currentProjects }: UseProv
     }
   }, [refreshSkills, selectedProvider]);
 
+  const installFromGithub = useCallback(async (payload: { url: string; ref?: string }) => {
+    try {
+      const result = await installSkillsFromGithub(selectedProvider, payload);
+      clearProviderSkillCache(selectedProvider);
+      await refreshSkills({ force: true });
+      setSaveStatus('success');
+      return result;
+    } catch (error) {
+      setSaveStatus('error');
+      throw error;
+    }
+  }, [refreshSkills, selectedProvider]);
+
   useEffect(() => {
     void refreshSkills();
   }, [refreshSkills]);
@@ -347,6 +382,7 @@ export function useProviderSkills({ selectedProvider, currentProjects }: UseProv
     loadError,
     saveStatus,
     addSkills,
+    installFromGithub,
     refreshSkills,
   };
 }

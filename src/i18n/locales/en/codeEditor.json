@@ -22,6 +22,7 @@
     "fullscreen": "Fullscreen",
     "close": "Close",
     "previewMarkdown": "Preview markdown",
+    "previewHtml": "Open HTML preview in new tab",
     "editMarkdown": "Edit markdown"
   },
   "footer": {
@@ -36,6 +37,18 @@
   "filePreview": {
     "loading": "Loading preview...",
     "error": "Unable to display this file.",
-    "openInNewTab": "Open in new tab"
+    "openInNewTab": "Open in new tab",
+    "sqlite": {
+      "tables": "tables",
+      "filterTables": "Filter tables...",
+      "noTables": "No tables match the filter.",
+      "selectTable": "Select a table to view its rows.",
+      "rows": "rows",
+      "columns": "columns",
+      "prev": "Previous page",
+      "next": "Next page",
+      "emptyTable": "This table is empty.",
+      "refresh": "Refresh"
+    }
   }
 }

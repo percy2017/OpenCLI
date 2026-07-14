@@ -6,7 +6,6 @@ import os from 'os';
 import { promises as fs } from 'fs';
 import { userDb, apiKeysDb, projectsDb } from '../modules/database/index.js';
 import { queryClaudeSDK } from '../claude-sdk.js';
-import { queryCodex } from '../openai-codex.js';
 import { providerModelsService } from '../modules/providers/services/provider-models.service.js';
 import { IS_PLATFORM } from '../constants/config.js';
 import { normalizeProjectPath } from '../shared/utils.js';
@@ -277,8 +276,8 @@ router.post('/', validateExternalApiKey, async (req, res) => {
     return res.status(400).json({ error: 'message is required' });
   }
 
-  if (!['claude', 'cursor', 'codex', 'opencode'].includes(provider)) {
-    return res.status(400).json({ error: 'provider must be "claude", "cursor", "codex", or "opencode"' });
+  if (!['claude', 'cursor', 'opencode'].includes(provider)) {
+    return res.status(400).json({ error: 'provider must be "claude", "cursor", or "opencode"' });
   }
 
   let finalProjectPath = null;
@@ -333,7 +332,6 @@ router.post('/', validateExternalApiKey, async (req, res) => {
       });
     }
 
-    const codexModels = (await providerModelsService.getProviderModels('codex')).models;
     const opencodeModels = (await providerModelsService.getProviderModels('opencode')).models;
 
     // Start the appropriate session
@@ -349,17 +347,6 @@ router.post('/', validateExternalApiKey, async (req, res) => {
         permissionMode: 'bypassPermissions' // Bypass all permissions for API calls
       }, writer);
 
-    } else if (provider === 'codex') {
-      console.log('🤖 Starting Codex SDK session');
-
-      await queryCodex(message.trim(), {
-        projectPath: finalProjectPath,
-        cwd: finalProjectPath,
-        sessionId: sessionId || null,
-        model: model || codexModels.DEFAULT,
-        effort,
-        permissionMode: 'bypassPermissions'
-      }, writer);
     } else if (provider === 'opencode') {
       return res.status(501).json({
         success: false,

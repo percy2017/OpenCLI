@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { authenticatedFetch } from '../../../../utils/api';
+import { api, authenticatedFetch } from '../../../../utils/api';
 import type { CodeEditorFile } from '../../types/types';
 import { getPreviewMimeType, type PreviewKind } from '../../utils/previewableFile';
 
@@ -51,10 +51,11 @@ export default function CodeEditorMediaPreview({
   // this so a blob from a previously-opened file can never show under the new
   // file (the editor reuses this component instance across files).
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
-  const sourceKey = `${projectId ?? ''}:${file.path}:${kind}`;
+  const isWorkspaceFile = file.source === 'workspace';
+  const sourceKey = `${file.source ?? 'project'}:${projectId ?? ''}:${file.path}:${kind}`;
 
   useEffect(() => {
-    if (!projectId) {
+    if (!isWorkspaceFile && !projectId) {
       setUrl(null);
       setLoadedKey(null);
       setError(labels.error);
@@ -71,11 +72,12 @@ export default function CodeEditorMediaPreview({
         setError(null);
         setUrl(null);
 
-        // The content endpoint requires the auth header, so we fetch the bytes
-        // ourselves and hand the media element a blob URL instead of a bare src.
-        // Fetching a blob (rather than streaming) also lets <video>/<audio> seek.
-        const contentUrl = `/api/projects/${projectId}/files/content?path=${encodeURIComponent(file.path)}`;
-        const response = await authenticatedFetch(contentUrl, { signal: controller.signal });
+        const response = isWorkspaceFile
+          ? await api.fileManager.raw(file.path, { signal: controller.signal })
+          : await authenticatedFetch(
+            `/api/projects/${projectId}/files/content?path=${encodeURIComponent(file.path)}`,
+            { signal: controller.signal },
+          );
 
         if (!response.ok) {
           throw new Error(`Request failed with status ${response.status}`);
@@ -136,7 +138,7 @@ export default function CodeEditorMediaPreview({
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [file.path, file.name, projectId, kind, sourceKey, labels.error]);
+  }, [file.path, file.name, projectId, kind, sourceKey, labels.error, isWorkspaceFile]);
 
   // Only expose the blob once it matches the file currently being shown, so a
   // stale URL from the previous file is never rendered during a switch.

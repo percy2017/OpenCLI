@@ -9,7 +9,9 @@
     "copied": "Mensaje copiado",
     "selectFormat": "Selecciona el formato de copiado",
     "copyAsMarkdown": "Copiar como markdown",
-    "copyAsText": "Copiar como texto"
+    "copyAsText": "Copiar como texto",
+    "markdownShort": "MD",
+    "textShort": "TXT"
   },
   "messageTypes": {
     "user": "Tú",
@@ -17,7 +19,6 @@
     "tool": "Herramienta",
     "claude": "Claude",
     "cursor": "Cursor",
-    "codex": "Codex",
     "opencode": "OpenCode"
   },
   "tools": {
@@ -85,42 +86,6 @@
   "usageLimit": {
     "resetAt": "Se alcanzó el límite de uso de Claude. Tu límite se restablecerá el **{{time}} {{timezone}}** - {{date}}"
   },
-  "codex": {
-    "permissionMode": "Modo de permisos",
-    "modes": {
-      "default": "Modo predeterminado",
-      "auto": "Modo automático",
-      "acceptEdits": "Aceptar ediciones",
-      "bypassPermissions": "Omitir permisos",
-      "plan": "Modo plan"
-    },
-    "descriptions": {
-      "default": "Solo los comandos de confianza (ls, cat, grep, git status, etc.) se ejecutan automáticamente. Otros comandos se omiten. Puede escribir en el espacio de trabajo.",
-      "auto": "Un clasificador de modelo decide por cada llamada de herramienta si aprobar o denegar. Sin intervención, pero más seguro que Omitir — aún se producen denegaciones.",
-      "acceptEdits": "Todos los comandos se ejecutan automáticamente dentro del espacio de trabajo. Modo totalmente automático con ejecución aislada.",
-      "bypassPermissions": "Acceso total al sistema sin restricciones. Todos los comandos se ejecutan automáticamente con acceso completo a disco y red. Usar con precaución.",
-      "plan": "Modo planificación - no se ejecuta ningún comando"
-    },
-    "technicalDetails": "Detalles técnicos"
-  },
-  "voice": {
-    "input": "Entrada de voz",
-    "stopRecording": "Detener grabación",
-    "speak": "Leer en voz alta",
-    "stopSpeaking": "Detener",
-    "loading": "Cargando…",
-    "errors": {
-      "noSpeech": "No se detectó voz. Intenta de nuevo.",
-      "aborted": "Entrada de voz cancelada.",
-      "audioCapture": "No se encontró micrófono. Revisa tu dispositivo de audio.",
-      "network": "Error de red durante la entrada de voz.",
-      "notAllowed": "Permiso de micrófono denegado.",
-      "serviceNotAllowed": "Servicio de voz bloqueado. Revisa la configuración del navegador.",
-      "languageNotSupported": "Idioma no soportado por la entrada de voz.",
-      "phishing": "Entrada de voz bloqueada por seguridad.",
-      "unknown": "Falló la entrada de voz. Intenta de nuevo."
-    }
-  },
   "input": {
     "placeholder": "Escribe / para comandos, @ para archivos, o pregúntale lo que quieras a {{provider}}...",
     "placeholderDefault": "Escribe tu mensaje...",
@@ -148,6 +113,15 @@
       "delete": "Eliminar mensaje en cola"
     }
   },
+  "composer": {
+    "permissionModes": {
+      "default": "Predeterminado",
+      "acceptEdits": "Aceptar ediciones",
+      "auto": "Automático",
+      "bypassPermissions": "Omitir permisos",
+      "plan": "Modo plan"
+    }
+  },
   "providerSelection": {
     "title": "Elige tu asistente de IA",
     "description": "Selecciona un proveedor para iniciar una nueva conversación",
@@ -161,11 +135,13 @@
     "readyPrompt": {
       "claude": "Listo para usar Claude con {{model}}. Empieza a escribir tu mensaje abajo.",
       "cursor": "Listo para usar Cursor con {{model}}. Empieza a escribir tu mensaje abajo.",
-      "codex": "Listo para usar Codex con {{model}}. Empieza a escribir tu mensaje abajo.",
-      "opencode": "Listo para usar OpenCode con {{model}}. Empieza a escribir tu mensaje abajo.",
       "default": "Selecciona un proveedor arriba para comenzar"
     },
-    "pressToSearch": "Pulsa <kbd>{{shortcut}}</kbd> para buscar sesiones, archivos y commits"
+    "pressToSearch": "Pulsa <kbd>{{shortcut}}</kbd> para buscar sesiones, archivos y commits",
+    "clickToChange": "Haz clic para cambiar",
+    "searchModels": "Buscar modelos",
+    "noModelsFound": "No se encontraron modelos",
+    "loadingModels": "Cargando modelos…"
   },
   "session": {
     "continue": {

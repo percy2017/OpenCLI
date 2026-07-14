@@ -13,8 +13,6 @@ export default function AgentCategoryContentSection({
   agentContextById,
   claudePermissions,
   onClaudePermissionsChange,
-  codexPermissionMode,
-  onCodexPermissionModeChange,
   projects,
 }: AgentCategoryContentSectionProps) {
   return (
@@ -42,14 +40,6 @@ export default function AgentCategoryContentSection({
           onDisallowedToolsChange={(value) => {
             onClaudePermissionsChange({ ...claudePermissions, disallowedTools: value });
           }}
-        />
-      )}
-
-      {selectedCategory === 'permissions' && selectedAgent === 'codex' && (
-        <PermissionsContent
-          agent="codex"
-          permissionMode={codexPermissionMode}
-          onPermissionModeChange={onCodexPermissionModeChange}
         />
       )}
 

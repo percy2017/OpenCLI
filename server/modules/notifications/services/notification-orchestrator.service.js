@@ -12,7 +12,6 @@ const KIND_TO_PREF_KEY = {
 const PROVIDER_LABELS = {
   claude: 'Claude',
   cursor: 'Cursor',
-  codex: 'Codex',
   system: 'System'
 };
 

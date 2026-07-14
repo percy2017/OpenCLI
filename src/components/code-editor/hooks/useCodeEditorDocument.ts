@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { api } from '../../../utils/api';
 import type { CodeEditorFile } from '../types/types';
 import { isBinaryFile } from '../utils/binaryFile';
@@ -31,6 +32,7 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
   // the fallback to `projectPath` preserves older callers that didn't yet
   // propagate the identifier.
   const fileProjectId = file.projectId ?? projectPath;
+  const isWorkspaceFile = file.source === 'workspace';
   const filePath = file.path;
   const fileName = file.name;
   const fileDiffNewString = file.diffInfo?.new_string;
@@ -67,17 +69,19 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
           return;
         }
 
-        if (!fileProjectId) {
+        if (!isWorkspaceFile && !fileProjectId) {
           throw new Error('Missing project identifier');
         }
 
-        const response = await api.readFile(fileProjectId, filePath);
+        const response = isWorkspaceFile
+          ? await api.fileManager.readFile(filePath)
+          : await api.readFile(fileProjectId, filePath);
         if (!response.ok) {
           throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        setContent(data.content);
+        setContent(isWorkspaceFile ? data.data?.content ?? '' : data.content);
       } catch (error) {
         const message = getErrorMessage(error);
         console.error('Error loading file:', error);
@@ -88,7 +92,7 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
     };
 
     loadFileContent();
-  }, [file.diffInfo, file.name, fileDiffNewString, fileDiffOldString, fileName, filePath, fileProjectId]);
+  }, [file.diffInfo, file.name, fileDiffNewString, fileDiffOldString, fileName, filePath, fileProjectId, isWorkspaceFile]);
 
   const handleSave = useCallback(async () => {
     // Preview-only and binary files have no editable text buffer; never write
@@ -101,17 +105,21 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
     setSaveError(null);
 
     try {
-      if (!fileProjectId) {
+      if (!isWorkspaceFile && !fileProjectId) {
         throw new Error('Missing project identifier');
       }
 
-      const response = await api.saveFile(fileProjectId, filePath, content);
+      const response = isWorkspaceFile
+        ? await api.fileManager.saveFile(filePath, content)
+        : await api.saveFile(fileProjectId, filePath, content);
 
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
         if (contentType?.includes('application/json')) {
           const errorData = await response.json();
-          throw new Error(errorData.error || `Save failed: ${response.status}`);
+          const errorValue = errorData.error;
+          const errorMessage = typeof errorValue === 'string' ? errorValue : errorValue?.message;
+          throw new Error(errorMessage || `Save failed: ${response.status}`);
         }
 
         const textError = await response.text();
@@ -130,7 +138,7 @@ export const useCodeEditorDocument = ({ file, projectPath }: UseCodeEditorDocume
     } finally {
       setSaving(false);
     }
-  }, [content, filePath, fileProjectId, previewKind, fileName]);
+  }, [content, filePath, fileProjectId, previewKind, fileName, isWorkspaceFile]);
 
   const handleDownload = useCallback(() => {
     const blob = new Blob([content], { type: 'text/plain' });

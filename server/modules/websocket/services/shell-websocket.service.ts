@@ -136,16 +136,6 @@ function buildShellCommand(
     return 'cursor-agent';
   }
 
-  if (provider === 'codex') {
-    if (resumeSessionId) {
-      if (os.platform() === 'win32') {
-        return `codex resume "${resumeSessionId}"; if ($LASTEXITCODE -ne 0) { codex }`;
-      }
-      return `codex resume "${resumeSessionId}" || codex`;
-    }
-    return 'codex';
-  }
-
   if (provider === 'opencode') {
     if (resumeSessionId) {
       return `opencode --session "${resumeSessionId}"`;
@@ -467,11 +457,9 @@ export function handleShellConnection(
           const providerName =
             provider === 'cursor'
               ? 'Cursor'
-              : provider === 'codex'
-                ? 'Codex'
-                : provider === 'opencode'
-                    ? 'OpenCode'
-                  : 'Claude';
+              : provider === 'opencode'
+                  ? 'OpenCode'
+                : 'Claude';
           welcomeMsg = hasSession && resumeSessionId
             ? `\x1b[36mResuming ${providerName} session ${resumeSessionId} in: ${projectPath}\x1b[0m\r\n`
             : `\x1b[36mStarting new ${providerName} session in: ${projectPath}\x1b[0m\r\n`;

@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,7 +8,6 @@ import path from 'node:path';
 import spawn from 'cross-spawn';
 
 import { appConfigDb } from '@/modules/database/index.js';
-import { providerMcpService } from '@/modules/providers/index.js';
 import { getModuleDir } from '@/utils/runtime-paths.js';
 
 const require = createRequire(import.meta.url);
@@ -17,7 +16,6 @@ const IS_PLATFORM = process.env.VITE_IS_PLATFORM === 'true';
 const MAX_SESSIONS_PER_OWNER = Number.parseInt(process.env.CLOUDCLI_BROWSER_USE_MAX_SESSIONS_PER_OWNER || '3', 10);
 const SESSION_TTL_MS = Number.parseInt(process.env.CLOUDCLI_BROWSER_USE_SESSION_TTL_MS || String(30 * 60 * 1000), 10);
 const BROWSER_USE_SETTINGS_KEY = 'browser_use_settings';
-const BROWSER_USE_MCP_TOKEN_KEY = 'browser_use_mcp_token';
 
 type BrowserUseRuntime = 'cloud' | 'local';
 type BrowserUseSessionStatus = 'ready' | 'stopped' | 'unavailable';
@@ -81,8 +79,6 @@ const DEFAULT_SETTINGS: BrowserUseSettings = {
 };
 const AGENT_OWNER_ID = 'agent';
 const PROFILE_ROOT = path.join(os.homedir(), '.cloudcli', 'browser-use', 'profiles');
-const MCP_SERVER_NAME = 'cloudcli-browser';
-const LEGACY_MCP_SERVER_NAMES = ['cloudcli-browser-use'];
 const RUNTIME_READINESS_CACHE_TTL_MS = 30_000;
 
 function getRuntime(): BrowserUseRuntime {
@@ -115,16 +111,6 @@ function writeSettings(settings: BrowserUseSettings): BrowserUseSettings {
   return normalized;
 }
 
-function getOrCreateMcpToken(): string {
-  const existing = appConfigDb.get(BROWSER_USE_MCP_TOKEN_KEY);
-  if (existing) {
-    return existing;
-  }
-  const token = randomBytes(32).toString('hex');
-  appConfigDb.set(BROWSER_USE_MCP_TOKEN_KEY, token);
-  return token;
-}
-
 function getSetupMessage(settings: BrowserUseSettings, readiness: RuntimeReadiness): string {
   if (!settings.enabled) {
     return 'Browser is disabled in settings.';
@@ -147,45 +133,6 @@ function getPlaywright(): any | null {
   } catch {
     return null;
   }
-}
-
-function getMcpCommand(): { command: string; args: string[] } {
-  // Prefer the compiled `browser-use-mcp.js` from either the dist-server
-  // layout (production) or the source tree (dev). Falling back to the
-  // globally-installed `cloudcli` binary only as a last resort because
-  // most self-hosted installs don't run `npm link -g` and would otherwise
-  // get "Permission denied" from spawn.
-  const serverDir = path.resolve(__dirname, '..', '..');
-  const candidates = [
-    path.join(serverDir, 'browser-use-mcp.js'),
-    path.resolve(serverDir, '..', '..', 'dist-server', 'server', 'browser-use-mcp.js'),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      return {
-        command: process.execPath,
-        args: [candidate],
-      };
-    }
-  }
-
-  return {
-    command: 'cloudcli',
-    args: ['browser-use-mcp'],
-  };
-}
-
-function getMcpApiUrl(): string {
-  const port = process.env.SERVER_PORT || process.env.PORT || '3001';
-  return `http://127.0.0.1:${port}/api/browser-use-mcp`;
-}
-
-async function removeMcpServerFromAllProviders(name: string) {
-  const results = await providerMcpService.removeMcpServerFromAllProviders({
-    name,
-    scope: 'user',
-  });
-  return results.map((result) => ({ ...result, name }));
 }
 
 function normalizeProfileName(profileName?: string | null): string | null {
@@ -441,10 +388,7 @@ export const browserUseService = {
     };
 
     const next = writeSettings(nextSettings);
-    if (next.enabled) {
-      await this.registerAgentMcp();
-    } else if (current.enabled) {
-      await this.unregisterAgentMcp();
+    if (!next.enabled && current.enabled) {
       await this.stopAllSessions();
     }
     return next;
@@ -467,34 +411,6 @@ export const browserUseService = {
         ? 'Browser runtime is available.'
         : getSetupMessage(settings, readiness),
     };
-  },
-
-  async registerAgentMcp() {
-    const { command, args } = getMcpCommand();
-    await Promise.all(LEGACY_MCP_SERVER_NAMES.map((name) => removeMcpServerFromAllProviders(name)));
-    const results = await providerMcpService.addMcpServerToAllProviders({
-      name: MCP_SERVER_NAME,
-      scope: 'user',
-      transport: 'stdio',
-      command,
-      args,
-      env: {
-        CLOUDCLI_BROWSER_USE_MCP_TOKEN: getOrCreateMcpToken(),
-        CLOUDCLI_BROWSER_USE_API_URL: getMcpApiUrl(),
-      },
-    });
-    return { name: MCP_SERVER_NAME, command, args, results };
-  },
-
-  getMcpToken() {
-    return getOrCreateMcpToken();
-  },
-
-  async unregisterAgentMcp() {
-    const results = (await Promise.all(
-      [MCP_SERVER_NAME, ...LEGACY_MCP_SERVER_NAMES].map((name) => removeMcpServerFromAllProviders(name)),
-    )).flat();
-    return { name: MCP_SERVER_NAME, results };
   },
 
   async installRuntime() {

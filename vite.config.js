@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
           target: `ws://${proxyHost}:${serverPort}`,
           ws: true
         },
-        '/terminal-shell': {
+        '/file-manager-events': {
           target: `ws://${proxyHost}:${serverPort}`,
           ws: true
         },

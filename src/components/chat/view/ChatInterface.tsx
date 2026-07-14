@@ -62,10 +62,7 @@ function ChatInterface({
     setProvider,
     claudeModel,
     setClaudeModel,
-    codexModel,
-    setCodexModel,
     currentProviderEffort,
-    currentProviderEffortOptions,
     permissionMode,
     pendingPermissionRequests,
     setPendingPermissionRequests,
@@ -76,7 +73,6 @@ function ChatInterface({
     providerModelsRefreshing,
     hardRefreshProviderModels,
     selectProviderModel,
-    setStoredProviderEffort,
     resolvePermissionModeForProvider,
   } = useChatProviderState({
     selectedSession,
@@ -191,7 +187,6 @@ function ChatInterface({
     permissionMode,
     cyclePermissionMode,
     claudeModel,
-    codexModel,
     currentProviderEffort,
     isLoading: isProcessing,
     canAbortSession,
@@ -282,10 +277,7 @@ function ChatInterface({
   const hasActivityIndicator = Boolean(sessionActivity && pendingPermissionRequests.length === 0);
 
   if (!selectedProject) {
-    const selectedProviderLabel =
-      provider === 'codex'
-        ? t('messageTypes.codex')
-        : t('messageTypes.claude');
+    const selectedProviderLabel = t('messageTypes.claude');
 
     return (
       <div className="flex h-full items-center justify-center">
@@ -319,8 +311,6 @@ function ChatInterface({
           textareaRef={textareaRef}
           claudeModel={claudeModel}
           setClaudeModel={setClaudeModel}
-          codexModel={codexModel}
-          setCodexModel={setCodexModel}
           providerModelCatalog={providerModelCatalog}
           providerModelsLoading={providerModelsLoading}
           setInput={setInput}
@@ -369,11 +359,6 @@ function ChatInterface({
           onAbortSession={handleAbortSession}
           permissionMode={permissionMode}
           onModeSwitch={cyclePermissionMode}
-          effort={currentProviderEffort}
-          availableEffortOptions={currentProviderEffortOptions}
-          onSelectEffort={(nextEffort) => setStoredProviderEffort(provider, nextEffort)}
-          tokenBudget={tokenBudget}
-          onShowTokenUsage={showCostModal}
           slashCommandsCount={slashCommandsCount}
           onToggleCommandMenu={handleToggleCommandMenu}
           hasInput={Boolean(input.trim())}
@@ -389,13 +374,6 @@ function ChatInterface({
               previous.filter((_, currentIndex) => currentIndex !== index),
             )
           }
-          onAttachAudio={(file) => {
-            // Voice recordings land in the same slot as image attachments. The
-            // image-only filter in the upload pipeline will reject anything that
-            // isn't image/*, but that filter is bypassed here because the
-            // recording is produced by our own trusted code path.
-            setAttachedImages((previous) => [...previous, file].slice(0, 5));
-          }}
           uploadingImages={uploadingImages}
           imageErrors={imageErrors}
           showFileDropdown={showFileDropdown}
@@ -424,10 +402,7 @@ function ChatInterface({
           isInputFocused={isInputFocused}
           onInputFocusChange={handleInputFocusChange}
           placeholder={t('input.placeholder', {
-            provider:
-              provider === 'codex'
-                ? t('messageTypes.codex')
-                : t('messageTypes.claude'),
+            provider: t('messageTypes.claude'),
           })}
           isTextareaExpanded={isTextareaExpanded}
           sendByCtrlEnter={sendByCtrlEnter}

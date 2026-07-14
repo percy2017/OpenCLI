@@ -282,10 +282,7 @@ const parseProviderSkillCreatePayload = (payload: unknown): ProviderSkillCreateI
 
 const parseProvider = (value: unknown): LLMProvider => {
   const normalized = normalizeProviderParam(value);
-  if (
-    normalized === 'claude'
-    || normalized === 'codex'
-  ) {
+  if (normalized === 'claude') {
     return normalized;
   }
 
@@ -390,8 +387,8 @@ router.get(
     const bypassCache = parseOptionalBooleanQuery(req.query.bypassCache, 'bypassCache') ?? false;
     const result = await providerModelsService.getProviderModels(provider, { bypassCache });
     // Also surface the active model so the UI can hydrate its initial selection
-    // from the provider's authoritative source (e.g. ~/.codex/config.toml) instead
-    // of a hardcoded fallback that the runtime may not actually support.
+    // from the provider's authoritative source instead of a hardcoded fallback
+    // that the runtime may not actually support.
     const activeModel = await providerModelsService.getCurrentActiveModel(provider);
     res.json(createApiSuccessResponse({
       provider,

@@ -4,8 +4,7 @@ This module owns the server-side WebSocket gateway used by:
 
 1. Chat streaming (`/ws`)
 2. Interactive terminal sessions (`/shell`)
-3. Plain bash PTY for the Terminal module (`/terminal-shell`)
-4. Desktop notifications (`/desktop-notifications`)
+3. Desktop notifications (`/desktop-notifications`)
 
 It is intentionally structured as **small services** plus a **barrel export** in `index.ts`.
 
@@ -50,7 +49,6 @@ flowchart LR
   B --> D{Pathname}
   D -->|/ws| E[handleChatConnection]
   D -->|/shell| F[handleShellConnection]
-  D -->|/terminal-shell| H[handleTerminalShellConnection]
   D -->|/desktop-notifications| I[handleDesktopNotificationsConnection]
   D -->|other| Z[close()]
 
@@ -69,7 +67,6 @@ sequenceDiagram
   participant Router as connection router
   participant Chat as /ws handler
   participant Shell as /shell handler
-  participant Terminal as /terminal-shell handler
 
   Client->>WSS: Upgrade Request
   WSS->>Auth: verifyClient(info)
@@ -91,8 +88,6 @@ sequenceDiagram
       Router->>Chat: handleChatConnection(ws, request, deps.chat)
     else pathname == /shell
       Router->>Shell: handleShellConnection(ws, deps.shell)
-    else pathname == /terminal-shell
-      Router->>Terminal: handleTerminalShellConnection(ws)
     else unknown
       Router->>Router: ws.close()
     end
@@ -221,7 +216,7 @@ Allows active session stream redirection on reconnect.
 
 Current explicit close codes in this module:
 
-1. `4403`: Terminal disabled (kills both `/shell` and `/terminal-shell` upgrades when the user disables the Terminal module)
+1. `4403`: Terminal disabled (kills `/shell` upgrades when the user disables the Terminal module)
 
 Other errors:
 

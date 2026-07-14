@@ -43,7 +43,6 @@ interface UseChatComposerStateArgs {
   resolvePermissionModeForProvider: (provider: LLMProvider, requestedMode: PermissionMode | string) => PermissionMode;
   cursorModel: string;
   claudeModel: string;
-  codexModel: string;
   currentProviderEffort: string;
   opencodeModel: string;
   isLoading: boolean;
@@ -195,7 +194,6 @@ export function useChatComposerState({
   resolvePermissionModeForProvider,
   cursorModel,
   claudeModel,
-  codexModel,
   currentProviderEffort,
   opencodeModel,
   isLoading,
@@ -369,9 +367,7 @@ export function useChatComposerState({
           projectId: selectedProject.projectId,
           sessionId: currentSessionId,
           provider,
-          model: provider === 'codex'
-              ? codexModel
-              : claudeModel,
+          model: claudeModel,
           tokenUsage: tokenBudget,
         };
 
@@ -421,7 +417,6 @@ export function useChatComposerState({
     },
     [
       claudeModel,
-      codexModel,
       currentSessionId,
       cursorModel,
       opencodeModel,
@@ -586,10 +581,7 @@ export function useChatComposerState({
   const buildSendOptions = useCallback((currentInput: string): QueuedSendOptions => {
     const getToolsSettings = () => {
       try {
-        const settingsKey =
-          provider === 'codex'
-            ? 'codex-settings'
-            : 'claude-settings';
+        const settingsKey = 'claude-settings';
         const savedSettings = safeLocalStorage.getItem(settingsKey);
         if (savedSettings) {
           return JSON.parse(savedSettings);
@@ -606,10 +598,7 @@ export function useChatComposerState({
     };
 
     const toolsSettings = getToolsSettings();
-    const model =
-      provider === 'codex'
-        ? codexModel
-        : claudeModel;
+    const model = claudeModel;
 
     return {
       model,
@@ -621,7 +610,6 @@ export function useChatComposerState({
     };
   }, [
     claudeModel,
-    codexModel,
     currentProviderEffort,
     cursorModel,
     opencodeModel,

@@ -10,16 +10,12 @@ type MainContentTitleProps = {
 };
 
 function getTabTitle(activeTab: AppTab, t: (key: string) => string) {
+  if (activeTab === 'shell') {
+    return t('tabs.shell');
+  }
+
   if (activeTab === 'files') {
-    return t('mainContent.projectFiles');
-  }
-
-  if (activeTab === 'minimax') {
-    return t('mainContent.subscription');
-  }
-
-  if (activeTab === 'terminal' || activeTab === 'shell') {
-    return t('tabs.terminal');
+    return t('tabs.files');
   }
 
   if (activeTab === 'browser') {

@@ -12,8 +12,6 @@ export default function AgentsSettingsTab({
   onProviderLogin,
   claudePermissions,
   onClaudePermissionsChange,
-  codexPermissionMode,
-  onCodexPermissionModeChange,
   projects,
 }: AgentsSettingsTabProps) {
   const [selectedAgent, setSelectedAgent] = useState<AgentProvider>('claude');
@@ -23,7 +21,7 @@ export default function AgentsSettingsTab({
   ), []);
 
   const visibleAgents = useMemo<AgentProvider[]>(() => {
-    return ['claude', 'codex'];
+    return ['claude'];
   }, []);
 
   const agentContextById = useMemo<Record<AgentProvider, AgentContext>>(() => ({
@@ -31,14 +29,9 @@ export default function AgentsSettingsTab({
       authStatus: providerAuthStatus.claude,
       onLogin: () => onProviderLogin('claude'),
     },
-    codex: {
-      authStatus: providerAuthStatus.codex,
-      onLogin: () => onProviderLogin('codex'),
-    },
   }), [
     onProviderLogin,
     providerAuthStatus.claude,
-    providerAuthStatus.codex,
   ]);
 
   useEffect(() => {
@@ -70,8 +63,6 @@ export default function AgentsSettingsTab({
           agentContextById={agentContextById}
           claudePermissions={claudePermissions}
           onClaudePermissionsChange={onClaudePermissionsChange}
-          codexPermissionMode={codexPermissionMode}
-          onCodexPermissionModeChange={onCodexPermissionModeChange}
           projects={projects}
         />
       </div>

@@ -50,18 +50,6 @@
     "resetToDefaults": "Restablecer valores predeterminados",
     "cancelChanges": "Cancelar cambios"
   },
-  "voiceSettings": {
-    "title": "Voz",
-    "description": "Lee los mensajes en voz alta usando el backend de voz configurado (solo TTS — voz a texto no disponible).",
-    "enable": "Activar voz",
-    "enableDescription": "Mostrar el botón de lectura en voz alta en los mensajes.",
-    "backendTitle": "Backend de voz",
-    "backendDescription": "El servidor invoca el backend de voz configurado con sus credenciales compartidas.",
-    "model": "Modelo",
-    "voice": "Voz",
-    "refreshVoices": "Actualizar voces",
-    "note": "Los modelos y las voces se cargan bajo demanda desde el backend configurado."
-  },
   "quickSettings": {
     "title": "Ajustes rápidos",
     "sections": {
@@ -73,7 +61,6 @@
     "showRawParameters": "Mostrar parámetros sin procesar",
     "showThinking": "Mostrar pensamiento",
     "sendByCtrlEnter": "Enviar con Ctrl+Enter",
-    "voiceEnabled": "Voz (micrófono + lectura en voz alta)",
     "sendByCtrlEnterDescription": "Cuando está activado, al pulsar Ctrl+Enter enviarás el mensaje en lugar de solo Enter. Esto es útil para usuarios de IME para evitar envíos accidentales.",
     "dragHandle": {
       "dragging": "Arrastrando el control",
@@ -104,39 +91,8 @@
     "appearance": "Apariencia",
     "git": "Git",
     "apiTokens": "API y tokens",
-    "voice": "Voz",
-    "mcpTools": "MCP y herramientas",
     "notifications": "Notificaciones",
-    "about": "Acerca de",
-    "terminal": "Terminal"
-  },
-  "mcpTools": {
-    "sectionTitle": "MCP y herramientas",
-    "sectionDescription": "Administra los servidores MCP registrados en Claude Code y Codex, e inspecciona las herramientas que expone cada uno.",
-    "subTabs": {
-      "browser": {
-        "label": "Navegador",
-        "description": "Sesiones de navegador basadas en Playwright monitoreadas desde la pestaña Navegador."
-      },
-      "minimax": {
-        "label": "Minimax",
-        "description": "Servidor MCP oficial del plan de programación MiniMax (uvx)."
-      },
-      "rag": {
-        "label": "RAG",
-        "description": "Base de conocimiento local — subidas, embeddings y cloudcli-rag."
-      }
-    },
-    "tools": {
-      "title": "Herramientas expuestas",
-      "loading": "Cargando herramientas...",
-      "empty": "Este servidor no expone herramientas.",
-      "unavailable": "El servidor no está disponible en esta máquina.",
-      "schemaToggle": "Mostrar esquema JSON",
-      "schemaHide": "Ocultar esquema JSON",
-      "count_one": "{{count}} herramienta",
-      "count_other": "{{count}} herramientas"
-    }
+    "about": "Acerca de"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -333,12 +289,6 @@
       },
       "cursor": {
         "description": "Editor de código con IA Cursor"
-      },
-      "codex": {
-        "description": "Asistente de IA Codex de OpenAI"
-      },
-      "opencode": {
-        "description": "Asistente de CLI OpenCode"
       }
     },
     "connectionStatus": "Estado de la conexión",
@@ -399,31 +349,6 @@
       "npmInstall": "- Permitir npm install",
       "rmRf": "- Bloquear borrado recursivo"
     },
-    "codex": {
-      "permissionMode": "Modo de permisos",
-      "description": "Controla cómo Codex maneja las modificaciones de archivos y la ejecución de comandos",
-      "modes": {
-        "default": {
-          "title": "Predeterminado",
-          "description": "Solo los comandos de confianza (ls, cat, grep, git status, etc.) se ejecutan automáticamente. Otros comandos se omiten. Puede escribir en el espacio de trabajo."
-        },
-        "acceptEdits": {
-          "title": "Aceptar ediciones",
-          "description": "Todos los comandos se ejecutan automáticamente dentro del espacio de trabajo. Modo totalmente automático con ejecución aislada."
-        },
-        "bypassPermissions": {
-          "title": "Omitir permisos",
-          "description": "Acceso total al sistema sin restricciones. Todos los comandos se ejecutan automáticamente con acceso completo a disco y red. Usar con precaución."
-        }
-      },
-      "technicalDetails": "Detalles técnicos",
-      "technicalInfo": {
-        "default": "sandboxMode=workspace-write, approvalPolicy=untrusted. Comandos de confianza: cat, cd, grep, head, ls, pwd, tail, git status/log/diff/show, find (sin -exec), etc.",
-        "acceptEdits": "sandboxMode=workspace-write, approvalPolicy=never. Todos los comandos se ejecutan automáticamente dentro del directorio del proyecto.",
-        "bypassPermissions": "sandboxMode=danger-full-access, approvalPolicy=never. Acceso total al sistema, usar solo en entornos de confianza.",
-        "overrideNote": "Puedes anular esto por sesión usando el botón de modo en la interfaz de chat."
-      }
-    },
     "actions": {
       "add": "Añadir"
     }
@@ -432,9 +357,7 @@
     "title": "Servidores MCP",
     "description": {
       "claude": "Los servidores del Model Context Protocol proporcionan herramientas y fuentes de datos adicionales a Claude",
-      "cursor": "Los servidores del Model Context Protocol proporcionan herramientas y fuentes de datos adicionales a Cursor",
-      "codex": "Los servidores del Model Context Protocol proporcionan herramientas y fuentes de datos adicionales a Codex",
-      "opencode": "Los servidores del Model Context Protocol proporcionan herramientas y fuentes de datos adicionales a OpenCode"
+      "cursor": "Los servidores del Model Context Protocol proporcionan herramientas y fuentes de datos adicionales a Cursor"
     },
     "addButton": "Añadir servidor MCP",
     "empty": "No hay servidores MCP configurados",
@@ -463,14 +386,13 @@
       "hint": "Gestionado por OpenCLI."
     },
     "help": {
-      "title": "Acerca de Codex MCP",
-      "description": "Codex admite servidores MCP basados en stdio. Puedes añadir servidores que amplíen las capacidades de Codex con herramientas y recursos adicionales."
+      "title": "Acerca de Claude MCP",
+      "description": "Claude admite servidores MCP basados en stdio. Puedes añadir servidores que amplíen las capacidades de Claude con herramientas y recursos adicionales."
     }
   },
   "skillsManagement": {
     "heading": "Skills",
     "descriptionClaude": "Administra las skills de Claude desde archivos locales, carpetas completas o ubicaciones por proyecto.",
-    "descriptionCodex": "Administra las skills de Codex desde archivos locales, carpetas completas o ubicaciones por proyecto.",
     "searchPlaceholder": "Buscar skills...",
     "searchAria": "Buscar skills",
     "addSkill": "Añadir skill",
@@ -478,9 +400,7 @@
     "refreshing": "Actualizando",
     "scanningProjects": "Escaneando skills del proyecto...",
     "loadingClaude": "Cargando skills de Claude...",
-    "loadingCodex": "Cargando skills de Codex...",
     "emptyClaudeTitle": "Aún no se descubrieron skills",
-    "emptyCodexTitle": "Aún no se descubrieron skills",
     "emptyBody": "Añade una skill global arriba o crea carpetas de skills específicas del proyecto en tu espacio de trabajo.",
     "noMatchesTitle": "No hay skills que coincidan",
     "noMatchesBody": "Prueba con otro comando, nombre, ámbito, proyecto o ruta de origen.",
@@ -499,6 +419,30 @@
     "readFolderError": "No se pudo leer la carpeta de skills",
     "folderTooLarge": "Las carpetas de skills seleccionadas deben pesar menos de 30 MB en total.",
     "missingSkillMd": "La carpeta seleccionada no contiene un archivo SKILL.md.",
+    "addFromGithub": "Desde GitHub",
+    "githubSuccess": "Se instaló {{count}} skill desde {{repo}}",
+    "githubDialog": {
+      "title": "Instalar skills desde GitHub",
+      "urlLabel": "URL del repositorio",
+      "urlPlaceholder": "https://github.com/propietario/repositorio",
+      "refLabel": "Rama o etiqueta (opcional)",
+      "refPlaceholder": "main",
+      "help": "Pega la URL de un repositorio de GitHub; se instalarán todas las carpetas que contengan un SKILL.md.",
+      "install": "Instalar",
+      "installing": "Instalando…"
+    },
+    "githubError": {
+      "invalidUrl": "Introduce una URL válida de un repositorio de GitHub.",
+      "nonGithubHost": "Solo se admiten repositorios de github.com.",
+      "notFound": "Repositorio no encontrado (404).",
+      "rateLimit": "Se alcanzó el límite de peticiones de GitHub. Inténtalo más tarde.",
+      "archiveTooLarge": "El archivo del repositorio supera el límite de tamaño.",
+      "extractedTooLarge": "El repositorio extraído supera el límite de tamaño.",
+      "noSkillsFound": "No se encontraron archivos SKILL.md en este repositorio.",
+      "writeFailed": "No se pudieron escribir las skills en disco.",
+      "network": "No se pudo contactar con GitHub.",
+      "unsupportedProvider": "Este proveedor no admite skills globales administradas."
+    },
     "scopeLabels": {
       "user": "Usuario",
       "plugin": "Plugin",
@@ -508,12 +452,10 @@
       "system": "Sistema"
     },
     "providerNames": {
-      "claude": "Claude",
-      "codex": "Codex"
+      "claude": "Claude"
     },
     "installPath": {
-      "claude": "~/.claude/skills/<nombre-de-skill>/SKILL.md",
-      "codex": "~/.agents/skills/<nombre-de-skill>/SKILL.md"
+      "claude": "~/.claude/skills/<nombre-de-skill>/SKILL.md"
     }
   }
 }

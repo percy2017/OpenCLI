@@ -26,8 +26,49 @@
     "browser": "Navegador",
     "computer": "Computadora",
     "ragVector": "RAG Vector",
-    "minimax": "Minimax MCP",
-    "terminal": "Terminal"
+    "minimax": "Minimax MCP"
+  },
+  "fileManager": {
+    "actions": "Acciones",
+    "batchErrors": "{{count}} elementos no pudieron procesarse",
+    "copied": "Elemento copiado",
+    "copy": "Copiar",
+    "createDirectory": "Crear directorio",
+    "createFile": "Crear archivo",
+    "destination": "Directorio de destino",
+    "directoryCreated": "Directorio creado",
+    "emptyDirectory": "Este directorio está vacío",
+    "emptyTrash": "Vaciar papelera",
+    "emptyTrashConfirmation": "¿Eliminar permanentemente todos los elementos de la papelera?",
+    "fileCreated": "Archivo creado",
+    "mode": "Modo",
+    "modified": "Modificado",
+    "move": "Mover",
+    "moved": "Elemento movido",
+    "moveToTrash": "Mover a la papelera",
+    "name": "Nombre",
+    "newDirectory": "Nuevo directorio",
+    "newFile": "Nuevo archivo",
+    "noMatches": "No hay elementos coincidentes",
+    "openDirectory": "Abrir directorio",
+    "openFile": "Abrir archivo",
+    "permanentlyDeleted": "Elemento eliminado permanentemente",
+    "permanentDeleteConfirmation": "¿Eliminar permanentemente este elemento? Esta acción no se puede deshacer.",
+    "relativeDestinationHelp": "Usa una ruta relativa a WORKSPACES_ROOT. Déjala vacía para usar la raíz.",
+    "renamed": "Elemento renombrado",
+    "rename": "Renombrar",
+    "restored": "Elemento restaurado",
+    "restore": "Restaurar",
+    "search": "Buscar en el directorio actual",
+    "selectedCount": "{{count}} seleccionados",
+    "size": "Tamaño",
+    "trash": "Papelera",
+    "trashed": "Elemento movido a la papelera",
+    "trashConfirmation": "Este elemento se moverá a la papelera recuperable.",
+    "trashEmptied": "Papelera vaciada",
+    "trashEmpty": "La papelera está vacía",
+    "uploaded_one": "{{count}} archivo subido",
+    "uploaded_other": "{{count}} archivos subidos"
   },
   "status": {
     "loading": "Cargando...",
@@ -59,19 +100,7 @@
     "logout": "Cerrar sesión"
   },
   "common": {
-    "language": "Idioma",
-    "theme": "Tema",
-    "darkMode": "Modo oscuro",
-    "lightMode": "Modo claro",
-    "name": "Nombre",
-    "description": "Descripción",
-    "enabled": "Activado",
-    "disabled": "Desactivado",
-    "optional": "Opcional",
-    "version": "Versión",
-    "select": "Seleccionar",
-    "selectAll": "Seleccionar todo",
-    "deselectAll": "Deseleccionar todo"
+    "gotIt": "Entendido"
   },
   "time": {
     "justNow": "Justo ahora",
@@ -98,100 +127,7 @@
     "createProjectDesktop": "Crea un nuevo proyecto haciendo clic en el ícono de carpeta de la barra lateral",
     "newSession": "Nueva sesión",
     "untitledSession": "Sesión sin título",
-    "projectFiles": "Archivos del proyecto",
     "subscription": "Datos de suscripción"
-  },
-  "fileTree": {
-    "loading": "Cargando archivos...",
-    "files": "Archivos",
-    "simpleView": "Vista simple",
-    "compactView": "Vista compacta",
-    "detailedView": "Vista detallada",
-    "searchPlaceholder": "Buscar archivos y carpetas...",
-    "clearSearch": "Limpiar búsqueda",
-    "name": "Nombre",
-    "size": "Tamaño",
-    "modified": "Modificado",
-    "permissions": "Permisos",
-    "noFilesFound": "No se encontraron archivos",
-    "checkProjectPath": "Verifica si la ruta del proyecto es accesible",
-    "noMatchesFound": "No se encontraron coincidencias",
-    "tryDifferentSearch": "Prueba con otro término de búsqueda o limpia la búsqueda",
-    "justNow": "justo ahora",
-    "minAgo": "hace {{count}} min",
-    "hoursAgo": "hace {{count}} h",
-    "daysAgo": "hace {{count}} días",
-    "newFile": "Nuevo archivo (Cmd+N)",
-    "newFolder": "Nueva carpeta (Cmd+Shift+N)",
-    "refresh": "Actualizar",
-    "collapseAll": "Contraer todo",
-    "showIgnored": "Mostrar carpetas ignoradas",
-    "hideIgnored": "Ocultar carpetas ignoradas",
-    "selection": {
-      "enterMode": "Seleccionar archivos",
-      "exitMode": "Salir del modo selección",
-      "selectedCount": "{{count}} seleccionados",
-      "clear": "Limpiar",
-      "selectAllVisible": "Seleccionar todo lo visible",
-      "toolbarLabel": "Acciones de selección",
-      "copy": "Copiar",
-      "copyPaths": "Copiar rutas",
-      "download": "Descargar",
-      "downloadZip": "Descargar como ZIP",
-      "move": "Mover",
-      "moveTo": "Mover a...",
-      "delete": "Eliminar selección",
-      "deleteShort": "Eliminar",
-      "deleteTitle": "¿Eliminar {{count}} elementos?",
-      "deleteWarning": "Estos elementos se eliminarán permanentemente.",
-      "deleteConfirmShort": "Eliminar",
-      "andMore": "...y {{count}} más",
-      "moveTitle": "Mover {{count}} elementos a...",
-      "targetDirLabel": "Carpeta destino (relativa al proyecto)",
-      "targetDirPlaceholder": "ej. src/utils o vacío para raíz",
-      "recentFolders": "Selección rápida",
-      "moveConfirm": "Mover"
-    },
-    "toast": {
-      "renamed": "Renombrado correctamente",
-      "folderDeleted": "Carpeta eliminada",
-      "fileDeleted": "Archivo eliminado",
-      "fileCreated": "Archivo creado correctamente",
-      "folderCreated": "Carpeta creada correctamente",
-      "copyFailed": "Error al copiar rutas",
-      "pathCopied": "Ruta copiada al portapapeles",
-      "pathsCopied": "{{count}} rutas copiadas",
-      "folderDownloaded": "Carpeta descargada como ZIP",
-      "selectionDownloaded": "Selección descargada",
-      "selectionDeleted": "{{count}} elementos eliminados",
-      "selectionPartialDelete": "{{fail}} de {{total}} elementos no se pudieron eliminar",
-      "selectionDeleteFailed": "Error al eliminar la selección",
-      "selectionMoved": "{{count}} elementos movidos",
-      "pathNotFound": "{{path}} no existe, se omite"
-    },
-    "validation": {
-      "emptyName": "El nombre no puede estar vacío",
-      "invalidChars": "El nombre contiene caracteres no válidos",
-      "reserved": "El nombre está reservado por el sistema",
-      "dotsOnly": "El nombre no puede consistir solo de puntos"
-    },
-    "delete": {
-      "title": "Eliminar {{type}}",
-      "folderWarning": "Esta carpeta y todo su contenido se eliminarán permanentemente.",
-      "fileWarning": "Este archivo se eliminará permanentemente.",
-      "confirm": "Eliminar"
-    },
-    "context": {
-      "rename": "Renombrar",
-      "delete": "Eliminar",
-      "copyPath": "Copiar ruta",
-      "download": "Descargar",
-      "newFile": "Nuevo archivo",
-      "newFolder": "Nueva carpeta",
-      "refresh": "Actualizar",
-      "menuLabel": "Menú contextual del archivo",
-      "loading": "Cargando..."
-    }
   },
   "projectWizard": {
     "title": "Crear nuevo proyecto",
@@ -206,7 +142,7 @@
     "step3": {
       "reviewConfig": "Revisa tu configuración",
       "path": "Ruta:",
-      "newEmpty": "El espacio de trabajo se añadirá a tu lista de proyectos y estará disponible para sesiones de Claude/Codex."
+      "newEmpty": "El espacio de trabajo se añadirá a tu lista de proyectos y estará disponible para sesiones de Claude ."
     },
     "buttons": {
       "cancel": "Cancelar",
@@ -307,14 +243,13 @@
     },
     "minimax": {
       "sectionTitle": "MiniMax MCP",
-      "sectionDescription": "Conecta el servidor MCP oficial del plan de programación MiniMax para que Codex y Claude puedan navegar, planificar y actuar en la web mediante la API de MiniMax.",
+      "sectionDescription": "Conecta el servidor MCP oficial del plan de programación MiniMax para que Claude puedan navegar, planificar y actuar en la web mediante la API de MiniMax.",
       "enableLabel": "Activar MiniMax MCP",
-      "enableDescription": "Registra el servidor MCP oficial de MiniMax en Codex y Claude. Requiere la CLI de MiniMax instalada (uvx) y una clave de API de MiniMax válida en tu entorno.",
+      "enableDescription": "Registra el servidor MCP oficial de MiniMax en Claude. Requiere la CLI de MiniMax instalada (uvx) y una clave de API de MiniMax válida en tu entorno.",
       "enableAria": "Activar MiniMax MCP",
       "stateLabel": "Estado: {{state}}",
       "stateEnabled": "activo",
       "stateDisabled": "inactivo",
-      "codexStatus": "Codex: {{state}}",
       "claudeStatus": "Claude: {{state}}",
       "providerConfigured": "registrado",
       "providerMissing": "no registrado",
@@ -393,14 +328,13 @@
   },
   "mmxCli": {
     "sectionTitle": "Rag MCP",
-    "sectionDescription": "Activa la base de conocimiento RAG Vector con embeddings de MiniMax y registra cloudcli-rag en Claude Code y Codex para que los agentes puedan buscar en tus documentos vía MCP.",
+    "sectionDescription": "Activa la base de conocimiento RAG Vector con embeddings de MiniMax para subir y buscar documentos localmente.",
     "enableLabel": "Activar RAG Vector",
-    "enableDescription": "Cuando esté activo, aparece el tab \"RAG Vector\" en el header para subir y gestionar documentos y se registra el MCP server cloudcli-rag con Claude Code y Codex.",
-    "enableAria": "Alternar RAG Vector y cloudcli-rag",
+    "enableDescription": "Cuando esté activo, aparece el tab \"RAG Vector\" en el header para subir y gestionar documentos en tu base de conocimiento local.",
+    "enableAria": "Alternar RAG Vector",
     "stateLabel": "Estado: {{state}}",
     "stateEnabled": "Activado",
     "stateDisabled": "Desactivado",
-    "codexStatus": "Codex: {{state}}",
     "claudeStatus": "Claude: {{state}}",
     "providerConfigured": "registrado",
     "providerMissing": "no registrado",
@@ -414,28 +348,6 @@
     "empty": {
       "title": "RAG Vector",
       "description": "Base de conocimiento próximamente. Pronto podrás subir documentos y chatear contra ellos aquí."
-    }
-  },
-  "terminal": {
-    "sectionTitle": "Terminal",
-    "sectionDescription": "Activa o desactiva la terminal integrada que expone un shell completo vía WebSocket.",
-    "enableLabel": "Activar terminal",
-    "enableDescription": "Cuando está activa, el tab Terminal está disponible y se aceptan nuevas conexiones WebSocket a /shell.",
-    "enableAria": "Alternar terminal",
-    "stateLabel": "Estado: {{state}}",
-    "stateEnabled": "Activado",
-    "stateDisabled": "Desactivado",
-    "panelTitle": "Módulo Terminal",
-    "panelDescription": "Gestioná el toggle de Terminal que gatea el endpoint WebSocket /shell. Configuralo en Ajustes.",
-    "openSettings": "Abrir ajustes de terminal",
-    "disabledTitle": "Terminal desactivado",
-    "disabledDescription": "El módulo Terminal está apagado. Activalo en Ajustes para usar la shell integrada.",
-    "overlayConnecting": "Conectando al módulo Terminal…",
-    "overlayError": "Error de conexión",
-    "overlayClosed": "Shell cerrado. Recargá el tab para reconectar.",
-    "errors": {
-      "loadState": "Error al cargar el estado de la terminal.",
-      "saveState": "Error al guardar el estado de la terminal."
     }
   },
   "knowledgeBase": {
@@ -540,8 +452,5 @@
       "dismissed": "Instalación descartada. Puedes intentarlo de nuevo en cualquier momento.",
       "unsupported": "Este navegador no expone un prompt de instalación."
     }
-  },
-  "common": {
-    "gotIt": "Entendido"
   }
 }

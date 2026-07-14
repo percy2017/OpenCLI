@@ -9,7 +9,9 @@
     "copied": "Message copied",
     "selectFormat": "Select copy format",
     "copyAsMarkdown": "Copy as markdown",
-    "copyAsText": "Copy as text"
+    "copyAsText": "Copy as text",
+    "markdownShort": "MD",
+    "textShort": "TXT"
   },
   "messageTypes": {
     "user": "U",
@@ -17,7 +19,6 @@
     "tool": "Tool",
     "claude": "Claude",
     "cursor": "Cursor",
-    "codex": "Codex",
     "opencode": "OpenCode"
   },
   "tools": {
@@ -85,42 +86,6 @@
   "usageLimit": {
     "resetAt": "Claude usage limit reached. Your limit will reset at **{{time}} {{timezone}}** - {{date}}"
   },
-  "codex": {
-    "permissionMode": "Permission Mode",
-    "modes": {
-      "default": "Default Mode",
-      "auto": "Auto Mode",
-      "acceptEdits": "Accept Edits",
-      "bypassPermissions": "Bypass Permissions",
-      "plan": "Plan Mode"
-    },
-    "descriptions": {
-      "default": "Only trusted commands (ls, cat, grep, git status, etc.) run automatically. Other commands are skipped. Can write to workspace.",
-      "auto": "A model classifier decides per tool call whether to approve or deny. Hands-off, but safer than Bypass — denials still happen.",
-      "acceptEdits": "All commands run automatically within the workspace. Full auto mode with sandboxed execution.",
-      "bypassPermissions": "Full system access with no restrictions. All commands run automatically with full disk and network access. Use with caution.",
-      "plan": "Planning mode - no commands are executed"
-    },
-    "technicalDetails": "Technical details"
-  },
-  "voice": {
-    "input": "Voice input",
-    "stopRecording": "Stop recording",
-    "speak": "Read aloud",
-    "stopSpeaking": "Stop",
-    "loading": "Loading…",
-    "errors": {
-      "noSpeech": "No speech detected. Try again.",
-      "aborted": "Voice input cancelled.",
-      "audioCapture": "No microphone found. Check your audio device.",
-      "network": "Network error during voice input.",
-      "notAllowed": "Microphone permission denied.",
-      "serviceNotAllowed": "Voice service blocked. Check your browser settings.",
-      "languageNotSupported": "Language not supported by voice input.",
-      "phishing": "Voice input blocked for security reasons.",
-      "unknown": "Voice input failed. Try again."
-    }
-  },
   "input": {
     "placeholder": "Type / for commands, @ for files, or ask {{provider}} anything...",
     "placeholderDefault": "Type your message...",
@@ -148,6 +113,15 @@
       "delete": "Delete queued message"
     }
   },
+  "composer": {
+    "permissionModes": {
+      "default": "Default",
+      "acceptEdits": "Accept edits",
+      "auto": "Auto",
+      "bypassPermissions": "Bypass permissions",
+      "plan": "Plan mode"
+    }
+  },
   "providerSelection": {
     "title": "Choose Your AI Assistant",
     "description": "Select a provider to start a new conversation",
@@ -161,11 +135,13 @@
     "readyPrompt": {
       "claude": "Ready to use Claude with {{model}}. Start typing your message below.",
       "cursor": "Ready to use Cursor with {{model}}. Start typing your message below.",
-      "codex": "Ready to use Codex with {{model}}. Start typing your message below.",
-      "opencode": "Ready to use OpenCode with {{model}}. Start typing your message below.",
       "default": "Select a provider above to begin"
     },
-    "pressToSearch": "Press <kbd>{{shortcut}}</kbd> to search sessions, files, and commits"
+    "pressToSearch": "Press <kbd>{{shortcut}}</kbd> to search sessions, files, and commits",
+    "clickToChange": "Click to change",
+    "searchModels": "Search models",
+    "noModelsFound": "No models found",
+    "loadingModels": "Loading models…"
   },
   "session": {
     "continue": {

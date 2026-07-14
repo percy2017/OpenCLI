@@ -22,6 +22,7 @@
     "fullscreen": "Pantalla completa",
     "close": "Cerrar",
     "previewMarkdown": "Vista previa de markdown",
+    "previewHtml": "Abrir vista previa HTML en nueva pestaña",
     "editMarkdown": "Editar markdown"
   },
   "footer": {
@@ -36,6 +37,18 @@
   "filePreview": {
     "loading": "Cargando vista previa...",
     "error": "No se puede mostrar este archivo.",
-    "openInNewTab": "Abrir en una nueva pestaña"
+    "openInNewTab": "Abrir en una nueva pestaña",
+    "sqlite": {
+      "tables": "tablas",
+      "filterTables": "Filtrar tablas...",
+      "noTables": "Ninguna tabla coincide con el filtro.",
+      "selectTable": "Selecciona una tabla para ver sus filas.",
+      "rows": "filas",
+      "columns": "columnas",
+      "prev": "Página anterior",
+      "next": "Página siguiente",
+      "emptyTable": "Esta tabla está vacía.",
+      "refresh": "Actualizar"
+    }
   }
 }

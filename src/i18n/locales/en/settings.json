@@ -50,18 +50,6 @@
     "resetToDefaults": "Reset to Defaults",
     "cancelChanges": "Cancel Changes"
   },
-  "voiceSettings": {
-    "title": "Voice",
-    "description": "Read messages aloud using the configured voice backend (TTS only — speech-to-text is not available).",
-    "enable": "Enable voice",
-    "enableDescription": "Show the read-aloud button on messages.",
-    "backendTitle": "Voice backend",
-    "backendDescription": "The server shells out to the configured voice backend using its shared credentials.",
-    "model": "Model",
-    "voice": "Voice",
-    "refreshVoices": "Refresh voices",
-    "note": "Models and voices are loaded on demand from the configured backend."
-  },
   "quickSettings": {
     "title": "Quick Settings",
     "sections": {
@@ -73,7 +61,6 @@
     "showRawParameters": "Show raw parameters",
     "showThinking": "Show thinking",
     "sendByCtrlEnter": "Send by Ctrl+Enter",
-    "voiceEnabled": "Voice (mic + read aloud)",
     "sendByCtrlEnterDescription": "When enabled, pressing Ctrl+Enter will send the message instead of just Enter. This is useful for IME users to avoid accidental sends.",
     "dragHandle": {
       "dragging": "Dragging handle",
@@ -104,39 +91,8 @@
     "appearance": "Appearance",
     "git": "Git",
     "apiTokens": "API & Tokens",
-    "voice": "Voice",
-    "mcpTools": "MCP & Tools",
     "notifications": "Notifications",
-    "about": "About",
-    "terminal": "Terminal"
-  },
-  "mcpTools": {
-    "sectionTitle": "MCP & Tools",
-    "sectionDescription": "Manage the MCP servers registered with Claude Code and Codex, and inspect the tools each server exposes.",
-    "subTabs": {
-      "browser": {
-        "label": "Browser",
-        "description": "Playwright-based browser sessions monitored from the Browser tab."
-      },
-      "minimax": {
-        "label": "Minimax",
-        "description": "Official MiniMax coding plan MCP server (uvx)."
-      },
-      "rag": {
-        "label": "RAG",
-        "description": "Local knowledge base — uploads, embeddings, and cloudcli-rag."
-      }
-    },
-    "tools": {
-      "title": "Exposed tools",
-      "loading": "Loading tools...",
-      "empty": "No tools exposed by this server.",
-      "unavailable": "Server not reachable on this machine.",
-      "schemaToggle": "Show JSON schema",
-      "schemaHide": "Hide JSON schema",
-      "count_one": "{{count}} tool",
-      "count_other": "{{count}} tools"
-    }
+    "about": "About"
   },
   "notifications": {
     "title": "Notifications",
@@ -333,12 +289,6 @@
       },
       "cursor": {
         "description": "Cursor AI-powered code editor"
-      },
-      "codex": {
-        "description": "OpenAI Codex AI assistant"
-      },
-      "opencode": {
-        "description": "OpenCode CLI assistant"
       }
     },
     "connectionStatus": "Connection Status",
@@ -399,31 +349,6 @@
       "npmInstall": "- Allow npm install",
       "rmRf": "- Block recursive delete"
     },
-    "codex": {
-      "permissionMode": "Permission Mode",
-      "description": "Controls how Codex handles file modifications and command execution",
-      "modes": {
-        "default": {
-          "title": "Default",
-          "description": "Only trusted commands (ls, cat, grep, git status, etc.) run automatically. Other commands are skipped. Can write to workspace."
-        },
-        "acceptEdits": {
-          "title": "Accept Edits",
-          "description": "All commands run automatically within the workspace. Full auto mode with sandboxed execution."
-        },
-        "bypassPermissions": {
-          "title": "Bypass Permissions",
-          "description": "Full system access with no restrictions. All commands run automatically with full disk and network access. Use with caution."
-        }
-      },
-      "technicalDetails": "Technical details",
-      "technicalInfo": {
-        "default": "sandboxMode=workspace-write, approvalPolicy=untrusted. Trusted commands: cat, cd, grep, head, ls, pwd, tail, git status/log/diff/show, find (without -exec), etc.",
-        "acceptEdits": "sandboxMode=workspace-write, approvalPolicy=never. All commands auto-execute within project directory.",
-        "bypassPermissions": "sandboxMode=danger-full-access, approvalPolicy=never. Full system access, use only in trusted environments.",
-        "overrideNote": "You can override this per-session using the mode button in the chat interface."
-      }
-    },
     "actions": {
       "add": "Add"
     },
@@ -451,9 +376,7 @@
     "title": "MCP Servers",
     "description": {
       "claude": "Model Context Protocol servers provide additional tools and data sources to Claude",
-      "cursor": "Model Context Protocol servers provide additional tools and data sources to Cursor",
-      "codex": "Model Context Protocol servers provide additional tools and data sources to Codex",
-      "opencode": "Model Context Protocol servers provide additional tools and data sources to OpenCode"
+      "cursor": "Model Context Protocol servers provide additional tools and data sources to Cursor"
     },
     "addButton": "Add MCP Server",
     "empty": "No MCP servers configured",
@@ -482,14 +405,13 @@
       "hint": "Managed by OpenCLI."
     },
     "help": {
-      "title": "About Codex MCP",
-      "description": "Codex supports stdio-based MCP servers. You can add servers that extend Codex's capabilities with additional tools and resources."
+      "title": "About Claude MCP",
+      "description": "Claude supports stdio-based MCP servers. You can add servers that extend Claude's capabilities with additional tools and resources."
     }
   },
   "skillsManagement": {
     "heading": "Skills",
     "descriptionClaude": "Manage Claude skills from local files, complete folders, and project-aware locations.",
-    "descriptionCodex": "Manage Codex skills from local files, complete folders, and project-aware locations.",
     "searchPlaceholder": "Search skills...",
     "searchAria": "Search skills",
     "addSkill": "Add Skill",
@@ -497,9 +419,7 @@
     "refreshing": "Refreshing",
     "scanningProjects": "Scanning project skills...",
     "loadingClaude": "Loading Claude skills…",
-    "loadingCodex": "Loading Codex skills…",
     "emptyClaudeTitle": "No skills discovered yet",
-    "emptyCodexTitle": "No skills discovered yet",
     "emptyBody": "Add a global skill above or create project-specific skill folders in your workspace.",
     "noMatchesTitle": "No matching skills",
     "noMatchesBody": "Try a different command, name, scope, project, or source path.",
@@ -518,6 +438,30 @@
     "readFolderError": "Failed to read skill folder",
     "folderTooLarge": "Selected skill folders must be smaller than 30 MB in total.",
     "missingSkillMd": "The selected folder does not contain a SKILL.md file.",
+    "addFromGithub": "From GitHub",
+    "githubSuccess": "Installed {{count}} skill from {{repo}}",
+    "githubDialog": {
+      "title": "Install skills from GitHub",
+      "urlLabel": "Repository URL",
+      "urlPlaceholder": "https://github.com/owner/repo",
+      "refLabel": "Branch or tag (optional)",
+      "refPlaceholder": "main",
+      "help": "Paste a GitHub repository URL; every folder containing a SKILL.md will be installed.",
+      "install": "Install",
+      "installing": "Installing…"
+    },
+    "githubError": {
+      "invalidUrl": "Enter a valid GitHub repository URL.",
+      "nonGithubHost": "Only github.com repositories are supported.",
+      "notFound": "Repository not found (404).",
+      "rateLimit": "GitHub rate limit reached. Try again later.",
+      "archiveTooLarge": "Repository archive exceeds the size limit.",
+      "extractedTooLarge": "Extracted repository exceeds the size limit.",
+      "noSkillsFound": "No SKILL.md files were found in this repository.",
+      "writeFailed": "Failed to write skills to disk.",
+      "network": "Could not reach GitHub.",
+      "unsupportedProvider": "This provider does not support managed global skills."
+    },
     "scopeLabels": {
       "user": "User",
       "plugin": "Plugin",
@@ -527,12 +471,10 @@
       "system": "System"
     },
     "providerNames": {
-      "claude": "Claude",
-      "codex": "Codex"
+      "claude": "Claude"
     },
     "installPath": {
-      "claude": "~/.claude/skills/<skill-name>/SKILL.md",
-      "codex": "~/.agents/skills/<skill-name>/SKILL.md"
+      "claude": "~/.claude/skills/<skill-name>/SKILL.md"
     }
   }
 }

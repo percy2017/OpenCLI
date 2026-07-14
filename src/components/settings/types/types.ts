@@ -7,22 +7,15 @@ export type SettingsMainTab =
   | 'agents'
   | 'appearance'
   | 'api'
-  | 'voice'
-  | 'mcpTools'
-  | 'notifications'
-  | 'terminal';
-
-export type McpSubTab = 'browser' | 'minimax' | 'rag';
+  | 'notifications';
 
 /** Legacy tab ids that callers may still pass as `initialTab`. The settings
- * controller remaps them to `'mcpTools'` and seeds `activeMcpSubTab` with the
- * matching sub-tab. */
-export type LegacySettingsMainTab = 'browser' | 'minimaxMcp' | 'mmxCli';
+ * controller remaps unknown values to `'agents'`. */
+export type LegacySettingsMainTab = 'browser' | 'minimaxMcp' | 'mmxCli' | 'mcpTools';
 export type AgentProvider = LLMProvider;
 export type AgentCategory = 'account' | 'permissions' | 'mcp' | 'skills';
 export type ProjectSortOrder = 'name' | 'date';
 export type SaveStatus = 'success' | 'error' | null;
-export type CodexPermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions';
 
 export type SettingsProject = {
   name: string;
@@ -62,7 +55,6 @@ export type CodeEditorSettingsState = {
 
 export type SettingsStoragePayload = {
   claude: ClaudePermissionsState & { projectSortOrder: ProjectSortOrder; lastUpdated: string };
-  codex: { permissionMode: CodexPermissionMode; lastUpdated: string };
 };
 
 export type SettingsProps = {

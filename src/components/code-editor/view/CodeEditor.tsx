@@ -196,7 +196,7 @@ export default function CodeEditor({
 
   // Natively previewable media (image/pdf/audio/video) is rendered inline
   // instead of showing the generic "cannot be displayed" placeholder.
-  if (previewKind === 'sqlite') {
+  if (previewKind === 'sqlite' && file.source !== 'workspace') {
     return (
       <CodeEditorSqlitePreview
         file={file}
@@ -226,7 +226,7 @@ export default function CodeEditor({
     );
   }
 
-  if (previewKind) {
+  if (previewKind && previewKind !== 'sqlite') {
     return (
       <CodeEditorMediaPreview
         file={file}
@@ -249,7 +249,7 @@ export default function CodeEditor({
   }
 
   // Binary file display
-  if (isBinary) {
+  if (isBinary || (previewKind === 'sqlite' && file.source === 'workspace')) {
     return (
       <CodeEditorBinaryFile
         file={file}

@@ -1,4 +1,4 @@
-export type LLMProvider = 'claude' | 'codex';
+export type LLMProvider = 'claude';
 
 export type ProviderModelOption = {
   value: string;
@@ -24,7 +24,7 @@ export type ProviderModelsCacheInfo = {
   source: 'memory' | 'disk' | 'fresh';
 };
 
-export type AppTab = 'chat' | 'files' | 'shell' | 'browser' | 'rag-vector' | 'minimax' | 'terminal';
+export type AppTab = 'chat' | 'shell' | 'files' | 'browser' | 'rag-vector';
 
 export interface ProjectSession {
   id: string;
