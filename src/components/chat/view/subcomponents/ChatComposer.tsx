@@ -17,7 +17,6 @@ import type { QueuedDraft } from '../../hooks/useChatComposerState';
 import type { SessionActivity } from '../../../../hooks/useSessionProtection';
 import type { PendingPermissionRequest, PermissionMode } from '../../types/types';
 import type { ProviderModelOption } from '../../../../types/app';
-import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import {
   PromptInput,
   PromptInputHeader,
@@ -99,7 +98,6 @@ interface ChatComposerProps {
   renderInputWithMentions: (text: string) => ReactNode;
   textareaRef: RefObject<HTMLTextAreaElement>;
   input: string;
-  onVoiceTranscript?: (text: string, send?: boolean) => void;
   onInputChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   onTextareaClick: (event: MouseEvent<HTMLTextAreaElement>) => void;
   onTextareaKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -111,6 +109,7 @@ interface ChatComposerProps {
   placeholder: string;
   isTextareaExpanded: boolean;
   sendByCtrlEnter?: boolean;
+  onAttachAudio: (file: File) => void;
 }
 
 export default function ChatComposer({
@@ -157,7 +156,6 @@ export default function ChatComposer({
   renderInputWithMentions,
   textareaRef,
   input,
-  onVoiceTranscript,
   onInputChange,
   onTextareaClick,
   onTextareaKeyDown,
@@ -169,6 +167,7 @@ export default function ChatComposer({
   placeholder,
   isTextareaExpanded,
   sendByCtrlEnter,
+  onAttachAudio,
 }: ChatComposerProps) {
   const { t } = useTranslation('chat');
   const commandMenuPosition = useMemo(() => {
@@ -183,34 +182,12 @@ export default function ChatComposer({
     };
   }, [isCommandMenuOpen, textareaRef]);
 
-  // Voice input via the browser's Web Speech API. Transcription runs entirely
-  // client-side (Chromium ships the recognized text back to the page); the
-  // server is not involved. The button only renders when the API is
-  // available — Firefox and unsupported browsers fall back to no mic.
-  const voice = useSpeechRecognition();
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const voiceErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showVoiceError = useCallback((msg: string) => {
-    setVoiceError(msg);
-    if (voiceErrorTimer.current) clearTimeout(voiceErrorTimer.current);
-    voiceErrorTimer.current = setTimeout(() => setVoiceError(null), 4000);
-  }, []);
-  useEffect(() => () => {
-    if (voiceErrorTimer.current) clearTimeout(voiceErrorTimer.current);
-  }, []);
-  useEffect(() => {
-    if (voice.error) showVoiceError(voice.error);
-  }, [voice.error, showVoiceError]);
-
-  const commitVoiceTranscript = useCallback((send: boolean) => {
-    const text = voice.finalText.trim();
-    if (!text) {
-      voice.stop();
-      return;
-    }
-    voice.stop();
-    onVoiceTranscript?.(text, send);
-  }, [voice, onVoiceTranscript]);
+  // Voice → audio attachment (WhatsApp Web style). The mic button records a
+  // short audio clip via MediaRecorder and hands the resulting File to
+  // `onAttachAudio` so it lands in the same attachment slot as images. We
+  // intentionally do NOT use the Web Speech API here — Chromium in iframe
+  // contexts frequently refuses to surface transcripts reliably, and the
+  // expected UX is to attach an audio file to the message, not to type text.
 
   const [isEffortDropdownOpen, setIsEffortDropdownOpen] = useState(false);
   const effortDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -442,19 +419,7 @@ export default function ChatComposer({
               <ImageIcon />
             </PromptInputButton>
 
-            {voice.supported && (
-              <VoiceInputButton
-                state={voice.state}
-                onToggle={() => {
-                  // Clear any stale error from a previous attempt so it doesn't
-                  // linger across recordings.
-                  if (voiceErrorTimer.current) clearTimeout(voiceErrorTimer.current);
-                  setVoiceError(null);
-                  voice.toggle();
-                }}
-                errorMsg={voiceError}
-              />
-            )}
+            <VoiceInputButton onAudioCaptured={onAttachAudio} />
 
             <button
               type="button"
@@ -606,14 +571,9 @@ export default function ChatComposer({
                     }
                   : isLoading
                     ? onAbortSession
-                    : voice.state === 'listening'
-                      ? (e: MouseEvent<HTMLButtonElement>) => {
-                          e.preventDefault();
-                          commitVoiceTranscript(true);
-                        }
-                      : undefined
+                    : undefined
               }
-              disabled={isLoading ? false : voice.state === 'listening' ? false : !input.trim()}
+              disabled={isLoading ? false : !input.trim()}
               aria-label={submitAriaLabel}
               title={submitAriaLabel}
               className="h-10 w-10 sm:h-10 sm:w-10"

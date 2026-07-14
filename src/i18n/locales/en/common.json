@@ -530,7 +530,15 @@
       "iosTitle": "Install OpenCLI on your iPhone",
       "iosStep1": "Tap the Share button in Safari’s toolbar.",
       "iosStep2": "Scroll down and choose “Add to Home Screen”.",
-      "iosStep3": "Tap “Add” to install. OpenCLI will appear on your home screen."
+      "iosStep3": "Tap “Add” to install. OpenCLI will appear on your home screen.",
+      "cardTitle": "Install the app",
+      "cardDescription": "Add OpenCLI to your home screen or install it as a desktop app for quick access and offline support.",
+      "cardInstalledDescription": "OpenCLI is installed on this device. Push notifications and sound still work in your browser too.",
+      "installed": "Installed",
+      "iosAction": "Show iOS steps",
+      "resetDismissed": "Ask me again",
+      "dismissed": "Install dismissed. You can try again any time.",
+      "unsupported": "This browser does not expose an install prompt."
     }
   },
   "common": {

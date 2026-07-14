@@ -22,7 +22,7 @@ import { usePwaInstall } from '../../hooks/usePwaInstall';
  * the appropriate UI and wires the actions.
  */
 export default function InstallAppCard() {
-  const { t } = useTranslation();
+  const { t } = useTranslation('common');
   const {
     isInstalled,
     canInstall,
@@ -122,7 +122,7 @@ export default function InstallAppCard() {
 }
 
 function IosInstallModal({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('common');
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 p-4 sm:items-center">
       <div className="relative w-full max-w-sm rounded-2xl bg-card p-6 shadow-2xl ring-1 ring-border">
@@ -160,7 +160,7 @@ function IosInstallModal({ onClose }: { onClose: () => void }) {
           </ol>
 
           <Button onClick={onClose} className="mt-2 w-full">
-            {t('common.gotIt', { defaultValue: 'Got it' })}
+            {t('gotIt', { defaultValue: 'Got it' })}
           </Button>
         </div>
       </div>

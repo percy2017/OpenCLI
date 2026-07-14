@@ -35,24 +35,54 @@ function stripPathScheme(rawPath: string): string {
   return rawPath.replace(/^[a-z][a-z0-9+.-]*:(?=\/)/i, '');
 }
 
+/**
+ * Resolve the `node` binary that matches the `better-sqlite3` native binding
+ * compiled in this tree. If we hand Codex a different `node` than the one
+ * that produced `better_sqlite3.node`, the MCP process dies the moment it
+ * tries to open the SQLite DB and the host reports the tools as
+ * "unsupported call" (the JSON-RPC layer never even sees the request).
+ *
+ * Preference order:
+ *   1. `CLOUDCLI_RAG_NODE` env var (escape hatch for unusual installs).
+ *   2. `/opt/node22/bin/node` (the binary this repo's `node_modules` was
+ *      built against on hosts where the system `node` is a different
+ *      major, e.g. Node 24 with ABI 137 vs the binding's ABI 127).
+ *   3. First `node` on PATH.
+ *
+ * If none of those resolve, fall back to the bare string `"node"` and rely on
+ * the host's PATH — this preserves the old behavior on machines where the
+ * system `node` IS the one that built the binding.
+ */
+function resolveNodeCommand(): string {
+  if (process.env.CLOUDCLI_RAG_NODE && process.env.CLOUDCLI_RAG_NODE.trim()) {
+    return process.env.CLOUDCLI_RAG_NODE.trim();
+  }
+  const knownGood = '/opt/node22/bin/node';
+  if (fsExistsSync(knownGood)) {
+    return knownGood;
+  }
+  return 'node';
+}
+
 function resolveServerEntry(): { command: string; args: string[] } {
   // The MCP server is the compiled `.js` file. In dev we run from `server/`,
   // in prod from `dist-server/server/`. `findAppRoot` collapses both layouts.
   const appRoot = findAppRoot(import.meta.url);
+  const command = resolveNodeCommand();
   const candidates = [
     stripPathScheme(path.join(appRoot, 'dist-server', 'server', 'modules', 'rag-mcp', 'cloudcli-rag.mcp.js')),
     stripPathScheme(path.join(appRoot, 'server', 'modules', 'rag-mcp', 'cloudcli-rag.mcp.js')),
   ];
   for (const candidate of candidates) {
     if (fsExistsSync(candidate)) {
-      return { command: 'node', args: [candidate] };
+      return { command, args: [candidate] };
     }
   }
   // Default to the prod path so installers / first-run writes succeed even if
   // the file hasn't been built yet — the next `npm run build:server` will
   // produce it and a subsequent toggle-off / toggle-on cycle will pick it up.
   return {
-    command: 'node',
+    command,
     args: [candidates[0]],
   };
 }

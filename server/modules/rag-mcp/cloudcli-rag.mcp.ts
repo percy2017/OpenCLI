@@ -24,11 +24,16 @@ import { ragTools } from './rag-tools.js';
 
 const SERVER_INFO = {
   name: 'cloudcli-rag',
-  version: '1.0.0',
+  version: '1.0.1',
 };
 
+// Declaring `resources: {}` advertises resource capability to MCP clients so
+// they don't fail the connection with `unknown MCP server` when they issue a
+// `resources/list` preflight before surfacing tools. We expose zero resources
+// (this server is tool-only) — handlers below return an empty list.
 const CAPABILITIES = {
   tools: {},
+  resources: {},
 };
 
 const TOOLS = RAG_MCP_TOOLS;
@@ -150,9 +155,18 @@ async function handle(line: string): Promise<string | null> {
 
   try {
     if (method === 'initialize') {
+      // Negotiate the protocol version with the client. The MCP spec (and
+      // rmcp specifically) requires the server to echo back the highest
+      // version both sides support. If we hard-code `2025-03-26` here while
+      // the client requests `2025-06-18`, rmcp fails the handshake with
+      // `UnsupportedProtocolVersion` and never registers our tools — the
+      // model then sees "unsupported call" for every tool name.
+      const requested = (request.params as { protocolVersion?: unknown } | undefined)?.protocolVersion;
+      const negotiated =
+        typeof requested === 'string' && requested.length > 0 ? requested : '2025-06-18';
       return respond(id, {
         result: {
-          protocolVersion: '2025-03-26',
+          protocolVersion: negotiated,
           serverInfo: SERVER_INFO,
           capabilities: CAPABILITIES,
         },
@@ -170,6 +184,24 @@ async function handle(line: string): Promise<string | null> {
 
     if (method === 'tools/list') {
       return respond(id, { result: { tools: TOOLS } });
+    }
+
+    // Tool-call and resource handlers MUST NOT exist before declaring
+    // resources: {} in CAPABILITIES (above) — otherwise MCP clients that
+    // preflight resources/list reject the server as unknown.
+
+    if (method === 'resources/list') {
+      return respond(id, { result: { resources: [] } });
+    }
+
+    if (method === 'resources/templates/list') {
+      return respond(id, { result: { resourceTemplates: [] } });
+    }
+
+    if (method === 'resources/read') {
+      return respond(id, {
+        error: { code: -32602, message: 'This server does not expose resources. Use the search_knowledge_base, list_documents, or get_document_chunks tools instead.' },
+      });
     }
 
     if (method === 'tools/call') {
@@ -208,17 +240,13 @@ async function main() {
 
   let buffer = '';
   // Track in-flight handler promises so a premature stdin close doesn't kill
-  // them mid-await. Hosts like Codex close stdin immediately after writing the
-  // last request line, but tool calls can take seconds (RAG embeddings + chat
-  // synthesis). We let the handlers complete and only exit once stdout drains.
+  // them mid-await. Hosts like Codex close stdin right after the last request
+  // line of the *initial* handshake (initialize + notifications/initialized +
+  // tools/list), then reconnect later when the model actually invokes a tool.
+  // We MUST stay alive across that gap — killing the process on stdin end
+  // makes the model get "unsupported call" because the MCP client's runtime
+  // has no live process to forward the call to.
   let inFlight = 0;
-  let settled = false;
-
-  const tryExit = () => {
-    if (settled && inFlight === 0) {
-      process.exit(0);
-    }
-  };
 
   process.stdin.setEncoding('utf8');
   process.stdin.on('data', (chunk: string) => {
@@ -242,19 +270,18 @@ async function main() {
           })
           .finally(() => {
             inFlight -= 1;
-            tryExit();
           });
       }
       newlineIndex = buffer.indexOf('\n');
     }
   });
 
-  process.stdin.on('end', () => {
-    // stdin closed by the host. Don't kill the process — wait for in-flight
-    // handlers to finish writing their responses, then exit.
-    settled = true;
-    tryExit();
-  });
+  // Intentionally do NOT exit on stdin 'end'. Codex (via rmcp) closes stdin
+  // after the startup handshake but keeps the subprocess around to handle
+  // later tool calls. If we exit here, every subsequent `tools/call` from the
+  // model lands on a dead process and the user sees "unsupported call".
+  // The process only exits via SIGINT / SIGTERM, both of which already wire
+  // to `process.exit(0)` in installSignalHandlers() above.
 }
 
 void main();

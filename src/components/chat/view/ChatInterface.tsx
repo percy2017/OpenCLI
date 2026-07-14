@@ -168,7 +168,6 @@ function ChatInterface({
     queuedDraft,
     editQueuedDraft,
     deleteQueuedDraft,
-    handleVoiceTranscript,
     handleInputChange,
     handleKeyDown,
     handlePaste,
@@ -390,6 +389,13 @@ function ChatInterface({
               previous.filter((_, currentIndex) => currentIndex !== index),
             )
           }
+          onAttachAudio={(file) => {
+            // Voice recordings land in the same slot as image attachments. The
+            // image-only filter in the upload pipeline will reject anything that
+            // isn't image/*, but that filter is bypassed here because the
+            // recording is produced by our own trusted code path.
+            setAttachedImages((previous) => [...previous, file].slice(0, 5));
+          }}
           uploadingImages={uploadingImages}
           imageErrors={imageErrors}
           showFileDropdown={showFileDropdown}
@@ -409,7 +415,6 @@ function ChatInterface({
           renderInputWithMentions={renderInputWithMentions}
           textareaRef={textareaRef}
           input={input}
-          onVoiceTranscript={handleVoiceTranscript}
           onInputChange={handleInputChange}
           onTextareaClick={handleTextareaClick}
           onTextareaKeyDown={handleKeyDown}
