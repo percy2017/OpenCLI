@@ -15,7 +15,11 @@ class ConfigEnvTests(unittest.TestCase):
             self.assertEqual(cfg.EMBED_TIMEOUT, 60.0)
             self.assertEqual(cfg.CHUNK_SIZE, 512)
             self.assertEqual(cfg.CHUNK_OVERLAP, 50)
-            self.assertEqual(cfg.ALLOWED_ROOTS, ())
+            # When neither RAG_ALLOWED_ROOTS nor WORKSPACES_ROOT is set, the
+            # config falls back to ~/.cloudcli so the MCP doesn't reject
+            # every ingest out of the box.
+            self.assertEqual(len(cfg.ALLOWED_ROOTS), 1)
+            self.assertEqual(cfg.ALLOWED_ROOTS[0], Path.home() / ".cloudcli")
 
     def test_workpaces_root_falls_back_to_allowed_roots(self):
         with reloaded_config({"WORKSPACES_ROOT": "/srv/docs"}) as (cfg, *_):

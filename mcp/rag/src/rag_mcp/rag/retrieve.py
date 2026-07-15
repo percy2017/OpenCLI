@@ -2,7 +2,15 @@ import logging
 
 import chromadb
 
-from ..config import CHROMA_DIR, COLLECTION_NAME
+from ..config import (
+    CHROMA_DIR,
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    COLLECTION_NAME,
+    EMBED_MODEL,
+    KNOWN_DIMENSIONS,
+    OLLAMA_URL,
+)
 from .embeddings import embed_one
 
 log = logging.getLogger(__name__)
@@ -80,6 +88,29 @@ def get_source_text(source: str) -> str | None:
 
     paired = sorted(zip(ids, docs), key=lambda p: _idx(p[0]))
     return "\n\n".join(text for _, text in paired)
+
+
+def get_status() -> dict:
+    """Lightweight snapshot of the index + provider config for `rag_status`.
+
+    Reports chunk count from Chroma (O(1)) and source count by deduping
+    metadata (same cost as `list_sources`; both walk the full metadata set).
+    On a freshly-created empty index `chunks=0, sources=0` and the agent
+    should call `ingest_directory` next.
+    """
+    coll = _collection()
+    total_chunks = coll.count()
+    sources = list_sources()
+    return {
+        "provider": "ollama",
+        "base_url": OLLAMA_URL,
+        "embed_model": EMBED_MODEL,
+        "embed_dimensions": KNOWN_DIMENSIONS.get(EMBED_MODEL),
+        "chunk_size": CHUNK_SIZE,
+        "chunk_overlap": CHUNK_OVERLAP,
+        "sources": len(sources),
+        "chunks": total_chunks,
+    }
 
 
 def delete_source(name: str) -> dict:

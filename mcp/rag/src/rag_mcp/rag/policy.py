@@ -41,8 +41,10 @@ def validate_path(p: Path) -> Path:
 
     if not _RESOLVED_ROOTS:
         raise PathNotAllowedError(
-            "RAG_ALLOWED_ROOTS is not configured; set it to one or more "
-            "absolute paths (colon-separated) to allow ingestion."
+            "RAG_ALLOWED_ROOTS is not configured and the fallback default "
+            "could not be resolved. Set RAG_ALLOWED_ROOTS in .env (or in the "
+            "MCP client env) to a colon-separated list of absolute paths, "
+            "e.g. `RAG_ALLOWED_ROOTS=/root/.cloudcli/assets:/srv/docs`."
         )
     for root in _RESOLVED_ROOTS:
         try:
@@ -52,5 +54,7 @@ def validate_path(p: Path) -> Path:
             continue
     raise PathNotAllowedError(
         f"Path {resolved} is not within any allowed root: "
-        f"{[str(r) for r in _RESOLVED_ROOTS]}"
+        f"{[str(r) for r in _RESOLVED_ROOTS]}. "
+        f"Add the parent directory to RAG_ALLOWED_ROOTS (colon-separated) "
+        f"and restart the MCP to allow this file."
     )

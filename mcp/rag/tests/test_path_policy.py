@@ -23,11 +23,18 @@ class PathPolicyTests(unittest.TestCase):
     def _enter(self):
         return reloaded_config({"RAG_ALLOWED_ROOTS": str(self.allowed)})
 
-    def test_unset_roots_rejects_all(self):
+    def test_unset_roots_falls_back_to_home_cloudcli(self):
+        # When neither env var is set, ALLOWED_ROOTS defaults to ~/.cloudcli.
+        # The legacy "is not configured" branch in policy.py is now
+        # unreachable; paths outside the fallback are rejected by the
+        # standard "not within any allowed root" check.
         with reloaded_config() as (cfg, policy, *_):
+            from pathlib import Path as _P
+            self.assertEqual(len(cfg.ALLOWED_ROOTS), 1)
+            self.assertEqual(cfg.ALLOWED_ROOTS[0], _P.home() / ".cloudcli")
             with self.assertRaises(policy.PathNotAllowedError) as ctx:
                 policy.validate_path(self.allowed_file)
-            self.assertIn("RAG_ALLOWED_ROOTS is not configured", str(ctx.exception))
+            self.assertIn("not within any allowed root", str(ctx.exception))
 
     def test_path_inside_root_is_allowed(self):
         with self._enter() as (cfg, policy, *_):

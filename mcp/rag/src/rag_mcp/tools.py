@@ -16,6 +16,7 @@ from .rag.ingest import ingest_file as _ingest_file
 from .rag.retrieve import clear_index as _clear_index
 from .rag.retrieve import delete_source as _delete_source
 from .rag.retrieve import get_source_text as _get_source_text
+from .rag.retrieve import get_status as _get_status
 from .rag.retrieve import list_sources as _list_sources
 from .rag.retrieve import search as _search
 
@@ -72,6 +73,22 @@ class SourceInfo(BaseModel):
     chunks: int = Field(description="Number of chunks currently indexed for this source")
 
 
+class RagStatus(BaseModel):
+    provider: Literal["ollama"] = Field(
+        description="Active embedding provider — only Ollama is supported by this MCP."
+    )
+    base_url: str = Field(description="Ollama base URL (default http://127.0.0.1:11434)")
+    embed_model: str = Field(description="Active embedding model name (e.g. 'mxbai-embed-large')")
+    embed_dimensions: int | None = Field(
+        default=None,
+        description="Vector dimensionality for the active model; null when the model is unknown",
+    )
+    chunk_size: int = Field(description="Target chunk size in characters used at ingest time")
+    chunk_overlap: int = Field(description="Overlap in characters between adjacent chunks")
+    sources: int = Field(description="Number of distinct documents currently indexed")
+    chunks: int = Field(description="Total chunk count across all sources")
+
+
 class DeleteSourceResult(BaseModel):
     deleted: bool
     source: str
@@ -117,7 +134,16 @@ def register_tools(mcp: FastMCP) -> None:
         description=(
             "Index a single office document (PDF, DOCX, XLSX, PPTX, TXT, MD, "
             "CSV) into the vector store. Re-indexing the same path replaces "
-            "existing chunks. The path must fall inside RAG_ALLOWED_ROOTS."
+            "existing chunks. The path must fall inside RAG_ALLOWED_ROOTS.\n\n"
+            "Pipeline: the file is loaded with format-specific extractors "
+            "(python-docx for DOCX, pymupdf for PDF, openpyxl for XLSX, "
+            "python-pptx for PPTX), split with a recursive character splitter "
+            "(RAG_CHUNK_SIZE / RAG_CHUNK_OVERLAP), and each chunk is embedded "
+            "via Ollama (default model `mxbai-embed-large`, 1024 dims). Embedding "
+            "calls fan out across `RAG_EMBED_CONCURRENCY` workers (default 4).\n\n"
+            "Requires Ollama running at OLLAMA_URL with the active model "
+            "already pulled (`ollama pull mxbai-embed-large`). The MCP does "
+            "NOT generate answers — it only stores chunks for later retrieval."
         ),
         annotations=_INGEST,
     )
@@ -132,7 +158,11 @@ def register_tools(mcp: FastMCP) -> None:
             "Recursively index every supported file under a directory. "
             "`glob` follows pathlib glob rules (default `**/*`). Returns "
             "the per-file results in discovery order so callers can surface "
-            "which files failed. The root must fall inside RAG_ALLOWED_ROOTS."
+            "which files failed. The root must fall inside RAG_ALLOWED_ROOTS.\n\n"
+            "Same embedding pipeline as `ingest_file` (Ollama, fan-out across "
+            "RAG_EMBED_CONCURRENCY workers). For a directory with many files, "
+            "expect total runtime ≈ ceil(total_chunks / RAG_EMBED_CONCURRENCY) "
+            "× per-call latency."
         ),
         annotations=_INGEST,
     )
@@ -157,7 +187,14 @@ def register_tools(mcp: FastMCP) -> None:
             "includes the source path, filename, page/sheet/slide when "
             "applicable, and a cosine similarity score in [0, 1] where "
             "higher is better. The same query returns the same hits every "
-            "time as long as the index hasn't changed."
+            "time as long as the index hasn't changed.\n\n"
+            "Retrieval-only: this tool returns RAW CHUNKS, not a natural-"
+            "language answer. The calling model must synthesize the final "
+            "response from the returned chunks and cite them. Cosine "
+            "similarity is computed over vectors from the configured "
+            "embedding model — call `rag_status` to confirm the active "
+            "model and vector dimensionality before relying on scores "
+            "across different corpora."
         ),
         annotations=_READ_ONLY,
     )
@@ -174,13 +211,32 @@ def register_tools(mcp: FastMCP) -> None:
         title="List indexed documents",
         description=(
             "List every document currently in the index with its filename "
-            "and the number of chunks stored for it."
+            "and the number of chunks stored for it. Walks the full "
+            "metadata set, so on very large indexes (>10k chunks) prefer "
+            "using `rag_status` for a count and only call this when you "
+            "need the actual paths."
         ),
         annotations=_READ_ONLY,
     )
     def list_sources_tool() -> list[SourceInfo]:
         sources = _list_sources()
         return [SourceInfo(**s) for s in sources]
+
+    @mcp.tool(
+        name="rag_status",
+        title="Inspect RAG index and provider state",
+        description=(
+            "Return a snapshot of the active embedding provider and the "
+            "current index. Use this FIRST when starting a session: if "
+            "`sources=0`, call `ingest_directory` before `search`. If "
+            "`embed_dimensions` is null, the model is unknown to the MCP — "
+            "verify it is pulled in Ollama and the model name matches one "
+            "in the docs. Cheap to call (chunk count is O(1) in Chroma)."
+        ),
+        annotations=_READ_ONLY,
+    )
+    def rag_status_tool() -> RagStatus:
+        return RagStatus(**_get_status())
 
     @mcp.tool(
         name="delete_source",

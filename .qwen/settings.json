@@ -1,0 +1,11 @@
+{
+  "$version": 4,
+  "mcpServers": {
+    "rag": {
+      "command": "/opt/opencli/mcp/rag/run-server.sh",
+      "args": [],
+      "env": {},
+      "description": "Retrieval-only RAG over office documents. Uses Ollama for embeddings (mxbai-embed-large, 1024d) and ChromaDB at mcp/rag/data/chroma. See mcp/rag/README or call rag_status for current state."
+    }
+  }
+}
