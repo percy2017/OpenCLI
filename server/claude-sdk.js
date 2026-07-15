@@ -19,7 +19,13 @@ import path from 'path';
 
 import { query } from '@anthropic-ai/claude-agent-sdk';
 
-import { buildClaudeUserContent, normalizeImageDescriptors } from './shared/image-attachments.js';
+import {
+  appendImagesInputTag,
+  buildClaudeUserContent,
+  CLAUDE_IMAGE_MEDIA_TYPES,
+  normalizeImageDescriptors,
+  resolveImageMediaType,
+} from './shared/image-attachments.js';
 import { CLAUDE_FALLBACK_MODELS } from './modules/providers/list/claude/claude-models.provider.js';
 import { providerModelsService } from './modules/providers/services/provider-models.service.js';
 import { resolveClaudeCodeExecutablePath } from './shared/claude-cli-path.js';
@@ -375,11 +381,27 @@ function extractTokenBudget(sdkMessage) {
  * @returns {Promise<string|AsyncIterable>} SDK prompt payload
  */
 async function buildPromptPayload(command, images, cwd) {
-  if (normalizeImageDescriptors(images).length === 0) {
+  const descriptors = normalizeImageDescriptors(images);
+  if (descriptors.length === 0) {
     return command;
   }
 
-  const content = await buildClaudeUserContent(command, images, cwd);
+  // Detect whether there is at least one non-image attachment. If so, append a
+  // `<images_input>` tag listing all paths so the LLM can use its native
+  // file-reading tools (Claude Code's `Read` understands PDF natively; the
+  // RAG MCP can be invoked for everything else). If every attachment is an
+  // actual image, skip the tag — `buildClaudeUserContent` already injects
+  // base64 image blocks, and adding the tag on top would be redundant noise.
+  const hasNonImage = descriptors.some((d) => {
+    const mt = resolveImageMediaType(d);
+    return !mt || !CLAUDE_IMAGE_MEDIA_TYPES.has(mt);
+  });
+
+  const promptForClaude = hasNonImage
+    ? appendImagesInputTag(command, images)
+    : command;
+
+  const content = await buildClaudeUserContent(promptForClaude, images, cwd);
   return (async function* () {
     yield {
       type: 'user',

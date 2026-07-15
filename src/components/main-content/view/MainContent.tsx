@@ -5,6 +5,7 @@ import FileManager from '../../file-manager/view/FileManager';
 import StandaloneShell from '../../standalone-shell/view/StandaloneShell';
 import KnowledgeBaseView from '../../knowledge-base/KnowledgeBaseView';
 import { BrowserUsePanel } from '../../browser-use';
+import WorkspaceShell from '../../workspace-shell/view/WorkspaceShell';
 import type { MainContentProps } from '../types/types';
 import { usePaletteOpsRegister } from '../../../contexts/PaletteOpsContext';
 import { useUiPreferences } from '../../../hooks/useUiPreferences';
@@ -47,11 +48,16 @@ function MainContent({
   // VITE_SHOW_SHELL_TAB controls the first "Terminal" tab in the header
   // (agent-facing xterm.js shell). Defaults to true when unset.
   const shouldShowShellTab = String(import.meta.env.VITE_SHOW_SHELL_TAB ?? 'true').toLowerCase() !== 'false';
+  const shouldShowConsoleTab = String(import.meta.env.VITE_SHOW_CONSOLE_TAB ?? 'true').toLowerCase() !== 'false';
   const [hasVisitedFiles, setHasVisitedFiles] = useState(activeTab === 'files');
+  const [hasVisitedConsole, setHasVisitedConsole] = useState(activeTab === 'console');
 
   useEffect(() => {
     if (activeTab === 'files') {
       setHasVisitedFiles(true);
+    }
+    if (activeTab === 'console') {
+      setHasVisitedConsole(true);
     }
   }, [activeTab]);
 
@@ -153,6 +159,7 @@ function MainContent({
           shouldShowBrowserTab={shouldShowBrowserTab}
           shouldShowRagVectorTab={shouldShowRagVectorTab}
           shouldShowShellTab={shouldShowShellTab}
+          shouldShowConsoleTab={shouldShowConsoleTab}
           isMobile={isMobile}
           onMenuClick={onMenuClick}
         />
@@ -163,11 +170,16 @@ function MainContent({
                 <FileManager onFileOpen={handleWorkspaceFileOpen} />
               </div>
             )}
-            {activeTab !== 'files' && (
+            {hasVisitedConsole && (
+              <div className={activeTab === 'console' ? 'h-full overflow-hidden' : 'hidden'} aria-hidden={activeTab !== 'console'}>
+                <WorkspaceShell isActive={activeTab === 'console'} />
+              </div>
+            )}
+            {activeTab !== 'files' && activeTab !== 'console' && (
               <MainContentStateView mode="empty" isMobile={isMobile} onMenuClick={onMenuClick} />
             )}
           </div>
-          {activeTab === 'files' && (
+          {(activeTab === 'files' || activeTab === 'console') && (
             <EditorSidebar
               editingFile={editingFile}
               isMobile={isMobile}
@@ -196,6 +208,7 @@ function MainContent({
         shouldShowBrowserTab={shouldShowBrowserTab}
         shouldShowRagVectorTab={shouldShowRagVectorTab}
         shouldShowShellTab={shouldShowShellTab}
+        shouldShowConsoleTab={shouldShowConsoleTab}
         isMobile={isMobile}
         onMenuClick={onMenuClick}
       />
@@ -229,6 +242,12 @@ function MainContent({
           {hasVisitedFiles && (
             <div className={activeTab === 'files' ? 'h-full overflow-hidden' : 'hidden'} aria-hidden={activeTab !== 'files'}>
               <FileManager onFileOpen={handleWorkspaceFileOpen} />
+            </div>
+          )}
+
+          {hasVisitedConsole && (
+            <div className={activeTab === 'console' ? 'h-full overflow-hidden' : 'hidden'} aria-hidden={activeTab !== 'console'}>
+              <WorkspaceShell isActive={activeTab === 'console'} />
             </div>
           )}
 
@@ -267,7 +286,7 @@ function MainContent({
           onCloseEditor={handleCloseEditor}
           onToggleEditorExpand={handleToggleEditorExpand}
           projectPath={selectedProject.path}
-          fillSpace={activeTab === 'files'}
+          fillSpace={activeTab === 'files' || activeTab === 'console'}
         />
       </div>
     </div>

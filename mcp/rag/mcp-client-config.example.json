@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rag": {
+      "command": "/opt/opencli/mcp/rag/run-server.sh",
+      "args": [],
+      "env": {}
+    }
+  }
+}

@@ -13,6 +13,10 @@ type ShellIncomingMessage = {
   cols?: number;
   rows?: number;
   projectPath?: string;
+  // Optional explicit cwd override used by the project-independent Consola tab
+  // so the PTY can be pinned to WORKSPACES_ROOT without dragging in a fake
+  // project shell entry. Ignored when empty.
+  cwd?: string;
   sessionId?: string;
   hasSession?: boolean;
   provider?: string;
@@ -232,6 +236,11 @@ export function handleShellConnection(
 
       if (data.type === 'init') {
         const projectPath = readString(data.projectPath, process.cwd());
+        // Optional cwd override for project-independent shells (Consola). When
+        // provided and valid, takes precedence over the project path so the PTY
+        // always starts in WORKSPACES_ROOT regardless of which project is
+        // currently selected in the UI.
+        const cwdOverride = readString(data.cwd);
         const sessionId = readString(data.sessionId) || null;
         const hasSession = readBoolean(data.hasSession);
         const provider = readString(data.provider, 'claude');
@@ -255,7 +264,13 @@ export function handleShellConnection(
           isPlainShell && initialCommand
             ? `_cmd_${Buffer.from(initialCommand).toString('base64').slice(0, 16)}`
             : '';
-        ptySessionKey = `${projectPath}_${sessionId ?? 'default'}${commandSuffix}`;
+        // Project-independent (Consola) sessions share a single PTY slot per
+        // cwd+command so the user's buffer survives tab switches and page
+        // reloads, but different cwd/command pairs each get their own slot.
+        const sessionSlot = cwdOverride
+          ? `console:${cwdOverride}`
+          : `${projectPath}_${sessionId ?? 'default'}`;
+        ptySessionKey = `${sessionSlot}${commandSuffix}`;
 
         if (isLoginCommand || forceRestart) {
           const oldSession = ptySessionsMap.get(ptySessionKey);
@@ -298,7 +313,7 @@ export function handleShellConnection(
           return;
         }
 
-        const resolvedProjectPath = path.resolve(projectPath);
+        const resolvedProjectPath = path.resolve(cwdOverride || projectPath);
         try {
           const stats = fs.statSync(resolvedProjectPath);
           if (!stats.isDirectory()) {
@@ -309,7 +324,7 @@ export function handleShellConnection(
           return;
         }
 
-        const safeSessionIdPattern = /^[a-zA-Z0-9_.\-:]+$/;
+        const safeSessionIdPattern = /^[a-zA-Z0-9_.:-]+$/;
         if (sessionId && !safeSessionIdPattern.test(sessionId)) {
           ws.send(JSON.stringify({ type: 'error', message: 'Invalid session ID' }));
           return;
@@ -318,8 +333,16 @@ export function handleShellConnection(
         const shellCommand = buildShellCommand(data, dependencies);
         const resumeSessionId = resolveResumeSessionId(data, dependencies);
         const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-        const shellArgs =
-          os.platform() === 'win32' ? ['-Command', shellCommand] : ['-c', shellCommand];
+        // Project-independent Consola mode with no initial command becomes a
+        // long-lived interactive bash session rooted at WORKSPACES_ROOT —
+        // exactly the "shell of toda la vida" the user asked for. Any
+        // initialCommand still runs one-shot as before, and provider-backed
+        // shells (claude/cursor/opencode) keep their existing -c behavior.
+        const isInteractivePlainShell =
+          isPlainShell && !initialCommand && !hasSession;
+        const shellArgs = isInteractivePlainShell
+          ? (os.platform() === 'win32' ? ['-NoLogo', '-Command', 'cmd /k'] : ['-i'])
+          : (os.platform() === 'win32' ? ['-Command', shellCommand] : ['-c', shellCommand]);
         const termCols = readNumber(data.cols, 80);
         const termRows = readNumber(data.rows, 24);
         const prioritizedPath = prioritizeUserNpmGlobalBin(process.env);
@@ -452,25 +475,35 @@ export function handleShellConnection(
           shellProcess = null;
         });
 
-        let welcomeMsg = `\x1b[36mStarting terminal in: ${projectPath}\x1b[0m\r\n`;
-        if (!isPlainShell) {
-          const providerName =
-            provider === 'cursor'
-              ? 'Cursor'
-              : provider === 'opencode'
-                  ? 'OpenCode'
-                : 'Claude';
-          welcomeMsg = hasSession && resumeSessionId
-            ? `\x1b[36mResuming ${providerName} session ${resumeSessionId} in: ${projectPath}\x1b[0m\r\n`
-            : `\x1b[36mStarting new ${providerName} session in: ${projectPath}\x1b[0m\r\n`;
+        // Project-independent interactive shells speak for themselves — bash prints
+        // its own PS1. For all other modes we keep the existing colored banner
+        // so the user can see where the PTY is rooted.
+        let welcomeMsg: string | null = null;
+        if (isInteractivePlainShell) {
+          welcomeMsg = null;
+        } else {
+          welcomeMsg = `\x1b[36mStarting terminal in: ${resolvedProjectPath}\x1b[0m\r\n`;
+          if (!isPlainShell) {
+            const providerName =
+              provider === 'cursor'
+                ? 'Cursor'
+                : provider === 'opencode'
+                    ? 'OpenCode'
+                  : 'Claude';
+            welcomeMsg = hasSession && resumeSessionId
+              ? `\x1b[36mResuming ${providerName} session ${resumeSessionId} in: ${resolvedProjectPath}\x1b[0m\r\n`
+              : `\x1b[36mStarting new ${providerName} session in: ${resolvedProjectPath}\x1b[0m\r\n`;
+          }
         }
 
-        ws.send(
-          JSON.stringify({
-            type: 'output',
-            data: welcomeMsg,
-          })
-        );
+        if (welcomeMsg !== null) {
+          ws.send(
+            JSON.stringify({
+              type: 'output',
+              data: welcomeMsg,
+            })
+          );
+        }
         return;
       }
 

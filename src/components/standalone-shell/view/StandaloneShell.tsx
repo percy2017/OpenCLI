@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
+
 import type { Project, ProjectSession } from '../../../types/app';
 import Shell from '../../shell/view/Shell';
+
 import StandaloneShellEmptyState from './subcomponents/StandaloneShellEmptyState';
 import StandaloneShellHeader from './subcomponents/StandaloneShellHeader';
 
@@ -8,6 +10,10 @@ type StandaloneShellProps = {
   project?: Project | null;
   session?: ProjectSession | null;
   command?: string | null;
+  // Project-independent override forwarded to the PTY. When set, the
+  // selected project is irrelevant and the shell is rooted here (used by
+  // the Consola tab to pin the bash session to WORKSPACES_ROOT).
+  cwd?: string | null;
   isPlainShell?: boolean | null;
   isActive?: boolean;
   autoConnect?: boolean;
@@ -24,6 +30,7 @@ export default function StandaloneShell({
   project = null,
   session = null,
   command = null,
+  cwd = null,
   isPlainShell = null,
   isActive = true,
   autoConnect = true,
@@ -50,7 +57,9 @@ export default function StandaloneShell({
     [onComplete],
   );
 
-  if (!project) {
+  // Consola mode: no project needed — the PTY is rooted at `cwd` (typically
+  // WORKSPACES_ROOT) so we can render the shell on the project-independent tab.
+  if (!project && !cwd) {
     return <StandaloneShellEmptyState className={className} />;
   }
 
@@ -65,6 +74,7 @@ export default function StandaloneShell({
           selectedProject={project}
           selectedSession={session}
           initialCommand={command}
+          cwd={cwd}
           isPlainShell={shouldUsePlainShell}
           isActive={isActive}
           onProcessComplete={handleProcessComplete}

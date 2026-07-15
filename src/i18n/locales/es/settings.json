@@ -431,6 +431,18 @@
       "install": "Instalar",
       "installing": "Instalando…"
     },
+    "delete": "Eliminar",
+    "deleteAria": "Eliminar {{name}}",
+    "deleteConfirm": {
+      "title": "¿Eliminar esta skill?",
+      "body": "Se eliminará permanentemente {{name}} de tus skills de usuario ({{path}}). Esta acción no se puede deshacer.",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar",
+      "deleting": "Eliminando…"
+    },
+    "deleteSuccess": "Se eliminó {{name}}.",
+    "deleteError": "No se pudo eliminar {{name}}.",
+    "deleteUnavailable": "Esta skill es administrada y no se puede eliminar desde aquí.",
     "githubError": {
       "invalidUrl": "Introduce una URL válida de un repositorio de GitHub.",
       "nonGithubHost": "Solo se admiten repositorios de github.com.",

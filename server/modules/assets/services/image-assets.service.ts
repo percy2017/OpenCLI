@@ -4,16 +4,30 @@ import path from 'node:path';
 import { getGlobalImageAssetsDir, toPosixPath } from '@/shared/image-attachments.js';
 
 /**
- * Image mime types accepted for chat attachment uploads. SVG is allowed for
- * storage/preview even though some providers (Claude API) skip it at send time.
+ * Mime types accepted for chat attachment uploads (images + office files).
+ * SVG is allowed for storage/preview even though some providers (Claude API)
+ * skip it at send time. Office files (PDF, DOCX, XLSX, PPTX, TXT, MD, CSV)
+ * are stored as-is and only their path is sent to the LLM — the LLM is
+ * expected to use its native file-reading tools (or the RAG MCP) to consume
+ * the contents.
  */
-const ALLOWED_IMAGE_MIME_TYPES = new Set([
+const ALLOWED_ATTACHMENT_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/gif',
   'image/webp',
   'image/svg+xml',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'text/markdown',
+  'text/csv',
 ]);
+
+/** @deprecated Kept for back-compat with any external callers. */
+const ALLOWED_IMAGE_MIME_TYPES = ALLOWED_ATTACHMENT_MIME_TYPES;
 
 // Used only by this service and the assets routes via the barrel file.
 type StoredImageAsset = {
@@ -33,9 +47,14 @@ type UploadedImageFile = {
   mimetype: string;
 };
 
-/** Returns whether one uploaded mime type may be stored as a chat image asset. */
+/** Returns whether one uploaded mime type may be stored as a chat attachment. */
 export function isAllowedImageMimeType(mimeType: string): boolean {
-  return ALLOWED_IMAGE_MIME_TYPES.has(mimeType);
+  return ALLOWED_ATTACHMENT_MIME_TYPES.has(mimeType);
+}
+
+/** Returns whether one uploaded mime type may be stored as a chat attachment. */
+export function isAllowedAttachmentMimeType(mimeType: string): boolean {
+  return ALLOWED_ATTACHMENT_MIME_TYPES.has(mimeType);
 }
 
 /** Creates the global `~/.cloudcli/assets` folder if needed and returns it. */

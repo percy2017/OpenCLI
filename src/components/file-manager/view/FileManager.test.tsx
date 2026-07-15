@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { FileArchive, FileCode2, FileImage } from 'lucide-react';
 
+import { getFileIcon } from '../utils/fileManagerIcons';
 import {
   formatFileSize,
   joinWorkspacePath,
   parentPathOf,
 } from '../utils/fileManagerPaths';
-import { getFileIcon } from '../utils/fileManagerIcons';
 
 test('keeps workspace paths relative and normalized for UI operations', () => {
   assert.equal(parentPathOf('src/components/App.tsx'), 'src/components');

@@ -10,7 +10,7 @@ import type {
   RefObject,
   TouchEvent,
 } from 'react';
-import { ImageIcon, MessageSquareIcon, XIcon, ArrowUpIcon } from 'lucide-react';
+import { ImageIcon, MessageSquareIcon, XIcon, ArrowUpIcon, Paperclip } from 'lucide-react';
 
 import type { QueuedDraft } from '../../hooks/useChatComposerState';
 import type { SessionActivity } from '../../../../hooks/useSessionProtection';
@@ -29,6 +29,7 @@ import {
 import CommandMenu from './CommandMenu';
 import ActivityIndicator from './ActivityIndicator';
 import ImageAttachment from './ImageAttachment';
+import FileAttachmentChip from './FileAttachmentChip';
 import PermissionRequestsBanner from './PermissionRequestsBanner';
 import QueuedMessageCard from './QueuedMessageCard';
 
@@ -85,6 +86,9 @@ interface ChatComposerProps {
   getRootProps: (...args: unknown[]) => Record<string, unknown>;
   getInputProps: (...args: unknown[]) => Record<string, unknown>;
   openImagePicker: () => void;
+  openFilePicker?: () => void;
+  fileInputRef?: RefObject<HTMLInputElement>;
+  handleFilePickerChange?: (event: ChangeEvent<HTMLInputElement>) => void;
   inputHighlightRef: RefObject<HTMLDivElement>;
   renderInputWithMentions: (text: string) => ReactNode;
   textareaRef: RefObject<HTMLTextAreaElement>;
@@ -137,6 +141,9 @@ export default function ChatComposer({
   getRootProps,
   getInputProps,
   openImagePicker,
+  openFilePicker,
+  fileInputRef,
+  handleFilePickerChange,
   inputHighlightRef,
   renderInputWithMentions,
   textareaRef,
@@ -287,21 +294,43 @@ export default function ChatComposer({
             <PromptInputHeader>
               <div className="rounded-xl bg-muted/40 p-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  {attachedImages.map((file, index) => (
-                    <ImageAttachment
-                      key={index}
-                      file={file}
-                      onRemove={() => onRemoveImage(index)}
-                      uploadProgress={uploadingImages.get(file.name)}
-                      error={imageErrors.get(file.name)}
-                    />
-                  ))}
+                  {attachedImages.map((file, index) =>
+                    file.type.startsWith('image/') ? (
+                      <ImageAttachment
+                        key={index}
+                        file={file}
+                        onRemove={() => onRemoveImage(index)}
+                        uploadProgress={uploadingImages.get(file.name)}
+                        error={imageErrors.get(file.name)}
+                      />
+                    ) : (
+                      <FileAttachmentChip
+                        key={index}
+                        file={file}
+                        onRemove={() => onRemoveImage(index)}
+                        uploadProgress={uploadingImages.get(file.name)}
+                        error={imageErrors.get(file.name)}
+                      />
+                    ),
+                  )}
                 </div>
               </div>
             </PromptInputHeader>
           )}
 
           <input {...getInputProps()} />
+          {fileInputRef && handleFilePickerChange && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.docx,.xlsx,.pptx,.txt,.md,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/csv"
+              onChange={handleFilePickerChange}
+              className="hidden"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          )}
 
           <PromptInputBody>
             <div ref={inputHighlightRef} aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl">
@@ -335,6 +364,15 @@ export default function ChatComposer({
               <ImageIcon />
             </PromptInputButton>
 
+            {openFilePicker && handleFilePickerChange && fileInputRef && (
+              <PromptInputButton
+                tooltip={{ content: t('input.attachFiles', { defaultValue: 'Adjuntar archivo' }) }}
+                onClick={openFilePicker}
+              >
+                <Paperclip />
+              </PromptInputButton>
+            )}
+
             <button
               type="button"
               onClick={onModeSwitch}
@@ -365,7 +403,7 @@ export default function ChatComposer({
                             : 'bg-primary'
                   }`}
                 />
-                <span className="hidden whitespace-nowrap sm:inline">
+                <span className="whitespace-nowrap">
                   {permissionMode === 'default' && t('composer.permissionModes.default')}
                   {permissionMode === 'acceptEdits' && t('composer.permissionModes.acceptEdits')}
                   {permissionMode === 'auto' && t('composer.permissionModes.auto')}

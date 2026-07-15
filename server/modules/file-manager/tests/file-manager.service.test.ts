@@ -109,3 +109,38 @@ test('supports create, edit, rename, copy, move, upload, download lookup, and tr
     assert.equal((await service.listTrash()).length, 0);
   });
 });
+
+test('handles batch transfer, trash and archive creation', { concurrency: false }, async () => {
+  await withTempService(async (service, rootPath) => {
+    await service.createEntry({ parentPath: '', name: 'src', type: 'directory' });
+    await service.createEntry({ parentPath: 'src', name: 'a.txt', type: 'file' });
+    await service.createEntry({ parentPath: 'src', name: 'b.txt', type: 'file' });
+    await service.writeFile('src/a.txt', 'a');
+    await service.writeFile('src/b.txt', 'b');
+    await service.createEntry({ parentPath: 'src', name: 'nested', type: 'directory' });
+    await service.createEntry({ parentPath: 'src/nested', name: 'c.txt', type: 'file' });
+    await service.writeFile('src/nested/c.txt', 'c');
+
+    const copied = await service.transferEntries([
+      { sourcePath: 'src/a.txt', targetDirectory: '' },
+      { sourcePath: 'src/b.txt', targetDirectory: '' },
+    ], 'copy');
+    assert.equal(copied.entries.length, 2);
+    assert.equal(copied.errors.length, 0);
+
+    const moved = await service.transferEntries([
+      { sourcePath: 'src/nested', targetDirectory: '' },
+    ], 'move');
+    assert.equal(moved.entries.length, 1);
+    assert.equal(moved.entries[0].path, 'nested');
+    assert.equal(await readFile(path.join(rootPath, 'nested', 'c.txt'), 'utf8'), 'c');
+
+    const archive = await service.createArchive(['src/a.txt', 'nested/c.txt']);
+    assert.ok(archive.buffer.length > 0);
+    assert.match(archive.filename, /\.zip$/);
+
+    const trashed = await service.trashEntries(['a.txt', 'b.txt']);
+    assert.equal(trashed.entries.length, 2);
+    assert.equal((await service.listTrash()).length, 2);
+  });
+});

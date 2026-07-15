@@ -11,6 +11,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Trash2,
   Upload,
   X,
 } from 'lucide-react';
@@ -160,6 +161,19 @@ const getBaseName = (filePath: string): string => {
   return segments.at(-1) || 'skill';
 };
 
+const getSkillDirectoryNameFromSourcePath = (sourcePath: string): string => {
+  if (!sourcePath) {
+    return '';
+  }
+  const normalized = sourcePath.replace(/\\/g, '/').replace(/\/+$/, '');
+  const segments = normalized.split('/').filter(Boolean);
+  if (segments.length < 2) {
+    return '';
+  }
+  // The sourcePath points to .../<directoryName>/SKILL.md, so drop the trailing SKILL.md segment.
+  return segments[segments.length - 2] || '';
+};
+
 const readFileAsBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = () => {
@@ -237,6 +251,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
     saveStatus,
     addSkills,
     installFromGithub,
+    deleteSkill,
     refreshSkills,
   } = useProviderSkills({ selectedProvider, currentProjects });
   const [queuedFiles, setQueuedFiles] = useState<QueuedSkillFile[]>([]);
@@ -262,6 +277,8 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
     setIsGithubDialogOpen(false);
     setShowInstallPath(false);
     setJustInstalled(false);
+    setDeleteTarget(null);
+    setIsDeleting(false);
   }, [selectedProvider]);
 
   const setFolderInputRef = useCallback((node: HTMLInputElement | null) => {
@@ -449,12 +466,60 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
     }
   }, [installFromGithub]);
 
+  const [deleteTarget, setDeleteTarget] = useState<{ directoryName: string; displayName: string; sourcePath: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteRequest = useCallback((skill: ProviderSkill) => {
+    if (skill.scope !== 'user') {
+      setSubmitError(t('skillsManagement.deleteUnavailable'));
+      return;
+    }
+    const directoryName = getSkillDirectoryNameFromSourcePath(skill.sourcePath);
+    if (!directoryName) {
+      setSubmitError(t('skillsManagement.deleteUnavailable'));
+      return;
+    }
+    setDeleteTarget({
+      directoryName,
+      displayName: skill.name || directoryName,
+      sourcePath: skill.sourcePath,
+    });
+  }, []);
+
+  const handleDeleteCancel = useCallback(() => {
+    if (isDeleting) {
+      return;
+    }
+    setDeleteTarget(null);
+  }, [isDeleting]);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteTarget) {
+      return;
+    }
+    setIsDeleting(true);
+    setSubmitError(null);
+    try {
+      await deleteSkill({ directoryName: deleteTarget.directoryName });
+      setJustInstalled(true);
+      setDeleteTarget(null);
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : t('skillsManagement.deleteError', { name: deleteTarget.displayName });
+      setSubmitError(message);
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteSkill, deleteTarget]);
+
   const uploadPanel = (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div
         {...getRootProps()}
         className={cn(
-          'rounded-lg border border-dashed p-4 transition-colors sm:p-5',
+          'rounded-lg border border-dashed p-3 transition-colors sm:p-4',
           isDragActive
             ? 'border-foreground/40 bg-muted/35'
             : 'border-border/70 bg-muted/15 hover:border-foreground/25 hover:bg-muted/25',
@@ -481,7 +546,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             event.target.value = '';
           }}
         />
-        <div className="flex flex-col items-center justify-center gap-3 py-4 text-center">
+        <div className="flex flex-col items-center justify-center gap-2 py-3 text-center">
           <FileUp className="h-7 w-7 text-muted-foreground" strokeWidth={1.5} />
           <div className="space-y-1">
             <div className="text-sm font-medium text-foreground">Drop a skill folder or SKILL.md</div>
@@ -652,10 +717,10 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
       <Dialog open={isAddDialogOpen} onOpenChange={handleAddDialogOpenChange}>
         <DialogContent
           wrapperClassName="z-[10000]"
-          className="flex h-[calc(100vh-2rem)] max-h-[760px] w-[calc(100vw-2rem)] max-w-4xl flex-col overflow-hidden p-0 sm:h-[720px]"
+          className="flex max-h-[min(720px,calc(100vh-2rem))] w-[calc(100vw-2rem)] max-w-4xl flex-col overflow-hidden p-0"
         >
           <DialogTitle>{t('skillsManagement.addSkill', { defaultValue: 'Add Skill' })} {t(`skillsManagement.providerNames.${selectedProvider}`)}</DialogTitle>
-          <div className="flex-shrink-0 border-b border-border/60 px-4 py-4">
+          <div className="flex-shrink-0 border-b border-border/60 px-4 py-3">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/20 text-muted-foreground">
                 <FileUp className="h-4 w-4" />
@@ -680,7 +745,7 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
             {uploadPanel}
           </div>
 
@@ -792,14 +857,31 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
             </div>
 
             <div className="grid min-w-0 gap-3 lg:grid-cols-2">
-              {group.skills.map((skill) => (
+              {group.skills.map((skill) => {
+                const canDelete = skill.scope === 'user'
+                  && Boolean(getSkillDirectoryNameFromSourcePath(skill.sourcePath));
+                return (
                 <div
                   key={`${skill.command}:${skill.sourcePath}:${skill.projectPath || 'global'}`}
                   className="min-w-0 rounded-lg border border-border bg-card/50 p-4"
                 >
-                  <div className="min-w-0 space-y-1">
-                    <div className="break-all font-mono text-sm font-semibold text-foreground">{skill.command}</div>
-                    <div className="text-sm text-muted-foreground">{skill.name}</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 space-y-1">
+                      <div className="break-all font-mono text-sm font-semibold text-foreground">{skill.command}</div>
+                      <div className="text-sm text-muted-foreground">{skill.name}</div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 flex-shrink-0 p-0 text-muted-foreground hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={t('skillsManagement.deleteAria', { name: skill.name || skill.command })}
+                      title={canDelete ? t('skillsManagement.delete') : t('skillsManagement.deleteUnavailable')}
+                      disabled={!canDelete}
+                      onClick={() => handleDeleteRequest(skill)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
 
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -824,11 +906,65 @@ export default function ProviderSkills({ selectedProvider, currentProjects }: Pr
                     <code className="mt-1 block whitespace-normal break-all text-xs text-foreground">{skill.sourcePath}</code>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))}
       </div>
+
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) handleDeleteCancel(); }}>
+        <DialogContent
+          wrapperClassName="z-[10000]"
+          className="max-h-[min(420px,calc(100vh-2rem))] w-[calc(100vw-2rem)] max-w-md p-0"
+        >
+          <DialogTitle>{t('skillsManagement.deleteConfirm.title')}</DialogTitle>
+          <div className="flex-shrink-0 border-b border-border/60 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-300">
+                <Trash2 className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-medium text-foreground">{t('skillsManagement.deleteConfirm.title')}</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {deleteTarget
+                    ? t('skillsManagement.deleteConfirm.body', {
+                        name: deleteTarget.displayName,
+                        path: deleteTarget.sourcePath,
+                      })
+                    : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-shrink-0 items-center justify-end gap-2 px-4 py-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isDeleting}
+              onClick={handleDeleteCancel}
+            >
+              {t('skillsManagement.deleteConfirm.cancel')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={() => void handleDeleteConfirm()}
+            >
+              {isDeleting
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <Trash2 className="h-4 w-4" />}
+              {isDeleting
+                ? t('skillsManagement.deleteConfirm.deleting')
+                : t('skillsManagement.deleteConfirm.confirm')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

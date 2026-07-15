@@ -21,6 +21,7 @@
     "chat": "Chat",
     "shell": "Shell",
     "files": "Files",
+    "console": "Console",
     "git": "Source Control",
     "tasks": "Tasks",
     "browser": "Browser",
@@ -28,8 +29,22 @@
     "ragVector": "RAG Vector",
     "minimax": "Minimax MCP"
   },
+  "workspaceShell": {
+    "loading": "Loading WORKSPACES_ROOT…",
+    "retry": "Retry",
+    "rootLabel": "WORKSPACES_ROOT",
+    "bannerLabel": "BASH CONSOLE",
+    "clearLog": "Clear log",
+    "welcome": "Bash console rooted at WORKSPACES_ROOT. Type `pwd`, `ls`, `git status` or any shell command. Press Ctrl+L to clear.",
+    "running": "running…",
+    "errors": {
+      "loadFailed": "Could not resolve the workspace root",
+      "runFailed": "Command failed"
+    }
+  },
   "fileManager": {
     "actions": "Actions",
+    "batchErrors": "{{count}} items could not be processed",
     "copied": "Entry copied",
     "copy": "Copy",
     "createDirectory": "Create directory",
@@ -59,6 +74,7 @@
     "restored": "Entry restored",
     "restore": "Restore",
     "search": "Search current directory",
+    "selectedCount": "{{count}} selected",
     "size": "Size",
     "trash": "Trash",
     "trashed": "Entry moved to trash",

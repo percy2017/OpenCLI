@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+
 import type { MainContentHeaderProps } from '../../types/types';
+
 import MobileMenuButton from './MobileMenuButton';
 import MainContentTabSwitcher from './MainContentTabSwitcher';
 import MainContentTitle from './MainContentTitle';
@@ -12,6 +14,7 @@ export default function MainContentHeader({
   shouldShowBrowserTab,
   shouldShowRagVectorTab,
   shouldShowShellTab,
+  shouldShowConsoleTab,
   isMobile,
   onMenuClick,
 }: MainContentHeaderProps) {
@@ -62,6 +65,7 @@ export default function MainContentHeader({
               shouldShowBrowserTab={shouldShowBrowserTab}
               shouldShowRagVectorTab={shouldShowRagVectorTab}
             shouldShowShellTab={shouldShowShellTab}
+            shouldShowConsoleTab={shouldShowConsoleTab}
             />
           </div>
           {canScrollRight && (

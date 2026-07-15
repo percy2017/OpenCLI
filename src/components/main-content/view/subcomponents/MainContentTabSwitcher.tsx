@@ -1,4 +1,4 @@
-import { MessageSquare, Terminal, Folder, MonitorPlay, Database, type LucideIcon } from 'lucide-react';
+import { MessageSquare, Terminal, Folder, MonitorPlay, Database, SquareTerminal, type LucideIcon } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +11,7 @@ type MainContentTabSwitcherProps = {
   shouldShowBrowserTab: boolean;
   shouldShowRagVectorTab: boolean;
   shouldShowShellTab: boolean;
+  shouldShowConsoleTab: boolean;
 };
 
 type BuiltInTab = {
@@ -24,6 +25,7 @@ const BASE_TABS: BuiltInTab[] = [
   { id: 'chat',  labelKey: 'tabs.chat',  icon: MessageSquare },
   { id: 'shell', labelKey: 'tabs.shell', icon: Terminal },
   { id: 'files', labelKey: 'tabs.files', icon: Folder },
+  { id: 'console', labelKey: 'tabs.console', icon: SquareTerminal },
 ];
 
 const BROWSER_TAB: BuiltInTab = {
@@ -45,11 +47,18 @@ export default function MainContentTabSwitcher({
   shouldShowBrowserTab,
   shouldShowRagVectorTab,
   shouldShowShellTab,
+  shouldShowConsoleTab,
 }: MainContentTabSwitcherProps) {
   const { t } = useTranslation();
 
+  const baseTabs = BASE_TABS.filter((tab) => {
+    if (tab.id === 'shell') return shouldShowShellTab;
+    if (tab.id === 'console') return shouldShowConsoleTab;
+    return true;
+  });
+
   const tabs: BuiltInTab[] = [
-    ...(shouldShowShellTab ? BASE_TABS : BASE_TABS.filter((tab) => tab.id !== 'shell')),
+    ...baseTabs,
     ...(shouldShowBrowserTab ? [BROWSER_TAB] : []),
     ...(shouldShowRagVectorTab ? [RAG_VECTOR_TAB] : []),
   ];

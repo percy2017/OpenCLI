@@ -450,6 +450,18 @@
       "install": "Install",
       "installing": "Installing…"
     },
+    "delete": "Delete",
+    "deleteAria": "Delete {{name}}",
+    "deleteConfirm": {
+      "title": "Delete this skill?",
+      "body": "This will permanently remove {{name}} from your user skills ({{path}}). It cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "deleting": "Deleting…"
+    },
+    "deleteSuccess": "Deleted {{name}}.",
+    "deleteError": "Could not delete {{name}}.",
+    "deleteUnavailable": "This skill is managed and cannot be deleted from here.",
     "githubError": {
       "invalidUrl": "Enter a valid GitHub repository URL.",
       "nonGithubHost": "Only github.com repositories are supported.",

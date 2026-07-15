@@ -219,6 +219,21 @@ const installSkillsFromGithub = async (
   return { skills, total: data.data.total, repo: data.data.repo };
 };
 
+const deleteProviderSkill = async (
+  provider: SkillsProvider,
+  payload: { directoryName: string },
+): Promise<{ removed: boolean; provider: SkillsProvider; directoryName: string }> => {
+  const response = await authenticatedFetch(
+    `/api/providers/${provider}/skills/${encodeURIComponent(payload.directoryName)}`,
+    { method: 'DELETE' },
+  );
+  const data = await toResponseJson<ApiResponse<{ removed: boolean; provider: SkillsProvider; directoryName: string }>>(response);
+  if (!response.ok || !data.success) {
+    throw new Error(getApiErrorMessage(data, `Failed to delete skill ${payload.directoryName}`));
+  }
+  return data.data;
+};
+
 const getCacheKey = (provider: SkillsProvider, projects: ProjectTarget[]): string => {
   const projectKey = projects.map((project) => project.path).sort().join('|');
   return `${provider}:${projectKey}`;
@@ -354,6 +369,19 @@ export function useProviderSkills({ selectedProvider, currentProjects }: UseProv
     }
   }, [refreshSkills, selectedProvider]);
 
+  const deleteSkill = useCallback(async (payload: { directoryName: string }) => {
+    try {
+      const result = await deleteProviderSkill(selectedProvider, payload);
+      clearProviderSkillCache(selectedProvider);
+      await refreshSkills({ force: true });
+      setSaveStatus('success');
+      return result;
+    } catch (error) {
+      setSaveStatus('error');
+      throw error;
+    }
+  }, [refreshSkills, selectedProvider]);
+
   useEffect(() => {
     void refreshSkills();
   }, [refreshSkills]);
@@ -383,6 +411,7 @@ export function useProviderSkills({ selectedProvider, currentProjects }: UseProv
     saveStatus,
     addSkills,
     installFromGithub,
+    deleteSkill,
     refreshSkills,
   };
 }

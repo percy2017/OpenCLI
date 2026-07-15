@@ -18,7 +18,11 @@ type UseShellConnectionOptions = {
   selectedProjectRef: MutableRefObject<Project | null | undefined>;
   selectedSessionRef: MutableRefObject<ProjectSession | null | undefined>;
   initialCommandRef: MutableRefObject<string | null | undefined>;
+  // Project-independent shell mode (Consola). When true, the websocket init
+  // payload includes the `cwd` from cwdRef so the server can root the PTY at
+  // WORKSPACES_ROOT without dragging in a fake Project record.
   isPlainShellRef: MutableRefObject<boolean>;
+  cwdRef?: MutableRefObject<string | null | undefined>;
   onProcessCompleteRef: MutableRefObject<((exitCode: number) => void) | null | undefined>;
   isInitialized: boolean;
   autoConnect: boolean;
@@ -43,6 +47,7 @@ export function useShellConnection({
   selectedSessionRef,
   initialCommandRef,
   isPlainShellRef,
+  cwdRef,
   onProcessCompleteRef,
   isInitialized,
   autoConnect,
@@ -130,9 +135,16 @@ export function useShellConnection({
             const currentTerminal = terminalRef.current;
             const currentFitAddon = fitAddonRef.current;
             const currentProject = selectedProjectRef.current;
-            if (!currentTerminal || !currentFitAddon || !currentProject) {
+            if (!currentTerminal || !currentFitAddon) {
               return;
             }
+
+            // Project-independent (Consola) shells have no Project record;
+            // they rely on cwdRef to tell the server where to root the PTY.
+            // Project-backed shells keep the existing fullPath-or-path fallback.
+            const resolvedProjectPath =
+              currentProject?.fullPath || currentProject?.path || '';
+            const resolvedCwd = cwdRef?.current || null;
 
             currentFitAddon.fit();
             const forceRestart = forceRestartOnInitRef.current;
@@ -140,7 +152,8 @@ export function useShellConnection({
 
             sendSocketMessage(socket, {
               type: 'init',
-              projectPath: currentProject.fullPath || currentProject.path || '',
+              projectPath: resolvedProjectPath,
+              cwd: resolvedCwd,
               sessionId: isPlainShellRef.current ? null : selectedSessionRef.current?.id || null,
               hasSession: isPlainShellRef.current ? false : Boolean(selectedSessionRef.current),
               provider: isPlainShellRef.current ? 'plain-shell' : (selectedSessionRef.current?.__provider || localStorage.getItem('selected-provider') || 'claude'),
@@ -185,6 +198,7 @@ export function useShellConnection({
       isConnected,
       isConnecting,
       isPlainShellRef,
+      cwdRef,
       selectedProjectRef,
       selectedSessionRef,
       terminalRef,

@@ -14,6 +14,7 @@ import { ToolRenderer, shouldHideToolResult } from '../../tools';
 import { Reasoning, ReasoningTrigger, ReasoningContent } from '../../../../shared/view/ui';
 
 import ChatMessageImages from './ChatMessageImages';
+import ChatMessageFiles from './ChatMessageFiles';
 import { Markdown } from './Markdown';
 import MessageCopyControl from './MessageCopyControl';
 
@@ -87,12 +88,31 @@ const MessageComponent = memo(({ message, prevMessage, createDiff, onFileOpen, s
         /* User turn on the right: claude.ai-style attachment cards above the bubble */
         <div className="flex w-full items-end space-x-0 sm:w-auto sm:max-w-[85%] sm:space-x-3 md:max-w-md lg:max-w-lg xl:max-w-xl">
           <div className="flex min-w-0 flex-1 flex-col items-end gap-2 sm:flex-initial">
-            {message.images && message.images.length > 0 && (
-              <ChatMessageImages
-                images={message.images}
-                projectId={selectedProject?.projectId}
-              />
-            )}
+            {message.images && message.images.length > 0 && (() => {
+              const officeFiles = message.images.filter(
+                (img) => img.mimeType && !img.mimeType.startsWith('image/'),
+              );
+              const realImages = message.images.filter(
+                (img) => !img.mimeType || img.mimeType.startsWith('image/'),
+              );
+              return (
+                <>
+                  {realImages.length > 0 && (
+                    <ChatMessageImages
+                      images={realImages}
+                      projectId={selectedProject?.projectId}
+                    />
+                  )}
+                  {officeFiles.length > 0 && (
+                    <ChatMessageFiles
+                      files={officeFiles
+                        .filter((f): f is { path: string; name?: string; mimeType?: string } => Boolean(f.path))
+                        .map((f) => ({ path: f.path, name: f.name, mimeType: f.mimeType }))}
+                    />
+                  )}
+                </>
+              );
+            })()}
             {userCopyContent.trim().length > 0 || !message.images?.length ? (
               <div className="group max-w-full rounded-2xl rounded-br-md bg-blue-600 px-3 py-2 text-white shadow-sm sm:px-4">
                 <div dir="auto" className="whitespace-pre-wrap break-words font-serif text-sm">

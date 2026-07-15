@@ -12,6 +12,7 @@ export function useShellRuntime({
   selectedSession,
   initialCommand,
   isPlainShell,
+  cwd,
   minimal,
   autoConnect,
   isRestarting,
@@ -27,6 +28,9 @@ export function useShellRuntime({
   const selectedSessionRef = useRef(selectedSession);
   const initialCommandRef = useRef(initialCommand);
   const isPlainShellRef = useRef(isPlainShell);
+  // Stable ref mirroring the latest cwd so the websocket init payload always
+  // sends the current value without forcing connectWebSocket to re-create.
+  const cwdRef = useRef<string | null>(cwd ?? null);
   const onProcessCompleteRef = useRef(onProcessComplete);
   const lastSessionIdRef = useRef<string | null>(selectedSession?.id ?? null);
 
@@ -36,8 +40,9 @@ export function useShellRuntime({
     selectedSessionRef.current = selectedSession;
     initialCommandRef.current = initialCommand;
     isPlainShellRef.current = isPlainShell;
+    cwdRef.current = cwd ?? null;
     onProcessCompleteRef.current = onProcessComplete;
-  }, [selectedProject, selectedSession, initialCommand, isPlainShell, onProcessComplete]);
+  }, [selectedProject, selectedSession, initialCommand, isPlainShell, cwd, onProcessComplete]);
 
   const closeSocket = useCallback(() => {
     const activeSocket = wsRef.current;
@@ -74,6 +79,7 @@ export function useShellRuntime({
     selectedSessionRef,
     initialCommandRef,
     isPlainShellRef,
+    cwdRef,
     onProcessCompleteRef,
     isInitialized,
     autoConnect,
@@ -101,13 +107,14 @@ export function useShellRuntime({
   }, [disconnectFromShell, disposeTerminal, selectedProject]);
 
   useEffect(() => {
-    const currentSessionId = selectedSession?.id ?? null;
-    if (lastSessionIdRef.current !== currentSessionId && isInitialized) {
+    // Project-independent shells (Consola) intentionally have no project;
+    // only disconnect when we're switching between projects.
+    if (selectedProject && lastSessionIdRef.current !== (selectedSession?.id ?? null) && isInitialized) {
       disconnectFromShell();
     }
 
-    lastSessionIdRef.current = currentSessionId;
-  }, [disconnectFromShell, isInitialized, selectedSession?.id]);
+    lastSessionIdRef.current = selectedSession?.id ?? null;
+  }, [disconnectFromShell, isInitialized, selectedProject, selectedSession?.id]);
 
   return {
     terminalContainerRef,

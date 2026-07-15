@@ -120,7 +120,11 @@ export function useShellTerminal({
 
   useEffect(() => {
     const terminalContainer = terminalContainerRef.current;
-    if (!terminalContainer || !hasSelectedProject || isRestarting || terminalRef.current) {
+    // Consola shells run without a Project record; everything else still
+    // requires one before we mount xterm so we never point a PTY at the wrong
+    // cwd.
+    const readyForTerminal = hasSelectedProject || minimal;
+    if (!terminalContainer || !readyForTerminal || isRestarting || terminalRef.current) {
       return;
     }
 

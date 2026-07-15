@@ -7,6 +7,10 @@ import type { Project, ProjectSession } from '../../../types/app';
 export type ShellInitMessage = {
   type: 'init';
   projectPath: string;
+  // Optional cwd override for project-independent shells (Consola). When set,
+  // the PTY is rooted here instead of `projectPath`. Both server and client
+  // treat this as opaque — the server validates it once at init.
+  cwd?: string | null;
   sessionId: string | null;
   hasSession: boolean;
   provider: string;
@@ -41,6 +45,10 @@ export type UseShellRuntimeOptions = {
   selectedSession: ProjectSession | null | undefined;
   initialCommand: string | null | undefined;
   isPlainShell: boolean;
+  // Project-independent shells (Consola) pin the PTY cwd here instead of
+  // resolving through a Project record. When set, useShellConnection sends
+  // it as the `cwd` field on the websocket init payload.
+  cwd?: string | null;
   minimal: boolean;
   autoConnect: boolean;
   isRestarting: boolean;
@@ -56,6 +64,7 @@ export type ShellSharedRefs = {
   selectedSessionRef: MutableRefObject<ProjectSession | null | undefined>;
   initialCommandRef: MutableRefObject<string | null | undefined>;
   isPlainShellRef: MutableRefObject<boolean>;
+  cwdRef?: MutableRefObject<string | null | undefined>;
   onProcessCompleteRef: MutableRefObject<((exitCode: number) => void) | null | undefined>;
 };
 

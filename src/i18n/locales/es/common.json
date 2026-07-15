@@ -21,12 +21,26 @@
     "chat": "Chat",
     "shell": "Terminal",
     "files": "Archivos",
+    "console": "Consola",
     "git": "Control de código",
     "tasks": "Tareas",
     "browser": "Navegador",
     "computer": "Computadora",
     "ragVector": "RAG Vector",
     "minimax": "Minimax MCP"
+  },
+  "workspaceShell": {
+    "loading": "Cargando WORKSPACES_ROOT…",
+    "retry": "Reintentar",
+    "rootLabel": "WORKSPACES_ROOT",
+    "bannerLabel": "CONSOLA BASH",
+    "clearLog": "Limpiar log",
+    "welcome": "Consola bash enraizada en WORKSPACES_ROOT. Escribe `pwd`, `ls`, `git status` o cualquier comando. Ctrl+L para limpiar.",
+    "running": "ejecutando…",
+    "errors": {
+      "loadFailed": "No se pudo resolver la raíz del workspace",
+      "runFailed": "El comando falló"
+    }
   },
   "fileManager": {
     "actions": "Acciones",

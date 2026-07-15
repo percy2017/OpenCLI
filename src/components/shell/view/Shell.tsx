@@ -27,6 +27,10 @@ type ShellProps = {
   selectedProject?: Project | null;
   selectedSession?: ProjectSession | null;
   initialCommand?: string | null;
+  // Project-independent (Consola) override. When set, the websocket init
+  // payload carries this as the `cwd` field and the server roots the PTY
+  // there instead of resolving through `selectedProject`.
+  cwd?: string | null;
   isPlainShell?: boolean;
   onProcessComplete?: ((exitCode: number) => void) | null;
   minimal?: boolean;
@@ -38,6 +42,7 @@ export default function Shell({
   selectedProject = null,
   selectedSession = null,
   initialCommand = null,
+  cwd = null,
   isPlainShell = false,
   onProcessComplete = null,
   minimal = false,
@@ -66,6 +71,7 @@ export default function Shell({
     selectedSession,
     initialCommand,
     isPlainShell,
+    cwd: cwd ?? null,
     minimal,
     autoConnect,
     isRestarting,
@@ -227,7 +233,7 @@ export default function Shell({
     connectToShell({ forceRestart: true });
   }, [connectToShell, isConnected, isConnecting, isInitialized, isRestarting]);
 
-  if (!selectedProject) {
+  if (!selectedProject && !minimal) {
     return (
       <ShellEmptyState
         title={t('shell.selectProject.title')}
@@ -253,7 +259,7 @@ export default function Shell({
   const readyDescription = isPlainShell
     ? t('shell.runCommand', {
         command: initialCommand || t('shell.defaultCommand'),
-        projectName: selectedProject.displayName,
+        projectName: selectedProject?.displayName ?? '',
       })
     : selectedSession
       ? t('shell.resumeSession', { displayName: sessionDisplayNameLong })
@@ -262,9 +268,9 @@ export default function Shell({
   const connectingDescription = isPlainShell
     ? t('shell.runCommand', {
         command: initialCommand || t('shell.defaultCommand'),
-        projectName: selectedProject.displayName,
+        projectName: selectedProject?.displayName ?? '',
       })
-    : t('shell.startCli', { projectName: selectedProject.displayName });
+    : t('shell.startCli', { projectName: selectedProject?.displayName ?? '' });
 
   const overlayMode = !isInitialized ? 'loading' : isConnecting ? 'connecting' : !isConnected ? 'connect' : null;
   const overlayDescription = overlayMode === 'connecting' ? connectingDescription : readyDescription;

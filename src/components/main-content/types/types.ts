@@ -38,6 +38,7 @@ export type MainContentHeaderProps = {
   shouldShowBrowserTab: boolean;
   shouldShowRagVectorTab: boolean;
   shouldShowShellTab: boolean;
+  shouldShowConsoleTab: boolean;
   isMobile: boolean;
   onMenuClick: () => void;
 };

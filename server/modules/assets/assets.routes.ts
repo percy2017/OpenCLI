@@ -13,6 +13,9 @@ import {
 
 const router = express.Router();
 
+const MAX_ATTACHMENT_SIZE_MB = Number.parseInt(process.env.MAX_FILE_ATTACHMENT_SIZE_MB ?? '10', 10);
+const MAX_ATTACHMENTS = Number.parseInt(process.env.MAX_FILE_ATTACHMENTS ?? '5', 10);
+
 // Multer writes uploads straight into the global assets folder; the service
 // owns the folder location and the response record shape.
 const storage = multer.diskStorage({
@@ -34,32 +37,41 @@ const upload = multer({
     if (isAllowedImageMimeType(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP, and SVG are allowed.'));
+      cb(new Error('Invalid file type. Allowed: images, PDF, DOCX, XLSX, PPTX, TXT, MD, CSV.'));
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-    files: 5,
+    fileSize: MAX_ATTACHMENT_SIZE_MB * 1024 * 1024,
+    files: MAX_ATTACHMENTS,
   },
 });
 
 /**
- * Stores chat image attachments in the global `~/.cloudcli/assets` folder and
- * returns their absolute paths for use in provider prompts and chat history.
+ * Stores chat attachments (images and office files) in the global
+ * `~/.cloudcli/assets` folder and returns their absolute paths for use in
+ * provider prompts and chat history. The LLM receives only the path; it is
+ * expected to use its native file-reading tools (or the RAG MCP) to consume
+ * the contents.
  */
 router.post('/images', (req, res) => {
-  upload.array('images', 5)(req, res, (err: unknown) => {
+  // Accept either field name — older clients send 'images', newer ones 'files'.
+  const handler = upload.fields([
+    { name: 'images', maxCount: MAX_ATTACHMENTS },
+    { name: 'files', maxCount: MAX_ATTACHMENTS },
+  ]);
+  handler(req, res, (err: unknown) => {
     if (err) {
       const message = err instanceof Error ? err.message : 'Upload failed';
       return res.status(400).json({ error: message });
     }
 
-    const files = Array.isArray(req.files) ? req.files : [];
+    const filesField = (req.files ?? {}) as Record<string, Express.Multer.File[]>;
+    const files = [...(filesField.images ?? []), ...(filesField.files ?? [])];
     if (files.length === 0) {
-      return res.status(400).json({ error: 'No image files provided' });
+      return res.status(400).json({ error: 'No files provided' });
     }
 
-    res.json({ images: buildStoredImageRecords(files) });
+    res.json({ files: buildStoredImageRecords(files) });
   });
 });
 

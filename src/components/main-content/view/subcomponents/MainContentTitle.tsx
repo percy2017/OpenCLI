@@ -18,6 +18,10 @@ function getTabTitle(activeTab: AppTab, t: (key: string) => string) {
     return t('tabs.files');
   }
 
+  if (activeTab === 'console') {
+    return t('tabs.console');
+  }
+
   if (activeTab === 'browser') {
     return t('tabs.browser');
   }

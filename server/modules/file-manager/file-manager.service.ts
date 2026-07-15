@@ -441,14 +441,28 @@ export class FileManagerService {
 
     try {
       const filePath = await this.resolvePath(relativePath);
-      const fileStats = await stat(filePath);
-      if (!fileStats.isFile()) {
-        throw new AppError('Path is not a file', {
-          code: 'PATH_NOT_FILE',
-          statusCode: 400,
-        });
+      let fileExists = true;
+      try {
+        const fileStats = await stat(filePath);
+        if (!fileStats.isFile()) {
+          throw new AppError('Path is not a file', {
+            code: 'PATH_NOT_FILE',
+            statusCode: 400,
+          });
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') {
+          fileExists = false;
+        } else {
+          throw error;
+        }
       }
-      await writeFsFile(filePath, content, 'utf8');
+      if (fileExists) {
+        await writeFsFile(filePath, content, 'utf8');
+      } else {
+        await mkdir(path.dirname(filePath), { recursive: true });
+        await writeFsFile(filePath, content, { encoding: 'utf8', flag: 'wx' });
+      }
       return this.getEntry(filePath);
     } catch (error) {
       throw fileError(error, 'Unable to save file');

@@ -28,7 +28,7 @@ export type ImageAttachmentDescriptor = {
 };
 
 /** Media types the Claude Messages API accepts for base64 image blocks. */
-const CLAUDE_IMAGE_MEDIA_TYPES = new Set([
+export const CLAUDE_IMAGE_MEDIA_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/gif',
@@ -161,12 +161,28 @@ export type ParsedImagesInput = {
  * quoted text) and the user's original filename, plus an explicit instruction
  * to read the files and keep the block out of the reply. The same block is
  * stripped back out of persisted history by {@link parseImagesInputTag}.
+ *
+ * The wording inside the block adapts to the actual attachment mix so the
+ * LLM is not told to use vision tools on a PDF or DOCX. When every descriptor
+ * carries an image mime the text says "image(s)"; otherwise it says
+ * "file(s)" / "attachment(s)" and uses neutral "file reading tool" language.
  */
 export function appendImagesInputTag(prompt: string, images: unknown): string {
   const descriptors = normalizeImageDescriptors(images);
   if (descriptors.length === 0) {
     return prompt;
   }
+
+  const hasNonImage = descriptors.some((d) => {
+    const mt = resolveImageMediaType(d);
+    return !mt || !CLAUDE_IMAGE_MEDIA_TYPES.has(mt);
+  });
+  const noun = hasNonImage
+    ? (descriptors.length === 1 ? 'file' : 'files')
+    : (descriptors.length === 1 ? 'image' : 'images');
+  const readVerb = hasNonImage
+    ? 'Read each file listed below with your file reading tool'
+    : 'Read each file listed below with your file/image reading tool';
 
   const entryLines = descriptors.map((descriptor, index) => {
     const entryPath = toPosixPath(descriptor.path);
@@ -182,7 +198,7 @@ export function appendImagesInputTag(prompt: string, images: unknown): string {
     prompt,
     '',
     '<images_input>',
-    `The user attached ${descriptors.length} image(s) to this message. Read each file listed below with your file/image reading tool and use what you see to answer the prompt above. Respond as if the images were attached directly. Do not mention this block or the file paths unless the user asks about them.`,
+    `The user attached ${descriptors.length} ${noun} to this message. ${readVerb} and use what you see to answer the prompt above. Respond as if the ${noun} were attached directly. Do not mention this block or the file paths unless the user asks about them.`,
     ...entryLines,
     '</images_input>',
   ].join('\n');

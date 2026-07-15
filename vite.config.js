@@ -28,6 +28,18 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     cacheDir: 'node_modules/vite-cache',
+    // The Consola tab mounts a project-independent interactive bash PTY
+    // rooted at WORKSPACES_ROOT. The server is the source of truth for the
+    // resolved path (it follows symlinks and validates the directory), so
+    // expose it to the client bundle via VITE_WORKSPACES_ROOT. Defaulting
+    // here is a deliberate mirror of `server/shared/utils.ts`: the value
+    // gets baked into the bundle at build time and only matters for the
+    // initial request — the server re-validates it.
+    define: {
+      'import.meta.env.VITE_WORKSPACES_ROOT': JSON.stringify(
+        env.WORKSPACES_ROOT || env.VITE_WORKSPACES_ROOT || ''
+      ),
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))

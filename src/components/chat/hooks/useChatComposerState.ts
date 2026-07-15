@@ -504,6 +504,32 @@ export function useChatComposerState({
     lastAutosizedInputRef.current = target.value;
   }, []);
 
+  // Accepted mime types for chat attachments. Mirrors the backend allowlist in
+  // server/modules/assets/services/image-assets.service.ts.
+  const ACCEPTED_ATTACHMENT_MIME = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+    'text/markdown',
+    'text/csv',
+  ]);
+
+  const MAX_ATTACHMENTS = Number.parseInt(
+    (import.meta.env.VITE_MAX_FILE_ATTACHMENTS as string | undefined) ?? '5',
+    10,
+  );
+  const MAX_ATTACHMENT_SIZE_MB = Number.parseInt(
+    (import.meta.env.VITE_MAX_FILE_ATTACHMENT_SIZE_MB as string | undefined) ?? '10',
+    10,
+  );
+
   const handleImageFiles = useCallback((files: File[]) => {
     const validFiles = files.filter((file) => {
       try {
@@ -512,15 +538,16 @@ export function useChatComposerState({
           return false;
         }
 
-        if (!file.type || !file.type.startsWith('image/')) {
+        if (!file.type || !ACCEPTED_ATTACHMENT_MIME.has(file.type)) {
           return false;
         }
 
-        if (!file.size || file.size > 5 * 1024 * 1024) {
+        const maxBytes = MAX_ATTACHMENT_SIZE_MB * 1024 * 1024;
+        if (!file.size || file.size > maxBytes) {
           const fileName = file.name || 'Unknown file';
           setImageErrors((previous) => {
             const next = new Map(previous);
-            next.set(fileName, 'File too large (max 5MB)');
+            next.set(fileName, `File too large (max ${MAX_ATTACHMENT_SIZE_MB}MB)`);
             return next;
           });
           return false;
@@ -534,7 +561,9 @@ export function useChatComposerState({
     });
 
     if (validFiles.length > 0) {
-      setAttachedImages((previous) => [...previous, ...validFiles].slice(0, 5));
+      setAttachedImages((previous) =>
+        [...previous, ...validFiles].slice(0, MAX_ATTACHMENTS),
+      );
     }
   }, []);
 
@@ -543,7 +572,7 @@ export function useChatComposerState({
       const items = Array.from(event.clipboardData.items);
 
       items.forEach((item) => {
-        if (!item.type.startsWith('image/')) {
+        if (!item.type || !ACCEPTED_ATTACHMENT_MIME.has(item.type)) {
           return;
         }
         const file = item.getAsFile();
@@ -554,9 +583,11 @@ export function useChatComposerState({
 
       if (items.length === 0 && event.clipboardData.files.length > 0) {
         const files = Array.from(event.clipboardData.files);
-        const imageFiles = files.filter((file) => file.type.startsWith('image/'));
-        if (imageFiles.length > 0) {
-          handleImageFiles(imageFiles);
+        const accepted = files.filter(
+          (file) => file.type && ACCEPTED_ATTACHMENT_MIME.has(file.type),
+        );
+        if (accepted.length > 0) {
+          handleImageFiles(accepted);
         }
       }
     },
@@ -566,13 +597,41 @@ export function useChatComposerState({
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'],
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+      'text/plain': ['.txt'],
+      'text/markdown': ['.md'],
+      'text/csv': ['.csv'],
     },
-    maxSize: 5 * 1024 * 1024,
-    maxFiles: 5,
+    maxSize: MAX_ATTACHMENT_SIZE_MB * 1024 * 1024,
+    maxFiles: MAX_ATTACHMENTS,
     onDrop: handleImageFiles,
     noClick: true,
     noKeyboard: true,
   });
+
+  // A second dropzone restricted to office files, opened via the paperclip
+  // button. react-dropzone doesn't expose `open()` per-instance for distinct
+  // accepts, so we keep one dropzone for drag/drop and rely on a hidden
+  // <input type="file"> for the click-to-pick flow when an office-only file
+  // is requested. Wired in ChatComposer.tsx via `openFilePicker`.
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const openFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFilePickerChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const list = event.target.files;
+      if (!list || list.length === 0) return;
+      handleImageFiles(Array.from(list));
+      // Reset so picking the same file twice fires onChange again.
+      event.target.value = '';
+    },
+    [handleImageFiles],
+  );
 
   // Snapshot of everything `chat.send` needs beyond the text itself. Built at
   // send time for immediate sends and at queue time for queued ones, so a
@@ -695,7 +754,9 @@ export function useChatComposerState({
       if (attachedImages.length > 0) {
         const formData = new FormData();
         attachedImages.forEach((file) => {
-          formData.append('images', file);
+          // 'files' is the modern field name; backend also accepts 'images'
+          // for back-compat. Both names are routed to the same multer handler.
+          formData.append('files', file);
         });
 
         try {
@@ -710,13 +771,14 @@ export function useChatComposerState({
           }
 
           const result = await response.json();
-          uploadedImages = result.images;
+          // Backend returns either { files: [...] } (new) or { images: [...] } (legacy).
+          uploadedImages = result.files ?? result.images ?? [];
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error';
-          console.error('Image upload failed:', error);
+          console.error('Attachment upload failed:', error);
           addMessage({
             type: 'error',
-            content: `Failed to upload images: ${message}`,
+            content: `Failed to upload attachments: ${message}`,
             timestamp: new Date(),
           });
           return;
@@ -1163,6 +1225,9 @@ export function useChatComposerState({
     getInputProps,
     isDragActive,
     openImagePicker: open,
+    openFilePicker,
+    fileInputRef,
+    handleFilePickerChange,
     handleSubmit,
     queuedDraft,
     editQueuedDraft,
