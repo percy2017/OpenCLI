@@ -46,12 +46,13 @@ import { skillsGithubRoutes } from './modules/skills-github/index.js';
 import minimaxRoutes from './minimax-proxy.js';
 import browserUseRoutes from './modules/browser-use/browser-use.routes.js';
 import featureFlagsRoutes from './modules/feature-flags/feature-flags.routes.js';
+import firstRunRoutes from './modules/first-run/first-run.routes.js';
 import ragRoutes from './modules/rag/rag.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
 import { fileManagerRoutes } from './modules/file-manager/index.js';
 import { browserUseService } from './modules/browser-use/browser-use.service.js';
 import { initializeDatabase, projectsDb, sessionsDb } from './modules/database/index.js';
-import { runFirstRunOnStartup } from './modules/first-run/first-run.service.js';
+import { runFirstRunOnStartup, ensureRagMcpOnStartup } from './modules/first-run/first-run.service.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 import { IS_PLATFORM } from './constants/config.js';
@@ -188,6 +189,9 @@ app.use('/api/feature-flags', authenticateToken, featureFlagsRoutes);
 
 // RAG (knowledge base)
 app.use('/api/rag', authenticateToken, ragRoutes);
+
+// First-run status (RAG MCP install state + retry)
+app.use('/api/first-run', authenticateToken, firstRunRoutes);
 
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);
@@ -1205,6 +1209,9 @@ async function startServer() {
 
         // Seed bundled skills (one-shot, gated by app_config).
         await runFirstRunOnStartup();
+
+        // Install and register the Python RAG MCP (one-shot, gated by app_config).
+        await ensureRagMcpOnStartup();
 
         // Clear RAG documents left stuck in `indexing` by a previous crash.
         try {

@@ -11,9 +11,11 @@ import {
   MCP_PROVIDER_NAMES,
 } from '../constants';
 import { useMcpServers } from '../hooks/useMcpServers';
+import { useRagMcpInstall } from '../hooks/useRagMcpInstall';
 import { maskSecret } from '../utils/mcpFormatting';
 
 import McpServerFormModal from './modals/McpServerFormModal';
+import RagInstallStatusCard from './RagInstallStatusCard';
 
 type McpServersProps = {
   selectedProvider: McpProvider;
@@ -71,6 +73,19 @@ function ConfigLine({ label, children }: { label: string; children: string }) {
   );
 }
 
+// Maps raw MCP server `name` (the identifier Claude writes to ~/.claude.json)
+// to a human-readable label. The internal name is what the LLM and the CLI
+// route on, so it must stay stable; only the UI display changes. Servers
+// without an entry render their raw `name` as before.
+const getFriendlyServerLabel = (
+  t: (key: string, options?: Record<string, unknown>) => string,
+  rawName: string,
+): string | null => {
+  const key = `mcpServers.friendlyLabels.${rawName}`;
+  const label = t(key, { defaultValue: '' });
+  return label && label !== key ? label : null;
+};
+
 function TeamMcpFeatureCard() {
   return (
     <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 p-5">
@@ -122,6 +137,8 @@ export default function McpServers({ selectedProvider, currentProjects }: McpSer
     deleteServer,
   } = useMcpServers({ selectedProvider, currentProjects });
 
+  const ragInstall = useRagMcpInstall();
+
   const providerName = MCP_PROVIDER_NAMES[selectedProvider];
   const description = t(`mcpServers.description.${selectedProvider}`, {
     defaultValue: `Model Context Protocol servers provide additional tools and data sources to ${providerName}`,
@@ -168,6 +185,14 @@ export default function McpServers({ selectedProvider, currentProjects }: McpSer
 
       </div>
 
+      {selectedProvider === 'claude' && !IS_PLATFORM && (
+        <RagInstallStatusCard
+          state={ragInstall.state}
+          isRetrying={ragInstall.isRetrying}
+          retryInstall={ragInstall.retryInstall}
+        />
+      )}
+
       <div className="space-y-2">
         <div className="min-h-4">
           {saveStatus === 'success' && (
@@ -192,6 +217,7 @@ export default function McpServers({ selectedProvider, currentProjects }: McpSer
 
         {servers.map((server) => {
           const managed = isManagedServer(server);
+          const friendlyLabel = getFriendlyServerLabel(t, server.name);
 
           return (
             <div key={getServerKey(server)} className="rounded-lg border border-border bg-card/50 p-4">
@@ -199,7 +225,12 @@ export default function McpServers({ selectedProvider, currentProjects }: McpSer
                 <div className="min-w-0 flex-1">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     {!managed && getTransportIcon(server.transport)}
-                    <span className="font-medium text-foreground">{server.name}</span>
+                    <span className="font-medium text-foreground">
+                      {friendlyLabel ?? server.name}
+                    </span>
+                    {friendlyLabel && (
+                      <span className="text-xs text-muted-foreground">({server.name})</span>
+                    )}
                     {!managed && (
                       <>
                         <Badge variant="outline" className="text-xs">

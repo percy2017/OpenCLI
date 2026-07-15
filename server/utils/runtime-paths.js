@@ -25,7 +25,13 @@ export function findServerRoot(startDir) {
 }
 
 export function findAppRoot(startDir) {
-  const serverRoot = findServerRoot(startDir);
+  // Accept either a filesystem path (`__dirname`) or a URL (`import.meta.url`).
+  // Without this conversion, passing a `file://…` URL through `path.dirname` /
+  // `path.basename` collapses `///` into `/` and returns a malformed path like
+  // `file:/opt/opencli`, which makes downstream `existsSync` / `path.join`
+  // calls silently fail and surfaces in the UI as "file not found" errors.
+  const startPath = startDir.startsWith('file://') ? fileURLToPath(startDir) : startDir;
+  const serverRoot = findServerRoot(startPath);
   const parentOfServerRoot = path.dirname(serverRoot);
 
   // Source files live at <app>/server, while compiled files live at <app>/dist-server/server.

@@ -51,10 +51,10 @@ fi
 # Stay in the MCP dir so the `src/` layout resolves.
 cd "$(dirname "$0")"
 
-# `rag_mcp` lives under src/, which is the configured package layout
-# (pyproject.toml [tool.hatch.build.targets.wheel] packages = ["src/rag_mcp"]).
-# Add src/ to PYTHONPATH so `python -m rag_mcp.server` resolves without
-# needing an editable install.
-export PYTHONPATH="${PYTHONPATH:-}:$(pwd)/src"
+# `rag_mcp` lives under src/ and is installed editable by the backend's
+# first-run installer (`server/modules/first-run/rag-mcp-installer.ts`).
+# The editable install places an `_editable_impl_rag_mcp.pth` in the venv's
+# site-packages pointing at `src/`, so `python -m rag_mcp.server` resolves
+# without any PYTHONPATH shim.
 
 exec ./.venv/bin/python -m rag_mcp.server

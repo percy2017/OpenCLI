@@ -385,9 +385,33 @@
       "badge": "Gestionado",
       "hint": "Gestionado por OpenCLI."
     },
+    "friendlyLabels": {
+      "rag": "Búsqueda RAG (documentos)"
+    },
     "help": {
       "title": "Acerca de Claude MCP",
       "description": "Claude admite servidores MCP basados en stdio. Puedes añadir servidores que amplíen las capacidades de Claude con herramientas y recursos adicionales."
+    },
+    "ragInstallStatus": {
+      "cardTitle": "Instalación RAG MCP",
+      "loading": "Comprobando…",
+      "installed": "Instalado",
+      "installedDetail": "Instalado con {{manager}} el {{date}}",
+      "pending": "Aún no instalado",
+      "failed": "La instalación falló",
+      "action": {
+        "retry": "Reintentar instalación",
+        "retrying": "Instalando…"
+      },
+      "reasons": {
+        "never-installed": "La auto-instalación aún no se ha ejecutado.",
+        "version-mismatch": "La versión del instalador cambió; vuelve a ejecutarla para actualizar.",
+        "no-package-manager": "Ni uv ni python3-pip están instalados en esta máquina.",
+        "health-check-failed": "La instalación terminó pero el paquete no se pudo importar.",
+        "install-failed": "El comando de instalación falló.",
+        "pyproject-missing": "No se encontró mcp/rag/pyproject.toml en el proyecto.",
+        "unsupported-platform": "La auto-instalación del RAG MCP no es compatible con esta plataforma."
+      }
     }
   },
   "skillsManagement": {

@@ -213,6 +213,18 @@ export function useSettingsController({ isOpen, initialTab }: UseSettingsControl
         lastUpdated: now,
       }));
 
+      const claudePermissionsResponse = await authenticatedFetch('/api/settings/claude-permissions', {
+        method: 'PUT',
+        body: JSON.stringify({
+          allowedTools: claudePermissions.allowedTools,
+          disallowedTools: claudePermissions.disallowedTools,
+          skipPermissions: claudePermissions.skipPermissions,
+        }),
+      });
+      if (!claudePermissionsResponse.ok) {
+        throw new Error('Failed to save Claude permissions');
+      }
+
       const notificationResponse = await authenticatedFetch('/api/settings/notification-preferences', {
         method: 'PUT',
         body: JSON.stringify(notificationPreferences),

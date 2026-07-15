@@ -41,6 +41,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Node.js 22** (use `nvm use` — see `.nvmrc`)
 - **npm 10+**
 - **Claude Code CLI** installed and authenticated (`npm i -g @anthropic-ai/claude-code && claude auth login`)
+- **Python 3.12+** for the RAG MCP (auto-installed on first boot — see below)
 - Optional: **Ollama** running locally for the RAG embeddings default
 
 ### Install
@@ -54,6 +55,116 @@ cp .env.example .env
 ```
 
 `npm install` also runs `scripts/fix-node-pty.js` which rebuilds `node-pty` against the active Node toolchain so the Terminal / Consola tabs work.
+
+#### RAG MCP
+
+OpenCLI ships a Python-based RAG MCP that lets Claude search through your
+local office documents (PDF, DOCX, XLSX, PPTX, TXT, MD, CSV). The package
+lives under `mcp/rag/` with its own `pyproject.toml`.
+
+##### Auto-install (default)
+
+On the **first backend boot** the server auto-installs the RAG MCP and
+registers it in `~/.claude.json` under the `rag` name. You only need one
+of these Python package managers:
+
+- **`uv`** (preferred, 10-100× faster) — https://docs.astral.sh/uv/getting-started/installation/
+- **`python3 -m pip`** — `apt install python3-pip` (or your OS equivalent)
+
+The installer:
+
+1. Detects `uv` first, falls back to `pip` if absent.
+2. Creates `mcp/rag/.venv/` if missing and runs `pip install -e .`
+   (editable, so changes in `src/rag_mcp/` are picked up on the next launch).
+3. Runs a health check: `<venv>/bin/python -c "import rag_mcp.server"`.
+4. Writes `mcpServers.rag` into `~/.claude.json` at user scope using the
+   absolute path resolved from `findAppRoot(import.meta.url)` — so the
+   same flow works no matter where you cloned the project.
+5. Persists a sentinel in `app_config` (key `rag_mcp_installed_v1`) so
+   subsequent boots short-circuit.
+
+If neither `uv` nor `pip` is available, the server logs a multi-line
+warning and continues to boot — only the RAG tab stays unavailable.
+The rest of OpenCLI keeps working.
+
+##### Manual install
+
+If you'd rather install by hand, or want to skip the auto-installer
+entirely:
+
+```bash
+cd mcp/rag
+
+# With uv:
+uv venv .venv
+uv pip install -e .
+
+# Or with pip only:
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
+```
+
+Then add this entry to `~/.claude.json` (merge with existing content):
+
+```json
+{
+  "mcpServers": {
+    "rag": {
+      "type": "stdio",
+      "command": "<repo>/mcp/rag/run-server.sh",
+      "args": [],
+      "env": {
+        "OPENCLI_ENV": "<repo>/.env"
+      }
+    }
+  }
+}
+```
+
+Replace `<repo>` with the absolute path where you cloned OpenCLI
+(e.g. `/opt/opencli`, `/home/cmt/web/chat.cmt.gob.bo/public_html`,
+etc.). The same block can also be pasted into the **Settings → MCP**
+form via the "Importar JSON" mode.
+
+Verify the install:
+
+```bash
+# 1. venv resolves the package:
+<repo>/mcp/rag/.venv/bin/python -c "import rag_mcp.server; print('OK')"
+
+# 2. Claude sees it:
+cat ~/.claude.json | python3 -m json.tool | grep -A6 '"rag"'
+```
+
+##### Re-install / reset
+
+To force the auto-installer to re-run from scratch (for example after
+bumping dependencies in `mcp/rag/pyproject.toml`):
+
+```bash
+# Reset just the sentinel — installer re-detects, re-uses the existing venv
+sqlite3 database/auth.db "DELETE FROM app_config WHERE key='rag_mcp_installed_v1';"
+
+# Or wipe the venv too — full re-install
+rm -rf mcp/rag/.venv
+sqlite3 database/auth.db "DELETE FROM app_config WHERE key='rag_mcp_installed_v1';"
+
+# Then restart the backend.
+```
+
+To invalidate the install for **every** deployment at once (e.g. when
+shipping a new dependency version), bump `SENTINEL_VERSION` in
+`server/modules/first-run/rag-mcp-installer.ts` and rebuild the server.
+
+##### Troubleshooting
+
+| Symptom | Cause / Fix |
+| --- | --- |
+| Backend log: `Neither uv nor python3 -m pip is available` | Install one of them and restart the server. |
+| Backend log: `Health check failed (exit N)` | `pyproject.toml` may be broken. Run `<repo>/mcp/rag/.venv/bin/python -c "import rag_mcp.server"` manually to see the traceback. |
+| Backend log: `Install with uv failed: …` | Network/cache issue. Re-run with `DEBUG=rag-mcp` env var for full stdout. |
+| Claude shows `rag` as `failed` / `disconnected` | The launcher couldn't run. Inspect the Claude MCP error log; verify `run-server.sh` is executable (`chmod +x mcp/rag/run-server.sh`). |
+| `mcpServers.rag` is missing from `~/.claude.json` | The auto-installer may have skipped (no manager available, or pyproject missing). Re-run the manual steps above. |
 
 ### Configure
 

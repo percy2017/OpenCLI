@@ -12,6 +12,7 @@ dist-server/
 dist-ssr/
 build/
 out/
+capturas/
 
 # Environment variables
 .env
@@ -114,6 +115,7 @@ mcp.json
 .mcp.json
 .gemini/
 .codex/
+.qwen/
 
 # Database files
 *.db

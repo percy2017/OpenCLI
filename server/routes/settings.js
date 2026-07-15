@@ -5,10 +5,19 @@ import {
   notificationPreferencesDb,
   pushSubscriptionsDb,
 } from '../modules/database/index.js';
+import { syncClaudeUserPermissions } from '../shared/claude-settings.js';
 import { getPublicKey } from '../services/vapid-keys.js';
 import { createNotificationEvent, notifyUserIfEnabled } from '../services/notification-orchestrator.js';
 
 const router = express.Router();
+
+const normalizeToolRules = (value) => {
+  if (!Array.isArray(value) || value.some((tool) => typeof tool !== 'string')) {
+    return null;
+  }
+
+  return [...new Set(value.map((tool) => tool.trim()).filter(Boolean))];
+};
 
 // ===============================
 // API Keys Management
@@ -87,6 +96,30 @@ router.patch('/api-keys/:keyId/toggle', async (req, res) => {
   } catch (error) {
     console.error('Error toggling API key:', error);
     res.status(500).json({ error: 'Failed to toggle API key' });
+  }
+});
+
+// ===============================
+// Claude Permissions
+// ===============================
+
+router.put('/claude-permissions', async (req, res) => {
+  const allowedTools = normalizeToolRules(req.body?.allowedTools);
+  const disallowedTools = normalizeToolRules(req.body?.disallowedTools);
+  const { skipPermissions } = req.body || {};
+
+  if (allowedTools === null || disallowedTools === null || typeof skipPermissions !== 'boolean') {
+    return res.status(400).json({
+      error: 'allowedTools and disallowedTools must be string arrays, and skipPermissions must be boolean',
+    });
+  }
+
+  try {
+    await syncClaudeUserPermissions({ allowedTools, disallowedTools, skipPermissions });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error saving Claude permissions:', error);
+    res.status(500).json({ error: 'Failed to save Claude permissions' });
   }
 });
 

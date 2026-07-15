@@ -404,9 +404,33 @@
       "badge": "Managed",
       "hint": "Managed by OpenCLI."
     },
+    "friendlyLabels": {
+      "rag": "RAG document search"
+    },
     "help": {
       "title": "About Claude MCP",
       "description": "Claude supports stdio-based MCP servers. You can add servers that extend Claude's capabilities with additional tools and resources."
+    },
+    "ragInstallStatus": {
+      "cardTitle": "RAG MCP install",
+      "loading": "Checking…",
+      "installed": "Installed",
+      "installedDetail": "Installed via {{manager}} on {{date}}",
+      "pending": "Not installed yet",
+      "failed": "Install failed",
+      "action": {
+        "retry": "Retry install",
+        "retrying": "Installing…"
+      },
+      "reasons": {
+        "never-installed": "Auto-install has not run yet.",
+        "version-mismatch": "Installer version changed — re-run to update.",
+        "no-package-manager": "Neither uv nor python3-pip is installed on this machine.",
+        "health-check-failed": "Install completed but the package could not be imported.",
+        "install-failed": "Install command failed.",
+        "pyproject-missing": "mcp/rag/pyproject.toml not found in the project.",
+        "unsupported-platform": "RAG MCP auto-install is not supported on this platform."
+      }
     }
   },
   "skillsManagement": {

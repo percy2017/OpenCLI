@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "rag": {
-      "command": "/opt/opencli/mcp/rag/run-server.sh",
-      "args": [],
-      "env": {}
-    }
-  }
+  "_deprecated": "This file is no longer the source of truth for the RAG MCP client config. The backend's first-run installer (server/modules/first-run/rag-mcp-installer.ts) writes the real entry into ~/.claude.json under the `rag` name on the first backend boot, using findAppRoot() so paths resolve from wherever the project was cloned. Do not paste this file into ~/.claude.json — its hardcoded paths will break on a different clone location."
 }

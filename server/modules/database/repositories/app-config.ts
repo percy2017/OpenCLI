@@ -38,6 +38,22 @@ export const appConfigDb = {
   },
 
   /**
+   * Removes a config key. No-op if the key does not exist. Used by
+   * first-run flows that need to invalidate a sentinel before re-running
+   * (e.g. retrying the RAG MCP auto-install).
+   */
+  delete(key: string): void {
+    try {
+      const db = getConnection();
+      db.prepare('DELETE FROM app_config WHERE key = ?').run(key);
+    } catch {
+      // Mirror `get`: swallow errors so callers (e.g. retry endpoints)
+      // do not crash on transient DB issues; surface failure via the
+      // route's standard error envelope instead.
+    }
+  },
+
+  /**
    * Returns the JWT signing secret, generating and persisting one
    * if it does not already exist. This ensures the secret survives
    * server restarts while being created automatically on first boot.

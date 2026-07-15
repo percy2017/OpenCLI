@@ -313,6 +313,16 @@ const readPersistedTab = (): AppTab => {
   try {
     const stored = localStorage.getItem('activeTab');
     if (stored && isValidTab(stored)) {
+      // Files and Consola keep their internal state alive while the tab is
+      // mounted (see MainContent's `hasVisitedFiles` / `hasVisitedConsole`).
+      // The components themselves don't persist anything, so a page reload
+      // would otherwise re-mount them mid-tree/scroll/terminal output — that
+      // surprised users. We deliberately fall back to `chat` for these two
+      // tabs so the user always starts a fresh session with empty state.
+      // Other tabs (shell, browser, rag-vector) keep their persisted tab.
+      if (stored === 'files' || stored === 'console') {
+        return 'chat';
+      }
       return stored as AppTab;
     }
   } catch {

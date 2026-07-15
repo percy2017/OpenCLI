@@ -5,6 +5,8 @@ import path from 'node:path';
 import { appConfigDb } from '@/modules/database/index.js';
 import { findAppRoot } from '@/utils/runtime-paths.js';
 
+export { ensureRagMcpOnStartup } from './rag-mcp-installer.js';
+
 const SEEDED_KEY = 'skills_bundled_v1';
 const SEEDED_VERSION = '1';
 const SKILL_FILE_NAME = 'SKILL.md';
