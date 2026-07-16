@@ -1,7 +1,7 @@
 {
   "name": "@siteboon/claude-code-ui",
   "version": "2.0.0",
-  "description": "This package has moved to @cloudcli-ai/cloudcli",
+  "description": "This package has moved to opencli",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -29,8 +29,8 @@
   ],
   "author": "CloudCLI UI Contributors",
   "dependencies": {
-    "@cloudcli-ai/cloudcli": "*"
+    "opencli": "*"
   },
-  "deprecated": "This package has been renamed to @cloudcli-ai/cloudcli. Please install @cloudcli-ai/cloudcli instead.",
+  "deprecated": "This package has been renamed to opencli. Please install opencli instead.",
   "license": "AGPL-3.0-or-later"
 }

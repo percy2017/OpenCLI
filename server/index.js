@@ -243,7 +243,7 @@ app.post('/api/system/update', authenticateToken, async (req, res) => {
             ? 'npm run update:platform'
             : installMode === 'git'
                 ? 'git checkout main && git pull && npm install'
-                : 'npm install -g @cloudcli-ai/cloudcli@latest';
+                : 'npm install -g opencli@latest';
 
         const updateCwd = IS_PLATFORM || installMode === 'git'
             ? projectRoot

@@ -1,8 +1,8 @@
-# OpenCLI (`@cloudcli-ai/cloudcli`)
+# OpenCLI (`opencli`)
 
 A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code). OpenCLI pairs an authenticated React frontend with an Express backend that manages chat sessions, projects, files, shell access, MCP configuration, skills, RAG / knowledge base, browser automation, notifications, and provider session synchronization — all from a single PWA you can install on desktop or mobile.
 
-> **Heads up:** this is a fork / rebrand of [CloudCLI](https://cloudcli.ai). The package was formerly published as `claudecodeui`; the canonical npm name is now `@cloudcli-ai/cloudcli`.
+> **Heads up:** this is a fork / rebrand of [CloudCLI](https://cloudcli.ai). The package was formerly published as `claudecodeui` and then as `@cloudcli-ai/cloudcli`; the canonical npm name is now `opencli`.
 
 ---
 

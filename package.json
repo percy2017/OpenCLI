@@ -1,5 +1,5 @@
 {
-  "name": "@cloudcli-ai/cloudcli",
+  "name": "opencli",
   "version": "1.36.1",
   "productName": "CloudCLI",
   "description": "A web-based UI for Claude Code CLI",
