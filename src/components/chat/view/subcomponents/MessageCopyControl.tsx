@@ -14,7 +14,7 @@ type CopyFormatOption = {
 };
 
 // Converts markdown into readable plain text for "Copy as text".
-const convertMarkdownToPlainText = (markdown: string): string => {
+export const convertMarkdownToPlainText = (markdown: string): string => {
   let plainText = markdown.replace(/\r\n/g, '\n');
   const codeBlocks: string[] = [];
   plainText = plainText.replace(/```[\w-]*\n([\s\S]*?)```/g, (_match, code: string) => {

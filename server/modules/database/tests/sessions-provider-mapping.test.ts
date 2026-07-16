@@ -100,9 +100,10 @@ test('assignProviderSessionId merges a watcher-created duplicate into the app ro
 
 test('legacy provider-keyed rows stay resolvable through both lookups', async () => {
   await withIsolatedDatabase(() => {
-    sessionsDb.createSession('legacy-1', 'opencode', '/workspace/demo');
+    const createdId = sessionsDb.createSession('legacy-1', 'claude', '/workspace/demo');
+    assert.equal(createdId, 'legacy-1');
 
-    assert.equal(sessionsDb.getSessionById('legacy-1')?.provider, 'opencode');
+    assert.equal(sessionsDb.getSessionById('legacy-1')?.provider, 'claude');
     assert.equal(sessionsDb.getSessionByProviderSessionId('legacy-1')?.session_id, 'legacy-1');
   });
 });

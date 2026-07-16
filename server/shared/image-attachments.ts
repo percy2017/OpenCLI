@@ -8,8 +8,6 @@ import path from 'node:path';
  * Uploaded chat images are persisted once in the global `~/.cloudcli/assets`
  * folder and referenced by absolute path everywhere else:
  * - Claude: paths are read back into base64 `image` content blocks.
- * - Cursor/OpenCode: paths are appended to the prompt inside an
- *   `<images_input>` tag, which is stripped again when history is read.
  *
  * The chat UI loads them through the dedicated `/api/assets/images/:filename`
  * route, which serves only from this folder.
@@ -155,12 +153,12 @@ export type ParsedImagesInput = {
 };
 
 /**
- * Appends the `<images_input>` reference block used by the Cursor and
- * OpenCode CLIs. The block carries one numbered line per attachment with
- * the stored file path (quote-free on purpose — Windows .cmd shims mangle
- * quoted text) and the user's original filename, plus an explicit instruction
- * to read the files and keep the block out of the reply. The same block is
- * stripped back out of persisted history by {@link parseImagesInputTag}.
+ * Appends the `<images_input>` reference block used by the Claude CLI.
+ * The block carries one numbered line per attachment with the stored file
+ * path (quote-free on purpose — Windows .cmd shims mangle quoted text) and
+ * the user's original filename, plus an explicit instruction to read the
+ * files and keep the block out of the reply. The same block is stripped
+ * back out of persisted history by {@link parseImagesInputTag}.
  *
  * The wording inside the block adapts to the actual attachment mix so the
  * LLM is not told to use vision tools on a PDF or DOCX. When every descriptor

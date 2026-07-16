@@ -41,10 +41,8 @@ interface UseChatComposerStateArgs {
   permissionMode: PermissionMode | string;
   cyclePermissionMode: () => void;
   resolvePermissionModeForProvider: (provider: LLMProvider, requestedMode: PermissionMode | string) => PermissionMode;
-  cursorModel: string;
   claudeModel: string;
   currentProviderEffort: string;
-  opencodeModel: string;
   isLoading: boolean;
   canAbortSession: boolean;
   tokenBudget: Record<string, unknown> | null;
@@ -192,10 +190,8 @@ export function useChatComposerState({
   permissionMode,
   cyclePermissionMode,
   resolvePermissionModeForProvider,
-  cursorModel,
   claudeModel,
   currentProviderEffort,
-  opencodeModel,
   isLoading,
   canAbortSession,
   tokenBudget,
@@ -418,8 +414,6 @@ export function useChatComposerState({
     [
       claudeModel,
       currentSessionId,
-      cursorModel,
-      opencodeModel,
       handleBuiltInCommand,
       handleCustomCommand,
       input,
@@ -670,8 +664,6 @@ export function useChatComposerState({
   }, [
     claudeModel,
     currentProviderEffort,
-    cursorModel,
-    opencodeModel,
     permissionMode,
     provider,
     resolvePermissionModeForProvider,

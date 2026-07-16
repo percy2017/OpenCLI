@@ -1,14 +1,16 @@
 import { Check, LogIn } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type OnboardingStepProgressProps = {
   currentStep: number;
 };
 
-const onboardingSteps = [
-  { title: 'Connect Agents', icon: LogIn, required: false },
-];
-
 export default function OnboardingStepProgress({ currentStep }: OnboardingStepProgressProps) {
+  const { t } = useTranslation('common');
+  const onboardingSteps = [
+    { title: t('onboarding.step.connectAgents'), icon: LogIn, required: false },
+  ];
+
   return (
     <div className="mb-5">
       <div className="flex items-center justify-between">
@@ -36,7 +38,7 @@ export default function OnboardingStepProgress({ currentStep }: OnboardingStepPr
                   <p className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {step.title}
                   </p>
-                  {step.required && <span className="text-xs text-red-500">Required</span>}
+                  {step.required && <span className="text-xs text-red-500">{t('common.required', { defaultValue: 'Required' })}</span>}
                 </div>
               </div>
 

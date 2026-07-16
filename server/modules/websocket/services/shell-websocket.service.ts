@@ -133,20 +133,6 @@ function buildShellCommand(
     return initialCommand;
   }
 
-  if (provider === 'cursor') {
-    if (resumeSessionId) {
-      return `cursor-agent --resume="${resumeSessionId}"`;
-    }
-    return 'cursor-agent';
-  }
-
-  if (provider === 'opencode') {
-    if (resumeSessionId) {
-      return `opencode --session "${resumeSessionId}"`;
-    }
-    return initialCommand || 'opencode';
-  }
-
   const command = initialCommand || 'claude';
   if (resumeSessionId) {
     if (os.platform() === 'win32') {
@@ -257,7 +243,6 @@ export function handleShellConnection(
         const isLoginCommand =
           !!initialCommand &&
           (initialCommand.includes('setup-token') ||
-            initialCommand.includes('cursor-agent login') ||
             initialCommand.includes('auth login'));
 
         const commandSuffix =
@@ -336,8 +321,8 @@ export function handleShellConnection(
         // Project-independent Consola mode with no initial command becomes a
         // long-lived interactive bash session rooted at WORKSPACES_ROOT —
         // exactly the "shell of toda la vida" the user asked for. Any
-        // initialCommand still runs one-shot as before, and provider-backed
-        // shells (claude/cursor/opencode) keep their existing -c behavior.
+        // initialCommand still runs one-shot as before, and the provider-backed
+        // shell keeps its existing -c behavior.
         const isInteractivePlainShell =
           isPlainShell && !initialCommand && !hasSession;
         const shellArgs = isInteractivePlainShell
@@ -484,12 +469,7 @@ export function handleShellConnection(
         } else {
           welcomeMsg = `\x1b[36mStarting terminal in: ${resolvedProjectPath}\x1b[0m\r\n`;
           if (!isPlainShell) {
-            const providerName =
-              provider === 'cursor'
-                ? 'Cursor'
-                : provider === 'opencode'
-                    ? 'OpenCode'
-                  : 'Claude';
+            const providerName = 'Claude';
             welcomeMsg = hasSession && resumeSessionId
               ? `\x1b[36mResuming ${providerName} session ${resumeSessionId} in: ${resolvedProjectPath}\x1b[0m\r\n`
               : `\x1b[36mStarting new ${providerName} session in: ${resolvedProjectPath}\x1b[0m\r\n`;

@@ -276,8 +276,8 @@ router.post('/', validateExternalApiKey, async (req, res) => {
     return res.status(400).json({ error: 'message is required' });
   }
 
-  if (!['claude', 'cursor', 'opencode'].includes(provider)) {
-    return res.status(400).json({ error: 'provider must be "claude", "cursor", or "opencode"' });
+  if (provider !== 'claude') {
+    return res.status(400).json({ error: 'provider must be "claude"' });
   }
 
   let finalProjectPath = null;
@@ -332,27 +332,17 @@ router.post('/', validateExternalApiKey, async (req, res) => {
       });
     }
 
-    const opencodeModels = (await providerModelsService.getProviderModels('opencode')).models;
-
     // Start the appropriate session
-    if (provider === 'claude') {
-      console.log('🤖 Starting Claude SDK session');
+    console.log('🤖 Starting Claude SDK session');
 
-      await queryClaudeSDK(message.trim(), {
-        projectPath: finalProjectPath,
-        cwd: finalProjectPath,
-        sessionId: sessionId || null,
-        model: model,
-        effort,
-        permissionMode: 'bypassPermissions' // Bypass all permissions for API calls
-      }, writer);
-
-    } else if (provider === 'opencode') {
-      return res.status(501).json({
-        success: false,
-        error: 'OpenCode provider is not available in this build.',
-      });
-    }
+    await queryClaudeSDK(message.trim(), {
+      projectPath: finalProjectPath,
+      cwd: finalProjectPath,
+      sessionId: sessionId || null,
+      model: model,
+      effort,
+      permissionMode: 'bypassPermissions' // Bypass all permissions for API calls
+    }, writer);
 
     // Handle response based on streaming mode
     if (stream) {

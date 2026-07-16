@@ -11,8 +11,8 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Chat** — streaming responses from Claude Code with full session history, file attachments, image paste, slash commands, and CLI prompt detection (numbered menus render as tap-friendly buttons on mobile).
 - **Projects** — create / rename / star / archive / hard-delete projects. Per-project session list with resume, soft-archive, hard-delete, and rename.
 - **Files tab** — project-independent file manager rooted at `WORKSPACES_ROOT`. Browse, read, edit, create, rename, copy, move, trash, ZIP download, with click / Ctrl|Cmd / Shift selection semantics.
-- **Terminal tab** — per-project PTY-backed bash with the Claude / Cursor / OpenCode CLI running inside. URL detection, auth-link auto-open, xterm.js renderer, mobile-friendly.
-- **Consola tab** — project-independent interactive bash at `WORKSPACES_ROOT`. Run `qwen`, `gemini`, `htop`, `vim`, or anything else with a real PTY. No project required.
+- **Terminal tab** — per-project PTY-backed bash with the Claude CLI running inside. URL detection, auth-link auto-open, xterm.js renderer, mobile-friendly.
+- **Consola tab** — project-independent interactive bash at `WORKSPACES_ROOT`. Run `qwen`, `htop`, `vim`, or anything else with a real PTY. No project required.
 - **Knowledge Base (RAG)** — vectorize local documents with Ollama / OpenAI / MiniMax embeddings, index them, and ask Claude about them.
 - **Skills** — manage Claude skills locally; fetch skills directly from GitHub URLs.
 - **MCP** — configure Model Context Protocol servers per session.
@@ -30,7 +30,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Frontend** — React 18, React Router, Vite, Tailwind, xterm.js, CodeMirror 6, i18next, lucide-react.
 - **Backend** — Node.js 22 (see `.nvmrc`), Express 4, ws, better-sqlite3, node-pty, chokidar, jszip, multer.
 - **Persistence** — SQLite (`better-sqlite3`) for auth / app config / projects / sessions.
-- **Providers** — extensible provider registry. `claude` ships by default (`server/modules/providers/list/claude/`); `cursor` and `opencode` slots are wired but optional.
+- **Providers** — extensible provider registry. `claude` ships by default (`server/modules/providers/list/claude/`).
 
 ---
 
@@ -274,11 +274,11 @@ Both the **Files** tab (`src/components/file-manager` + `server/modules/file-man
 
 ### Consola = a plain interactive bash PTY
 
-The Consola tab mounts a project-independent xterm.js terminal and connects to the existing `/shell` WebSocket with `isPlainShell: true`, no `initialCommand`, and `cwd: WORKSPACES_ROOT`. The server recognizes that combination and spawns `bash -i` (interactive) instead of `bash -c ''` (which would exit immediately). This means `qwen`, `gemini`, `vim`, `htop`, `ssh`, `tmux`, or anything else that needs a real TTY Just Works.
+The Consola tab mounts a project-independent xterm.js terminal and connects to the existing `/shell` WebSocket with `isPlainShell: true`, no `initialCommand`, and `cwd: WORKSPACES_ROOT`. The server recognizes that combination and spawns `bash -i` (interactive) instead of `bash -c ''` (which would exit immediately). This means `qwen`, `vim`, `htop`, `ssh`, `tmux`, or anything else that needs a real TTY Just Works.
 
 ### Providers
 
-The provider registry lives at `server/modules/providers/provider.registry.ts`. Only the `claude` provider is currently registered. Adding a provider (e.g. `cursor`, `opencode`) requires coordinated changes in:
+The provider registry lives at `server/modules/providers/provider.registry.ts`. Only the `claude` provider is currently registered. Adding a provider requires coordinated changes in:
 - backend: `server/modules/providers/list/<provider>/` (auth, mcp, skills, sessions, sessionSynchronizer)
 - backend: `server/shared/types.ts` and `server/shared/interfaces.ts`
 - frontend: provider types / constants / selection UI / model fallbacks / MCP UI constants

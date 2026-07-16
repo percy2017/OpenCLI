@@ -449,6 +449,32 @@
       "dismiss": "Descartar"
     }
   },
+  "onboarding": {
+    "step": {
+      "connectAgents": "Conectar agentes"
+    },
+    "connectAgents": {
+      "title": "Conecta tus agentes de IA",
+      "description": "Inicia sesión en uno o más asistentes de programación. Todos son opcionales.",
+      "configureLater": "Puedes configurarlos más tarde en Ajustes.",
+      "providers": {
+        "claudeCode": "Claude Code"
+      },
+      "status": {
+        "checking": "Comprobando…",
+        "connected": "Conectado",
+        "notConnected": "Sin conexión"
+      },
+      "actions": {
+        "login": "Iniciar sesión"
+      }
+    },
+    "actions": {
+      "completeSetup": "Finalizar configuración",
+      "completing": "Finalizando…",
+      "error": "No se pudo finalizar la configuración"
+    }
+  },
   "pwa": {
     "install": {
       "title": "Instalar OpenCLI",

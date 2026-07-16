@@ -13,13 +13,20 @@
     "markdownShort": "MD",
     "textShort": "TXT"
   },
+  "playMessage": {
+    "play": "Leer en voz alta",
+    "stop": "Detener lectura",
+    "loading": "Generando audio…",
+    "error": "No se pudo reproducir el mensaje",
+    "unavailable": "La lectura en voz alta no está disponible (mmx no encontrado)",
+    "disabled": "La lectura en voz alta está deshabilitada por el administrador",
+    "defaultVoice": "Voz predeterminada: {{voice}}"
+  },
   "messageTypes": {
     "user": "Tú",
     "error": "Error",
     "tool": "Herramienta",
-    "claude": "Claude",
-    "cursor": "Cursor",
-    "opencode": "OpenCode"
+    "claude": "Claude"
   },
   "tools": {
     "settings": "Ajustes de herramienta",
@@ -127,14 +134,10 @@
     "description": "Selecciona un proveedor para iniciar una nueva conversación",
     "selectModel": "Seleccionar modelo",
     "providerInfo": {
-      "anthropic": "de Anthropic",
-      "openai": "de OpenAI",
-      "cursorEditor": "Editor de código con IA",
-      "google": "de Google"
+      "anthropic": "de Anthropic"
     },
     "readyPrompt": {
       "claude": "Listo para usar Claude con {{model}}. Empieza a escribir tu mensaje abajo.",
-      "cursor": "Listo para usar Cursor con {{model}}. Empieza a escribir tu mensaje abajo.",
       "default": "Selecciona un proveedor arriba para comenzar"
     },
     "pressToSearch": "Pulsa <kbd>{{shortcut}}</kbd> para buscar sesiones, archivos y commits",

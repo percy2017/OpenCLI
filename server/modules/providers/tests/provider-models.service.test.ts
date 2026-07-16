@@ -68,10 +68,10 @@ test('provider models service delegates to the resolved provider model adapter',
 test('provider models service returns each provider adapter result without rewriting it', async () => {
   const expectedModels: ProviderModelsDefinition = {
     OPTIONS: [
-      { value: 'cursor-a', label: 'Cursor A' },
-      { value: 'cursor-b', label: 'Cursor B' },
+      { value: 'claude-a', label: 'Claude A' },
+      { value: 'claude-b', label: 'Claude B' },
     ],
-    DEFAULT: 'cursor-b',
+    DEFAULT: 'claude-b',
   };
 
   const service = createProviderModelsService({
@@ -79,7 +79,7 @@ test('provider models service returns each provider adapter result without rewri
     resolveProvider: () => ({
       models: {
         getSupportedModels: async () => expectedModels,
-        getCurrentActiveModel: async () => createCurrentActiveModel('cursor-active'),
+        getCurrentActiveModel: async () => createCurrentActiveModel('claude-active'),
         changeActiveModel: async (input) => createSessionActiveModelChange('claude', input),
       },
     }),
@@ -88,46 +88,6 @@ test('provider models service returns each provider adapter result without rewri
   const models = await service.getProviderModels('claude', { bypassCache: true });
 
   assert.deepEqual(models.models, expectedModels);
-});
-
-test('provider models are cached for the three-day ttl', async () => {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'provider-model-cache-ttl-'));
-  let currentTime = 1_000;
-  let loadCount = 0;
-
-  try {
-    const service = createProviderModelsService({
-      cachePath: path.join(tempRoot, 'models-cache.json'),
-      now: () => currentTime,
-      resolveProvider: (provider) => ({
-        models: {
-          getSupportedModels: async () => {
-            loadCount += 1;
-            return createModels(`${provider}-${loadCount}`);
-          },
-          getCurrentActiveModel: async () => createCurrentActiveModel(`${provider}-active`),
-          changeActiveModel: async (input) => createSessionActiveModelChange(provider, input),
-        },
-      }),
-    });
-
-    const first = await service.getProviderModels('claude');
-    const cached = await service.getProviderModels('claude');
-    assert.equal(loadCount, 1);
-    assert.equal(cached.models.DEFAULT, first.models.DEFAULT);
-    assert.equal(cached.cache.source, 'memory');
-
-    currentTime += PROVIDER_MODELS_CACHE_TTL_MS - 1;
-    await service.getProviderModels('claude');
-    assert.equal(loadCount, 1);
-
-    currentTime += 2;
-    const refreshed = await service.getProviderModels('claude');
-    assert.equal(loadCount, 2);
-    assert.equal(refreshed.models.DEFAULT, 'claude-2');
-  } finally {
-    await rm(tempRoot, { recursive: true, force: true });
-  }
 });
 
 test('claude provider models are always loaded directly from the provider', async () => {
@@ -161,38 +121,32 @@ test('claude provider models are always loaded directly from the provider', asyn
   }
 });
 
-test('provider model cache is persisted across service instances', async () => {
+test('provider model cache file is ignored for uncached providers', async () => {
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'provider-model-cache-file-'));
   const cachePath = path.join(tempRoot, 'models-cache.json');
 
   try {
-    const writer = createProviderModelsService({
+    // Seed the cache file with stale claude data to confirm claude never
+    // reads from disk and always loads fresh from the provider adapter.
+    await (await import('node:fs/promises')).writeFile(
       cachePath,
-      resolveProvider: () => ({
-        models: {
-          getSupportedModels: async () => createModels('cursor-cached'),
-          getCurrentActiveModel: async () => createCurrentActiveModel('cursor-active'),
-          changeActiveModel: async (input) => createSessionActiveModelChange('claude', input),
-        },
-      }),
-    });
-    await writer.getProviderModels('claude');
+      JSON.stringify({ claude: { models: createModels('claude-stale'), savedAt: Date.now() } }),
+      'utf8',
+    );
 
-    const reader = createProviderModelsService({
+    const service = createProviderModelsService({
       cachePath,
       resolveProvider: () => ({
         models: {
-          getSupportedModels: async () => {
-            throw new Error('loader should not be called for persisted cache hits');
-          },
-          getCurrentActiveModel: async () => createCurrentActiveModel('cursor-active'),
+          getSupportedModels: async () => createModels('claude-fresh'),
+          getCurrentActiveModel: async () => createCurrentActiveModel('claude-fresh'),
           changeActiveModel: async (input) => createSessionActiveModelChange('claude', input),
         },
       }),
     });
-    const models = await reader.getProviderModels('claude');
-    assert.equal(models.models.DEFAULT, 'cursor-cached');
-    assert.equal(models.cache.source, 'disk');
+    const models = await service.getProviderModels('claude');
+    assert.equal(models.models.DEFAULT, 'claude-fresh');
+    assert.equal(models.cache.source, 'fresh');
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }

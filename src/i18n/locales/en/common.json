@@ -449,6 +449,32 @@
       "dismiss": "Dismiss"
     }
   },
+  "onboarding": {
+    "step": {
+      "connectAgents": "Connect Agents"
+    },
+    "connectAgents": {
+      "title": "Connect Your AI Agents",
+      "description": "Login to one or more AI coding assistants. All are optional.",
+      "configureLater": "You can configure these later in Settings.",
+      "providers": {
+        "claudeCode": "Claude Code"
+      },
+      "status": {
+        "checking": "Checking…",
+        "connected": "Connected",
+        "notConnected": "Not connected"
+      },
+      "actions": {
+        "login": "Login"
+      }
+    },
+    "actions": {
+      "completeSetup": "Complete Setup",
+      "completing": "Completing…",
+      "error": "Failed to complete onboarding"
+    }
+  },
   "pwa": {
     "install": {
       "title": "Install OpenCLI",

@@ -17,6 +17,7 @@ import ChatMessageImages from './ChatMessageImages';
 import ChatMessageFiles from './ChatMessageFiles';
 import { Markdown } from './Markdown';
 import MessageCopyControl from './MessageCopyControl';
+import MessagePlayControl from './MessagePlayControl';
 
 type DiffLine = {
   type: string;
@@ -169,11 +170,7 @@ const MessageComponent = memo(({ message, prevMessage, createDiff, onFileOpen, s
                   ? t('messageTypes.error')
                   : message.type === 'tool'
                     ? t('messageTypes.tool')
-                    : (provider === 'cursor'
-                        ? t('messageTypes.cursor')
-                        : provider === 'opencode'
-                            ? t('messageTypes.opencode', { defaultValue: 'OpenCode' })
-                            : t('messageTypes.claude'))}
+                    : t('messageTypes.claude')}
               </div>
             </div>
           )}
@@ -402,7 +399,10 @@ const MessageComponent = memo(({ message, prevMessage, createDiff, onFileOpen, s
             {(shouldShowAssistantCopyControl || !isGrouped) && (
               <div className="mt-1 flex w-full items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
                 {shouldShowAssistantCopyControl && (
-                  <MessageCopyControl content={assistantCopyContent} messageType="assistant" />
+                  <>
+                    <MessageCopyControl content={assistantCopyContent} messageType="assistant" />
+                    <MessagePlayControl content={assistantCopyContent} messageId={message.id ? String(message.id) : undefined} />
+                  </>
                 )}
                 {!isGrouped && <span>{formattedTime}</span>}
               </div>

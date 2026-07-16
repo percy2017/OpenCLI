@@ -265,7 +265,7 @@
     "apiDocsLink": "API Documentation",
     "documentation": {
       "title": "External API Documentation",
-      "description": "Learn how to use the external API to trigger Claude/Cursor sessions from your applications.",
+      "description": "Learn how to use the external API to trigger Claude sessions from your applications.",
       "viewLink": "View API Documentation →"
     },
     "loading": "Loading...",
@@ -286,9 +286,6 @@
     "account": {
       "claude": {
         "description": "Anthropic Claude AI assistant"
-      },
-      "cursor": {
-        "description": "Cursor AI-powered code editor"
       }
     },
     "connectionStatus": "Connection Status",
@@ -306,8 +303,7 @@
     "title": "Permission Settings",
     "skipPermissions": {
       "label": "Skip permission prompts (use with caution)",
-      "claudeDescription": "Equivalent to --dangerously-skip-permissions flag",
-      "cursorDescription": "Equivalent to -f flag in Cursor CLI"
+      "claudeDescription": "Equivalent to --dangerously-skip-permissions flag"
     },
     "allowedTools": {
       "title": "Allowed Tools",
@@ -354,18 +350,11 @@
     },
     "reset": {
       "title": "Reset provider data",
-      "description": "Permanently deletes every stored Cursor session, the model cache entry, and the per-session model overrides associated with Cursor. Live runs will be aborted. Native CLI files in ~/.cursor are untouched.",
-      "button": "Reset all Cursor data",
       "inProgress": "Resetting...",
       "modal": {
-        "title": "Reset all Cursor data?",
         "body": "This will:",
         "items": {
-          "sessions": "Delete every Cursor session row from the local database",
-          "modelCache": "Clear the provider model cache for Cursor",
-          "modelOverrides": "Clear per-session model change overrides",
-          "liveRuns": "Abort any Cursor runs currently in progress",
-          "localStorage": "Remove Cursor settings and selected model from this browser"
+          "modelOverrides": "Clear per-session model change overrides"
         },
         "confirm": "Yes, reset",
         "cancel": "Cancel"
@@ -375,8 +364,7 @@
   "mcpServers": {
     "title": "MCP Servers",
     "description": {
-      "claude": "Model Context Protocol servers provide additional tools and data sources to Claude",
-      "cursor": "Model Context Protocol servers provide additional tools and data sources to Cursor"
+      "claude": "Model Context Protocol servers provide additional tools and data sources to Claude"
     },
     "addButton": "Add MCP Server",
     "empty": "No MCP servers configured",

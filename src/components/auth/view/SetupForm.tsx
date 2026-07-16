@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Loader2, Lock, ShieldCheck, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 import { useAuth } from '../context/AuthContext';
 import AuthErrorAlert from './AuthErrorAlert';
 import AuthInputField from './AuthInputField';
@@ -20,24 +22,27 @@ const initialState: SetupFormState = {
 
 /**
  * Validates the account-setup form state.
- * @returns An error message string if validation fails, or `null` when the
- *   form is valid.
+ * Returns an i18n key + interpolation shape so the caller can resolve it
+ * through the same translation pipeline as everything else on this screen.
  */
-function validateSetupForm(formState: SetupFormState): string | null {
+function validateSetupForm(
+  formState: SetupFormState,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string | null {
   if (!formState.username.trim() || !formState.password || !formState.confirmPassword) {
-    return 'Please fill in all fields.';
+    return t('register.errors.allFieldsRequired');
   }
 
   if (formState.username.trim().length < 3) {
-    return 'Username must be at least 3 characters long.';
+    return t('register.errors.usernameTooShort');
   }
 
   if (formState.password.length < 6) {
-    return 'Password must be at least 6 characters long.';
+    return t('register.errors.passwordTooShort');
   }
 
   if (formState.password !== formState.confirmPassword) {
-    return 'Passwords do not match.';
+    return t('register.errors.passwordMismatch');
   }
 
   return null;
@@ -45,11 +50,14 @@ function validateSetupForm(formState: SetupFormState): string | null {
 
 /**
  * Account setup / registration form.
- * Uses `autoComplete="new-password"` on password fields so that password
- * managers recognise this as a registration flow and offer to save the new
- * credentials after submission.
+ * Uses `autoComplete="new-password"` on password fields so password managers
+ * recognise this as a registration flow and offer to save the new
+ * credentials after submission. All user-facing strings are resolved from
+ * the `auth` namespace so the form inherits the i18n language chosen by the
+ * user (or the default — currently Spanish).
  */
 export default function SetupForm() {
+  const { t } = useTranslation('auth');
   const { register } = useAuth();
 
   const [formState, setFormState] = useState<SetupFormState>(initialState);
@@ -65,7 +73,7 @@ export default function SetupForm() {
       event.preventDefault();
       setErrorMessage('');
 
-      const validationError = validateSetupForm(formState);
+      const validationError = validateSetupForm(formState, t);
       if (validationError) {
         setErrorMessage(validationError);
         return;
@@ -74,27 +82,32 @@ export default function SetupForm() {
       setIsSubmitting(true);
       const result = await register(formState.username.trim(), formState.password);
       if (!result.success) {
-        setErrorMessage(result.error);
+        // The backend may return a plain error like "usernameTaken" — try to
+        // resolve it through the same namespace so the user sees the
+        // translated message. Fall back to the raw string otherwise.
+        const key = `register.errors.${result.error}`;
+        const translated = t(key, { defaultValue: '' });
+        setErrorMessage(translated || result.error);
       }
       setIsSubmitting(false);
     },
-    [formState, register],
+    [formState, register, t],
   );
 
   return (
     <AuthScreenLayout
-      title="Welcome to OpenCLI"
-      description="Set up your account to get started"
-      footerText="This is a single-user system. Only one account can be created."
+      title={t('register.title')}
+      description={t('register.description')}
+      footerText={t('register.footer')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInputField
           id="username"
           name="username"
-          label="Username"
+          label={t('register.username')}
           value={formState.username}
           onChange={(value) => updateField('username', value)}
-          placeholder="Choose a username"
+          placeholder={t('register.placeholders.username')}
           isDisabled={isSubmitting}
           autoComplete="username"
           icon={User}
@@ -103,10 +116,10 @@ export default function SetupForm() {
         <AuthInputField
           id="password"
           name="password"
-          label="Password"
+          label={t('register.password')}
           value={formState.password}
           onChange={(value) => updateField('password', value)}
-          placeholder="Create a password"
+          placeholder={t('register.placeholders.password')}
           isDisabled={isSubmitting}
           type="password"
           autoComplete="new-password"
@@ -116,10 +129,10 @@ export default function SetupForm() {
         <AuthInputField
           id="confirmPassword"
           name="confirmPassword"
-          label="Confirm Password"
+          label={t('register.confirmPassword')}
           value={formState.confirmPassword}
           onChange={(value) => updateField('confirmPassword', value)}
-          placeholder="Re-enter your password"
+          placeholder={t('register.placeholders.confirmPassword')}
           isDisabled={isSubmitting}
           type="password"
           autoComplete="new-password"
@@ -128,7 +141,7 @@ export default function SetupForm() {
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5" />
-          At least 3 characters for username, 6 for password.
+          {t('register.hint')}
         </p>
 
         <AuthErrorAlert errorMessage={errorMessage} />
@@ -141,10 +154,10 @@ export default function SetupForm() {
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Setting up...
+              {t('register.loading')}
             </>
           ) : (
-            'Create Account'
+            t('register.submit')
           )}
         </button>
       </form>

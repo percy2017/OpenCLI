@@ -435,7 +435,6 @@
         <nav class="sidebar">
             <div class="sidebar-title">Getting Started</div>
             <a href="#authentication">Authentication</a>
-            <a href="#credentials">GitHub Credentials</a>
 
             <div class="sidebar-title">API Reference</div>
             <a href="#agent">Agent</a>
@@ -449,7 +448,7 @@
             <div class="section-row">
                 <div class="docs-section">
                     <div class="intro">
-                        <p><strong>Programmatically trigger AI agents to work on projects.</strong> Clone GitHub repositories or use existing project paths. Perfect for CI/CD pipelines, automated code reviews, and bulk processing.</p>
+                        <p><strong>Programmatically trigger AI agents to work on existing projects.</strong> Perfect for CI/CD pipelines, automated code reviews, and bulk processing.</p>
                     </div>
 
                     <section id="authentication">
@@ -457,15 +456,6 @@
                         <p>All API requests require authentication using an API key in the <code>X-API-Key</code> header.</p>
 
                         <p>Generate API keys in Settings → API & Tokens.</p>
-                    </section>
-
-                    <section id="credentials">
-                        <h3>GitHub Credentials</h3>
-                        <p>For private repositories, store a GitHub token in settings or pass it with each request.</p>
-
-                        <div class="note">
-                            <strong>Note:</strong> GitHub tokens in the request override stored tokens.
-                        </div>
                     </section>
                 </div>
 
@@ -489,7 +479,7 @@
                                 <span class="endpoint-path"><span class="api-url">http://localhost:3001</span>/api/agent</span>
                             </div>
 
-                            <p>Trigger an AI agent (Claude, Cursor, Codex, or OpenCode) to work on a project.</p>
+                            <p>Trigger the Claude AI agent to work on an existing project.</p>
 
                             <h4>Request Body Parameters</h4>
                             <table>
@@ -503,16 +493,10 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><code>githubUrl</code></td>
-                                        <td>string</td>
-                                        <td><span class="badge badge-optional">Conditional</span></td>
-                                        <td>GitHub repository URL to clone. If path exists with same repo, reuses it. If path exists with different repo, returns error.</td>
-                                    </tr>
-                                    <tr>
                                         <td><code>projectPath</code></td>
                                         <td>string</td>
-                                        <td><span class="badge badge-optional">Conditional</span></td>
-                                        <td>Path to existing project OR destination for cloning. If omitted with <code>githubUrl</code>, auto-generates path. If used alone, must point to existing project directory.</td>
+                                        <td><span class="badge badge-required">Required</span></td>
+                                        <td>Path to an existing project directory on the server.</td>
                                     </tr>
                                     <tr>
                                         <td><code>message</code></td>
@@ -524,7 +508,7 @@
                                         <td><code>provider</code></td>
                                         <td>string</td>
                                         <td><span class="badge badge-optional">Optional</span></td>
-                                        <td><code>claude</code>, <code>cursor</code>, <code>codex</code>, or <code>opencode</code> (default: <code>claude</code>)</td>
+                                        <td><code>claude</code> (default: <code>claude</code>)</td>
                                     </tr>
                                     <tr>
                                         <td><code>stream</code></td>
@@ -544,47 +528,31 @@
                                         <td><code>effort</code></td>
                                         <td>string</td>
                                         <td><span class="badge badge-optional">Optional</span></td>
-                                        <td>Reasoning effort for Claude, Codex, and OpenCode models that expose effort metadata. Use <code>default</code> or omit it to let the provider decide.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>cleanup</code></td>
-                                        <td>boolean</td>
-                                        <td><span class="badge badge-optional">Optional</span></td>
-                                        <td>Auto-cleanup after completion (default: <code>true</code>). Only applies when cloning via <code>githubUrl</code>. Existing projects specified via <code>projectPath</code> are never cleaned up.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>githubToken</code></td>
-                                        <td>string</td>
-                                        <td><span class="badge badge-optional">Optional</span></td>
-                                        <td>GitHub token for private repos</td>
+                                        <td>Reasoning effort for Claude models that expose effort metadata. Use <code>default</code> or omit it to let the provider decide.</td>
                                     </tr>
                                     <tr>
                                         <td><code>branchName</code></td>
                                         <td>string</td>
                                         <td><span class="badge badge-optional">Optional</span></td>
-                                        <td>Custom branch name to use. If provided, <code>createBranch</code> is automatically enabled. Branch names are validated against Git naming rules. Works with <code>githubUrl</code> or <code>projectPath</code> (if it has a GitHub remote).</td>
+                                        <td>Custom branch name to use. If provided, <code>createBranch</code> is automatically enabled. Branch names are validated against Git naming rules.</td>
                                     </tr>
                                     <tr>
                                         <td><code>createBranch</code></td>
                                         <td>boolean</td>
                                         <td><span class="badge badge-optional">Optional</span></td>
-                                        <td>Create a new branch after successful completion (default: <code>false</code>). Automatically set to <code>true</code> if <code>branchName</code> is provided. Works with <code>githubUrl</code> or <code>projectPath</code> (if it has a GitHub remote).</td>
+                                        <td>Create a new branch after successful completion (default: <code>false</code>). Automatically set to <code>true</code> if <code>branchName</code> is provided.</td>
                                     </tr>
                                     <tr>
                                         <td><code>createPR</code></td>
                                         <td>boolean</td>
                                         <td><span class="badge badge-optional">Optional</span></td>
-                                        <td>Create a pull request after successful completion (default: <code>false</code>). PR title and description auto-generated from commit messages. Works with <code>githubUrl</code> or <code>projectPath</code> (if it has a GitHub remote).</td>
+                                        <td>Create a pull request after successful completion (default: <code>false</code>). PR title and description auto-generated from commit messages.</td>
                                     </tr>
                                 </tbody>
                             </table>
 
                             <div class="note">
-                                <strong>Path Handling Behavior:</strong><br><br>
-                                <strong>Scenario 1:</strong> Only <code>githubUrl</code> → Clones to auto-generated temporary path<br>
-                                <strong>Scenario 2:</strong> Only <code>projectPath</code> → Uses existing project at specified path<br>
-                                <strong>Scenario 3:</strong> Both provided → Clones <code>githubUrl</code> to <code>projectPath</code><br><br>
-                                <strong>Validation:</strong> If <code>projectPath</code> exists and contains a git repository, the remote URL is compared with <code>githubUrl</code>. If URLs match, the existing repo is reused. If URLs differ, an error is returned.
+                                <strong>Path Handling Behavior:</strong> The <code>projectPath</code> must point to an existing project directory on the server.
                             </div>
 
                             <h4>Response (Streaming)</h4>
@@ -613,7 +581,7 @@
   -H "Content-Type: application/json" \
   -H "X-API-Key: ck_..." \
   -d '{
-    "githubUrl": "https://github.com/user/repo",
+    "projectPath": "/home/user/my-project",
     "message": "Add error handling to main.js"
   }'</code></pre>
                         </div>
@@ -626,7 +594,7 @@
     'X-API-Key': process.env.CLAUDE_API_KEY
   },
   body: JSON.stringify({
-    githubUrl: 'https://github.com/user/repo',
+    projectPath: '/home/user/my-project',
     message: 'Add error handling',
     stream: false
   })
@@ -646,7 +614,7 @@ response = requests.post(
         'X-API-Key': os.environ['CLAUDE_API_KEY']
     },
     json={
-        'githubUrl': 'https://github.com/user/repo',
+        'projectPath': '/home/user/my-project',
         'message': 'Add error handling',
         'stream': False
     }
@@ -732,10 +700,7 @@ data: {"type":"done"}</code></pre>
                         <h3>Clone to Specific Path</h3>
                         <p>Clone a repository to a custom location for later reuse.</p>
 
-                        <h3>CI/CD Integration</h3>
-                        <p>Integrate with GitHub Actions or other CI/CD pipelines.</p>
-
-                        <h3>Create Branch and Pull Request</h3>
+                        <h3>Branch and Pull Request</h3>
                         <p>Automatically create a new branch and pull request after the agent completes its work. Branch names are auto-generated from the message, and PR title/description are auto-generated from commit messages.</p>
                     </section>
                 </div>
@@ -753,39 +718,12 @@ data: {"type":"done"}</code></pre>
                     </div>
 
                     <div class="example-block">
-                        <h4>Clone to Custom Path</h4>
-<pre><code class="language-bash">curl -X POST <span class="api-url">http://localhost:3001</span>/api/agent \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ck_..." \
-  -d '{
-    "githubUrl": "https://github.com/user/repo",
-    "projectPath": "/tmp/my-location",
-    "message": "Review security",
-    "cleanup": false
-  }'</code></pre>
-                    </div>
-
-                    <div class="example-block">
-                        <h4>CI/CD (GitHub Actions)</h4>
-<pre><code class="language-yaml">- name: Trigger Agent
-  run: |
-    curl -X POST ${{ secrets.API_URL }}/api/agent \
-      -H "X-API-Key: ${{ secrets.API_KEY }}" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "githubUrl": "${{ github.repository }}",
-        "message": "Review for security",
-        "githubToken": "${{ secrets.GITHUB_TOKEN }}"
-      }'</code></pre>
-                    </div>
-
-                    <div class="example-block">
                         <h4>Create Branch and PR</h4>
 <pre><code class="language-bash">curl -X POST <span class="api-url">http://localhost:3001</span>/api/agent \
   -H "Content-Type: application/json" \
   -H "X-API-Key: ck_..." \
   -d '{
-    "githubUrl": "https://github.com/user/repo",
+    "projectPath": "/home/user/my-project",
     "message": "Fix authentication bug",
     "createBranch": true,
     "createPR": true,
@@ -799,7 +737,7 @@ data: {"type":"done"}</code></pre>
   -H "Content-Type: application/json" \
   -H "X-API-Key: ck_..." \
   -d '{
-    "githubUrl": "https://github.com/user/repo",
+    "projectPath": "/home/user/my-project",
     "message": "Add user authentication",
     "branchName": "feature/user-auth",
     "createPR": true,
@@ -836,9 +774,7 @@ data: {"type":"done"}</code></pre>
         // Populate model documentation from the live provider API
         const PROVIDER_ORDER = [
             { id: 'claude',   name: 'Anthropic' },
-            { id: 'codex',    name: 'OpenAI' },
-            { id: 'cursor',   name: 'Cursor' },
-            { id: 'opencode', name: 'OpenCode' },
+            { id: 'claude',   name: 'Anthropic' },
         ];
 
         async function populateModels() {

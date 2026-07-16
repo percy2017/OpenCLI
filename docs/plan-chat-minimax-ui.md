@@ -796,7 +796,7 @@ mmx config show --output json | jq '.default_model // empty'
 
 - `ChatComposer` (`src/components/chat/view/...`) — acoplado a provider system + websocket + sesiones. No vale reusarlo; se duplica la UI mínima (~20 líneas).
 - `useChatRealtimeHandlers` — atado al envelope del WebSocket `/ws`. Su contraparte SSE es `parseSSEBlock` inline (~10 líneas).
-- `queryClaudeSDK` / `queryCodex` — son SDK wrappers; para mmx podemos spawnear directo.
+- `queryClaudeSDK` — es un SDK wrapper; para mmx podemos spawnear directo.
 
 ---
 
@@ -919,7 +919,7 @@ Lo siguiente **no** se implementa en este PR y queda para iteraciones futuras:
    - Cambio en el formato de mensajes para incluir `file_id`s
 2. **Tool calling.** `mmx text chat` soporta `--tool` (repeatable) pero esto implica definir herramientas, manejar `tool_use` / `tool_result` en el envelope, y reescribir partes del flujo. Otro PR.
 3. **Conteo de tokens y precio.** `mmx text chat --output json` no expone usage en v1. Alternativa barata: contador de caracteres + estimación por longitud media de palabra (~1.3 tokens/palabra).
-4. **Provider completo estilo Claude/Codex** (sesiones en SQLite, sync de archivos, history pagination desde el frontend). Eso implicaría crear `server/modules/providers/list/mmx/` y todos los adaptadores (`-auth`, `-sessions`, etc.). Mucho más invasivo — solo tiene sentido si el uso del chat lo justifica.
+4. **Provider completo estilo Claude** (sesiones en SQLite, sync de archivos, history pagination desde el frontend). Eso implicaría crear `server/modules/providers/list/mmx/` y todos los adaptadores (`-auth`, `-sessions`, etc.). Mucho más invasivo — solo tiene sentido si el uso del chat lo justifica.
 5. **Soporte para varios chats por proyecto** (no solo un único historial). Requeriría selector de "conversación" y migración a SQLite.
 6. **`mmx text repl` (PTY).** Descartado. Si en el futuro alguien quiere REPL de verdad (con slash-commands, colores), tendría que añadirse soporte de `node-pty` y otro endpoint dedicado.
 

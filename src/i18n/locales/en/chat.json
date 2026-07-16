@@ -13,13 +13,20 @@
     "markdownShort": "MD",
     "textShort": "TXT"
   },
+  "playMessage": {
+    "play": "Read aloud",
+    "stop": "Stop reading",
+    "loading": "Generating audio…",
+    "error": "Could not play message",
+    "unavailable": "Read-aloud is not available (mmx CLI not found)",
+    "disabled": "Read-aloud is disabled by the server administrator",
+    "defaultVoice": "Default voice: {{voice}}"
+  },
   "messageTypes": {
     "user": "U",
     "error": "Error",
     "tool": "Tool",
-    "claude": "Claude",
-    "cursor": "Cursor",
-    "opencode": "OpenCode"
+    "claude": "Claude"
   },
   "tools": {
     "settings": "Tool Settings",
@@ -127,14 +134,10 @@
     "description": "Select a provider to start a new conversation",
     "selectModel": "Select Model",
     "providerInfo": {
-      "anthropic": "by Anthropic",
-      "openai": "by OpenAI",
-      "cursorEditor": "AI Code Editor",
-      "google": "by Google"
+      "anthropic": "by Anthropic"
     },
     "readyPrompt": {
       "claude": "Ready to use Claude with {{model}}. Start typing your message below.",
-      "cursor": "Ready to use Cursor with {{model}}. Start typing your message below.",
       "default": "Select a provider above to begin"
     },
     "pressToSearch": "Press <kbd>{{shortcut}}</kbd> to search sessions, files, and commits",

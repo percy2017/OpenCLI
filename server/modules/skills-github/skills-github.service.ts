@@ -35,9 +35,8 @@ const githubSkillsService = {
    * the shared provider pipeline.
    *
    * The temp directory is always cleaned up, including on validation or write
-   * failure. Provider-unsupported errors from `addProviderSkills` (e.g. an
-   * OpenCode-style write rejection) are rethrown verbatim so the route layer
-   * can map them to a controlled response.
+   * failure. Provider-unsupported errors from `addProviderSkills` are rethrown
+   * verbatim so the route layer can map them to a controlled response.
    */
   async installFromGithub(
     provider: LLMProvider,

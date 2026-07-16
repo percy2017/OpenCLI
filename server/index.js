@@ -47,6 +47,7 @@ import minimaxRoutes from './minimax-proxy.js';
 import browserUseRoutes from './modules/browser-use/browser-use.routes.js';
 import featureFlagsRoutes from './modules/feature-flags/feature-flags.routes.js';
 import firstRunRoutes from './modules/first-run/first-run.routes.js';
+import ttsRoutes from './modules/tts/index.js';
 import ragRoutes from './modules/rag/rag.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
 import { fileManagerRoutes } from './modules/file-manager/index.js';
@@ -192,6 +193,9 @@ app.use('/api/rag', authenticateToken, ragRoutes);
 
 // First-run status (RAG MCP install state + retry)
 app.use('/api/first-run', authenticateToken, firstRunRoutes);
+
+// Text-to-speech (chat "Read aloud" button — proxies mmx speech synthesize)
+app.use('/api/tts', authenticateToken, ttsRoutes);
 
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);
@@ -860,7 +864,7 @@ app.get('/api/projects/:projectId/sessions/:sessionId/token-usage', authenticate
             return res.status(400).json({ error: 'Invalid sessionId' });
         }
 
-        // Provider artifacts on disk (JSONL file names, OpenCode sqlite rows)
+        // Provider artifacts on disk (JSONL file names)
         // are keyed by the provider-native session id, while the caller sends
         // the app-facing id. Resolve provider and id mapping from the indexed
         // session row so the frontend does not choose provider-specific paths.

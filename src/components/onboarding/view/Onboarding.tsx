@@ -1,5 +1,7 @@
 import { Check, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import type { LLMProvider } from '../../../types/app';
 import { authenticatedFetch } from '../../../utils/api';
 import { useProviderAuthStatus } from '../../provider-auth/hooks/useProviderAuthStatus';
@@ -13,6 +15,7 @@ type OnboardingProps = {
 };
 
 export default function Onboarding({ onComplete }: OnboardingProps) {
+  const { t } = useTranslation('common');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activeLoginProvider, setActiveLoginProvider] = useState<LLMProvider | null>(null);
@@ -59,13 +62,18 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     try {
       const response = await authenticatedFetch('/api/user/complete-onboarding', { method: 'POST' });
       if (!response.ok) {
-        const message = await readErrorMessageFromResponse(response, 'Failed to complete onboarding');
+        const fallback = t('onboarding.actions.error');
+        const message = await readErrorMessageFromResponse(response, fallback);
         throw new Error(message);
       }
 
       await onComplete?.();
     } catch (caughtError) {
-      setErrorMessage(caughtError instanceof Error ? caughtError.message : 'Failed to complete onboarding');
+      setErrorMessage(
+        caughtError instanceof Error
+          ? caughtError.message
+          : t('onboarding.actions.error'),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -108,12 +116,12 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Completing...
+                    {t('onboarding.actions.completing')}
                   </>
                 ) : (
                   <>
                     <Check className="h-4 w-4" />
-                    Complete Setup
+                    {t('onboarding.actions.completeSetup')}
                   </>
                 )}
               </button>

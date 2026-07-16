@@ -394,7 +394,7 @@ export default function McpServerFormModal({
                 onChange={(event) => updateMultilineText('envVars', event.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 rows={3}
-                placeholder="GITHUB_TOKEN&#10;API_KEY"
+                placeholder="API_KEY&#10;TOKEN"
               />
             </div>
           )}
