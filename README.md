@@ -15,6 +15,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Consola tab** — project-independent interactive bash at `WORKSPACES_ROOT`. Run `qwen`, `htop`, `vim`, or anything else with a real PTY. No project required.
 - **Knowledge Base (RAG)** — vectorize local documents with Ollama / OpenAI / MiniMax embeddings, index them, and ask Claude about them.
 - **Skills** — manage Claude skills locally; fetch skills directly from GitHub URLs.
+- **Read aloud (TTS)** — Reproducir button on assistant messages, voiced via `mmx speech synthesize` (configurable voice / speed / language / auto-play).
 - **MCP** — configure Model Context Protocol servers per session.
 - **Browser Use** — opt-in browser automation panel.
 - **Notifications** — desktop push via Web Push (VAPID), with provider toggles.
@@ -43,6 +44,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Claude Code CLI** installed and authenticated (`npm i -g @anthropic-ai/claude-code && claude auth login`)
 - **Python 3.12+** for the RAG MCP (auto-installed on first boot — see below)
 - Optional: **Ollama** running locally for the RAG embeddings default
+- Optional: **`mmx` CLI** for the read-aloud TTS button — `mmx` must be on `PATH`; without it the button shows a "TTS no disponible" tooltip and stays disabled
 
 ### Install
 
@@ -183,6 +185,7 @@ Edit `.env`. The most important variables:
 | `CONTEXT_WINDOW` / `VITE_CONTEXT_WINDOW` | `1000000` | Server / client context-window cap |
 | `CLAUDE_CLI_PATH` | `claude` | Non-default Claude CLI executable |
 | `RAG_*` / `OLLAMA_*` | — | Embedding provider / model / batching / retry / chunking |
+| `TTS_*` | `Spanish_Narrator` / `1.0` / `es` / `speech-2.8-hd` / `false` / `30000` | TTS voice / speed / language / model / auto-play / timeout (see [Read-aloud](#read-aloud-tts)) |
 
 `npm run dev` (the dev proxy uses `PROXY_HOST` for `/api`, `/ws`, `/shell`, `/file-manager-events`, and `/plugin-ws`).
 
@@ -243,6 +246,7 @@ server/               Express + WebSocket backend
     rag/              Vectorize + index local documents
     browser-use/      Browser automation panel
     notifications/    Web Push (VAPID)
+    tts/              mmx-backed read-aloud for assistant messages
     feature-flags/    Runtime feature toggles
     database/         better-sqlite3 connection + repositories
     first-run/        Seed bundled skills / content on first launch
@@ -292,6 +296,55 @@ See `server/modules/providers/README.md` for design guidance (verify against the
 - `server/modules/rag` is the Node-side RAG indexing service; startup repairs interrupted index jobs.
 - `mcp/rag/` is a separate Python-based RAG helper (uv-managed; `pyproject.toml`, `src/`, `data/`, `.venv/`).
 - Frontend skills UI in `src/components/skills`. Provider-scoped skills surface through `useProviderSkills` / `ProviderSkills`.
+
+### Read-aloud (TTS)
+
+Assistant messages expose a **Reproducir / Play** button next to **Copy**. Clicking it
+streams a synthesized voice version of the answer through the browser's `<audio>`
+element. The voice, speed, language, and auto-play behavior are configured in
+`.env`.
+
+The backend uses the [`mmx` CLI](https://github.com/MiniMax-AI/cli) (`mmx speech synthesize`)
+rather than the browser's Web Speech API — server-side voices are consistent
+across OS / browser combos, and the API key already lives in `MiniMax_API_KEY`.
+
+**Audio text cleaning.** TTS engines mangle code blocks, JSON, URLs, file
+paths, shell commands, and markdown emphasis. Before each request the backend
+runs the text through a 17-stage pipeline in
+[`server/modules/tts/text-cleaner.ts`](server/modules/tts/text-cleaner.ts)
+that strips:
+
+- fenced code blocks (` ``` ... ``` `) and indented code
+- inline code (`` `foo` ``) when the content looks like code
+- inline JSON / JSON-shaped runs and code-only lines
+- shell prompts (`npm`, `git`, `curl`, `pip`, `docker`, etc.)
+- URLs (`https?://...`), file paths (`/opt/...`), and stack traces
+- markdown decorations (headings, blockquotes, list bullets, tables)
+- HTML tags and emojis
+
+If the cleaner removes everything, the request returns `422 text-empty-after-clean`
+and the UI shows a tooltip — no audio element is created.
+
+**Env vars** (all optional, with sensible defaults):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `TTS_ENABLED` | `true` | Master toggle for the feature; `false` hides the Play button |
+| `TTS_VOICE` | `Spanish_Narrator` | Voice id — see `mmx speech voices --output json` |
+| `TTS_SPEED` | `1.0` | Speech speed multiplier (`0.5` - `2.0`) |
+| `TTS_LANGUAGE` | `es` | Language boost for the model (`es`, `en`, `zh`, ...) |
+| `TTS_MODEL` | `speech-2.8-hd` | `speech-2.8-hd` for highest quality, `speech-02` for cheapest |
+| `TTS_AUTO_PLAY` | `false` | Auto-play assistant replies when streaming finishes |
+| `TTS_TIMEOUT_MS` | `30000` | Per-request synthesis timeout |
+
+**Endpoints** (all JWT-protected):
+
+- `POST /api/tts/synthesize` — body `{ text, voice?, speed?, language? }`, returns `audio/mpeg`
+- `GET  /api/tts/config` — returns the effective defaults so the UI can show "Default voice: …"
+- `GET  /api/tts/voices?language=<lang>` — proxies `mmx speech voices` for a future voice picker
+
+If `mmx` is not on `PATH` the synthesize endpoint returns `503 tts-unavailable`
+and the UI shows a tooltip instead of crashing.
 
 ### Vite dev proxy
 
