@@ -391,7 +391,7 @@ export function useFileManager() {
       const url = URL.createObjectURL(await response.blob());
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = 'cloudcli-files.zip';
+      anchor.download = 'opencli-files.zip';
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

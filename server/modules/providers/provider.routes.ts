@@ -528,7 +528,7 @@ router.get(
 );
 
 /**
- * Resets every piece of CloudCLI-owned data associated with a single provider.
+ * Resets every piece of OpenCLI-owned data associated with a single provider.
  *
  * Deletes `sessions` rows, aborts every live process for those sessions,
  * drops the persisted model cache entry, and clears session-model-change

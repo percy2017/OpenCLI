@@ -1,7 +1,7 @@
 /**
  * RAG service: orchestrates upload → parse → chunk → embed → store → query.
  *
- * Uploads land in `~/.cloudcli/rag/documents/<uuid>.<ext>`. The pipeline
+ * Uploads land in `~/.opencli/rag/documents/<uuid>.<ext>`. The pipeline
  * runs synchronously inside the upload request for v1 (small files, fast
  * enough for the UI to update status in one round trip). A queue can be
  * added later without changing the route shape.
@@ -32,7 +32,7 @@ import {
 } from './store.js';
 import type { DocumentKind, RagDocumentRow, RagSearchHit } from './types.js';
 
-const RAG_ROOT = path.join(os.homedir(), '.cloudcli', 'rag');
+const RAG_ROOT = path.join(os.homedir(), '.opencli', 'rag');
 const DOCUMENTS_DIR = path.join(RAG_ROOT, 'documents');
 
 function getExtension(filename: string): string {

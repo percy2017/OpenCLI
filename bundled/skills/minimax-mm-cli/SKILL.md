@@ -177,7 +177,7 @@ mmx update            # actually upgrade
 
 As an agent you usually only need to set `MMX_API_KEY` if asked; the rest is automatic.
 
-## Relationship to the `cloudcli-minimax` MCP
+## Relationship to the `opencli-minimax` MCP
 
 - The MCP (`minimax-coding-plan-mcp`, registered via `OpenCLI → Settings → Navegador → MiniMax MCP toggle`) is one of several ways agents can reach MiniMax capabilities. It exposes a curated tool surface for browser-style tasks.
 - This skill covers the **wider `mmx` CLI surface** — anything `mmx` can do, you can do directly via `Bash`, including capabilities the MCP does not expose (music, video, quota introspection, config edits, self-update).

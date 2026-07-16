@@ -162,7 +162,7 @@ function buildNotificationPayload(event) {
   const message = CODE_MAP[normalizedEvent.code] || 'You have a new notification';
 
   return {
-    title: sessionName || 'CloudCLI',
+    title: sessionName || 'OpenCLI',
     body: `${providerLabel}: ${message}`,
     data: {
       sessionId: normalizedEvent.sessionId || null,

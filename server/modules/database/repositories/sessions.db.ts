@@ -452,7 +452,7 @@ export const sessionsDb = {
    *
    * Wrapped in db.transaction so concurrent readers, notably the
    * sessions-watcher.service polling loop, observe either the full
-   * deletion or none of it. NOTE: this only clears the CloudCLI index.
+   * deletion or none of it. NOTE: this only clears the OpenCLI index.
    * Transcripts on disk (for example, cursor transcripts under the
    * user's home directory) are untouched and will be re-indexed on the
    * next scan if the files still exist.

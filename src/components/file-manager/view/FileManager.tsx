@@ -59,7 +59,7 @@ type TreeNodeProps = {
   onMove: (sourcePath: string, targetDirectory: string) => void;
 };
 
-const FILE_DRAG_TYPE = 'application/x-cloudcli-file-path';
+const FILE_DRAG_TYPE = 'application/x-opencli-file-path';
 
 const EntryIcon = ({ entry, open = false }: { entry: FileManagerEntry; open?: boolean }) => {
   if (entry.isSymlink && entry.type === 'symlink') {

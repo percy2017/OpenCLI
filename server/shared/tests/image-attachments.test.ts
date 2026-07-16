@@ -48,7 +48,7 @@ async function createSymlinkIfSupported(
 
 test('normalizeImageDescriptors accepts objects and bare paths, drops junk', () => {
   const descriptors = normalizeImageDescriptors([
-    { path: '.cloudcli/assets/a.png', name: 'a.png', mimeType: 'image/png' },
+    { path: '.opencli/assets/a.png', name: 'a.png', mimeType: 'image/png' },
     'scripts/pic.jpg',
     { name: 'no-path.png' },
     42,
@@ -57,7 +57,7 @@ test('normalizeImageDescriptors accepts objects and bare paths, drops junk', () 
   ]);
 
   assert.deepEqual(descriptors, [
-    { path: '.cloudcli/assets/a.png', name: 'a.png', mimeType: 'image/png' },
+    { path: '.opencli/assets/a.png', name: 'a.png', mimeType: 'image/png' },
     { path: 'scripts/pic.jpg' },
   ]);
   assert.deepEqual(normalizeImageDescriptors(undefined), []);
@@ -67,8 +67,8 @@ test('normalizeImageDescriptors accepts objects and bare paths, drops junk', () 
 test('appendImagesInputTag and parseImagesInputTag round-trip', () => {
   const prompt = 'Describe these screenshots.\n\nFocus on the header.';
   const tagged = appendImagesInputTag(prompt, [
-    { path: '.cloudcli/assets/1-a.png' },
-    { path: '.cloudcli\\assets\\2-b.jpg' },
+    { path: '.opencli/assets/1-a.png' },
+    { path: '.opencli\\assets\\2-b.jpg' },
   ]);
 
   assert.ok(tagged.startsWith(prompt));
@@ -79,13 +79,13 @@ test('appendImagesInputTag and parseImagesInputTag round-trip', () => {
   const parsed = parseImagesInputTag(tagged);
   assert.equal(parsed.text, prompt);
   // Backslashes are normalized so references stay portable.
-  assert.deepEqual(parsed.imagePaths, ['.cloudcli/assets/1-a.png', '.cloudcli/assets/2-b.jpg']);
+  assert.deepEqual(parsed.imagePaths, ['.opencli/assets/1-a.png', '.opencli/assets/2-b.jpg']);
 });
 
 test('original filenames round-trip through the tag', () => {
   const tagged = appendImagesInputTag('compare these', [
-    { path: 'C:/Users/x/.cloudcli/assets/1-a.png', name: 'screenshot (final).png' },
-    { path: 'C:/Users/x/.cloudcli/assets/2-b.jpg' },
+    { path: 'C:/Users/x/.opencli/assets/1-a.png', name: 'screenshot (final).png' },
+    { path: 'C:/Users/x/.opencli/assets/2-b.jpg' },
   ]);
 
   const parsed = parseImagesInputTag(tagged);
@@ -93,8 +93,8 @@ test('original filenames round-trip through the tag', () => {
   // Parentheses are dropped from names so the "(original name: ...)" suffix
   // stays parseable; the path-only entry carries no name.
   assert.deepEqual(parsed.attachments, [
-    { path: 'C:/Users/x/.cloudcli/assets/1-a.png', name: 'screenshot final.png' },
-    { path: 'C:/Users/x/.cloudcli/assets/2-b.jpg' },
+    { path: 'C:/Users/x/.opencli/assets/1-a.png', name: 'screenshot final.png' },
+    { path: 'C:/Users/x/.opencli/assets/2-b.jpg' },
   ]);
 });
 
@@ -102,13 +102,13 @@ test('only the LAST images_input block is treated as the attachment carrier', ()
   const userTypedTag = 'What does <images_input> mean in this codebase?';
   const tagged = appendImagesInputTag(
     `${userTypedTag}\n\n<images_input>\nfake user block\n</images_input>\n\nAlso check this.`,
-    [{ path: 'C:/Users/x/.cloudcli/assets/real.png' }],
+    [{ path: 'C:/Users/x/.opencli/assets/real.png' }],
   );
 
   const parsed = parseImagesInputTag(tagged);
   assert.ok(parsed.text.includes('fake user block'));
   assert.ok(parsed.text.includes('Also check this.'));
-  assert.deepEqual(parsed.imagePaths, ['C:/Users/x/.cloudcli/assets/real.png']);
+  assert.deepEqual(parsed.imagePaths, ['C:/Users/x/.opencli/assets/real.png']);
 });
 
 test('appendImagesInputTag without images returns the prompt untouched', () => {
@@ -119,14 +119,14 @@ test('appendImagesInputTag without images returns the prompt untouched', () => {
 test('parseImagesInputTag handles prompts flattened to one line for cmd.exe shims', () => {
   // Windows spawn runtimes collapse newlines before passing the argument to
   // .cmd-shimmed CLIs; the persisted prompt is then a single line.
-  const flattened = appendImagesInputTag('now?', [{ path: 'C:/Users/x/.cloudcli/assets/a.jpg' }])
+  const flattened = appendImagesInputTag('now?', [{ path: 'C:/Users/x/.opencli/assets/a.jpg' }])
     .replace(/\s*\r?\n\s*/g, ' ')
     .trim();
 
   assert.ok(!flattened.includes('\n'));
   const parsed = parseImagesInputTag(flattened);
   assert.equal(parsed.text, 'now?');
-  assert.deepEqual(parsed.imagePaths, ['C:/Users/x/.cloudcli/assets/a.jpg']);
+  assert.deepEqual(parsed.imagePaths, ['C:/Users/x/.opencli/assets/a.jpg']);
 });
 
 test('parseImagesInputTag leaves text without a tag untouched', () => {
@@ -258,7 +258,7 @@ test('buildClaudeUserContent accepts images under a symlinked cwd', async (t) =>
 
 test('isAllowedImageSourcePath only accepts the upload store and the run cwd', () => {
   const cwd = path.join(os.tmpdir(), 'some-project');
-  const uploadStore = path.join(os.homedir(), '.cloudcli', 'assets');
+  const uploadStore = path.join(os.homedir(), '.opencli', 'assets');
 
   assert.equal(isAllowedImageSourcePath(path.join(uploadStore, 'shot.png'), cwd), true);
   assert.equal(isAllowedImageSourcePath(path.join(cwd, 'docs', 'diagram.png'), cwd), true);

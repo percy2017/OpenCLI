@@ -46,7 +46,7 @@ const githubSkillsService = {
 
     const tmpRoot = path.join(
       os.tmpdir(),
-      `cloudcli-skill-install-${randomUUID()}`,
+      `opencli-skill-install-${randomUUID()}`,
     );
 
     await mkdir(tmpRoot, { recursive: true });

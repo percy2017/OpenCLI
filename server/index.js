@@ -162,7 +162,7 @@ app.use('/api/auth', authRoutes);
 // Projects API Routes (protected)
 app.use('/api/projects', authenticateToken, projectModuleRoutes);
 
-// Chat image asset upload/serving (global ~/.cloudcli/assets store, protected)
+// Chat image asset upload/serving (global ~/.opencli/assets store, protected)
 app.use('/api/assets', authenticateToken, assetsRoutes);
 
 // Full file manager rooted at WORKSPACES_ROOT (protected)
@@ -849,7 +849,7 @@ function validateFilename(name) {
 }
 
 // Chat image uploads moved to POST /api/assets/images (server/modules/assets),
-// which stores them in the global ~/.cloudcli/assets folder.
+// which stores them in the global ~/.opencli/assets folder.
 
 // Get token usage for a specific session. `projectId` is the DB primary key;
 // the Claude branch below resolves it to an absolute path via the DB.
@@ -1170,7 +1170,7 @@ const SERVER_PORT = process.env.SERVER_PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 const DISPLAY_HOST = getConnectableHost(HOST);
 const VITE_PORT = process.env.VITE_PORT || 5173;
-const LOCAL_SERVER_MARKER_PATH = path.join(os.homedir(), '.cloudcli', 'local-server.json');
+const LOCAL_SERVER_MARKER_PATH = path.join(os.homedir(), '.opencli', 'local-server.json');
 
 async function writeLocalServerMarker() {
     const marker = {
@@ -1253,12 +1253,12 @@ async function startServer() {
 
             console.log('');
             console.log(c.dim('═'.repeat(63)));
-            console.log(`  ${c.bright('CloudCLI Server - Ready')}`);
+            console.log(`  ${c.bright('OpenCLI Server - Ready')}`);
             console.log(c.dim('═'.repeat(63)));
             console.log('');
             console.log(`${c.info('[INFO]')} Server URL:  ${c.bright('http://' + DISPLAY_HOST + ':' + SERVER_PORT)}`);
             console.log(`${c.info('[INFO]')} Installed at: ${c.dim(appInstallPath)}`);
-            console.log(`${c.tip('[TIP]')}  Run "cloudcli status" for full configuration details`);
+            console.log(`${c.tip('[TIP]')}  Run "opencli status" for full configuration details`);
             console.log('');
 
             // Start watching the projects folder for changes

@@ -23,12 +23,12 @@ def _load_dotenv() -> None:
     Search order:
       1. `$OPENCLI_ENV` (lets operators point at a different .env)
       2. `/opt/opencli/.env` (the default OpenCLI install)
-      3. `~/.cloudcli/.env` (per-user override)
+      3. `~/.opencli/.env` (per-user override)
     """
     candidates = [
         os.environ.get("OPENCLI_ENV"),
         "/opt/opencli/.env",
-        str(Path.home() / ".cloudcli" / ".env"),
+        str(Path.home() / ".opencli" / ".env"),
     ]
     for path in candidates:
         if not path or not os.path.isfile(path):

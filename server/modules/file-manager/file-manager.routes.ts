@@ -17,7 +17,7 @@ const MAX_UPLOAD_FILES = 20;
 const upload = multer({
   storage: multer.diskStorage({
     destination: os.tmpdir(),
-    filename: (_req, _file, callback) => callback(null, `cloudcli-upload-${randomUUID()}`),
+    filename: (_req, _file, callback) => callback(null, `opencli-upload-${randomUUID()}`),
   }),
   limits: {
     fileSize: MAX_UPLOAD_SIZE_BYTES,

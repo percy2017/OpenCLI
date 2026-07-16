@@ -2,7 +2,7 @@
 
 A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code). OpenCLI pairs an authenticated React frontend with an Express backend that manages chat sessions, projects, files, shell access, MCP configuration, skills, RAG / knowledge base, browser automation, notifications, and provider session synchronization — all from a single PWA you can install on desktop or mobile.
 
-> **Heads up:** this is a fork / rebrand of [CloudCLI](https://cloudcli.ai). The package was formerly published as `claudecodeui` and then as `@cloudcli-ai/cloudcli`; the canonical npm name is now `opencli`.
+> **Heads up:** this is a fork / rebrand of [OpenCLI](https://opencli.ai). The package was formerly published as `claudecodeui` and then as `@opencli-ai/opencli`; the canonical npm name is now `opencli`.
 
 ---
 
@@ -210,12 +210,12 @@ The compiled output lives in `dist/` (client) and `dist-server/` (server). Do **
 
 ### Install as a system service
 
-The `cloudcli` CLI (exposed via the `bin` entry) can manage the install:
+The `opencli` CLI (exposed via the `bin` entry) can manage the install:
 
 ```bash
 npm run build
-npx cloudcli install         # writes a systemd / launchd unit
-npx cloudcli status          # prints resolved runtime / data locations
+npx opencli install         # writes a systemd / launchd unit
+npx opencli status          # prints resolved runtime / data locations
 ```
 
 ---
@@ -286,7 +286,7 @@ The provider registry lives at `server/modules/providers/provider.registry.ts`. 
 - backend: `server/modules/providers/list/<provider>/` (auth, mcp, skills, sessions, sessionSynchronizer)
 - backend: `server/shared/types.ts` and `server/shared/interfaces.ts`
 - frontend: provider types / constants / selection UI / model fallbacks / MCP UI constants
-- shared: `cloudcli status` enum updates
+- shared: `opencli status` enum updates
 
 See `server/modules/providers/README.md` for design guidance (verify against the registry — the README's examples reference providers that may not be present).
 

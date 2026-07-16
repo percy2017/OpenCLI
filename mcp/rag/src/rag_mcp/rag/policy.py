@@ -44,7 +44,7 @@ def validate_path(p: Path) -> Path:
             "RAG_ALLOWED_ROOTS is not configured and the fallback default "
             "could not be resolved. Set RAG_ALLOWED_ROOTS in .env (or in the "
             "MCP client env) to a colon-separated list of absolute paths, "
-            "e.g. `RAG_ALLOWED_ROOTS=/root/.cloudcli/assets:/srv/docs`."
+            "e.g. `RAG_ALLOWED_ROOTS=/root/.opencli/assets:/srv/docs`."
         )
     for root in _RESOLVED_ROOTS:
         try:

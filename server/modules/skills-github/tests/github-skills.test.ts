@@ -124,7 +124,7 @@ test('parseAndValidateGithubUrl honors override ref over URL ref', () => {
 // ------------------------------
 
 test('fetchAndExtractGitHubTarball extracts SKILL.md + supporting files', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-fetcher-happy');
+  const tmpRoot = await makeTmpRoot('opencli-skill-fetcher-happy');
   const archive = await buildTarGz([
     { name: 'demo-abc123/SKILL.md', content: '---\nname: demo\ndescription: hello\n---\n\nbody' },
     { name: 'demo-abc123/scripts/run.sh', content: '#!/bin/sh\necho hi' },
@@ -150,7 +150,7 @@ test('fetchAndExtractGitHubTarball extracts SKILL.md + supporting files', { conc
 });
 
 test('fetchAndExtractGitHubTarball rejects path traversal', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-fetcher-traversal');
+  const tmpRoot = await makeTmpRoot('opencli-skill-fetcher-traversal');
   const archive = await buildTarGz([
     { name: '../escape.md', content: 'pwned' },
   ]);
@@ -181,7 +181,7 @@ test('fetchAndExtractGitHubTarball rejects path traversal', { concurrency: false
 });
 
 test('fetchAndExtractGitHubTarball rejects symlink entries', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-fetcher-symlink');
+  const tmpRoot = await makeTmpRoot('opencli-skill-fetcher-symlink');
   const archive = await buildTarGz([
     { name: 'demo-abc/SKILL.md', content: '---\nname: demo\ndescription: hi\n---\n' },
     { name: 'demo-abc/link', type: 'symlink', linkname: '/etc/passwd' },
@@ -205,7 +205,7 @@ test('fetchAndExtractGitHubTarball rejects symlink entries', { concurrency: fals
 });
 
 test('fetchAndExtractGitHubTarball maps 404 to NOT_FOUND', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-fetcher-404');
+  const tmpRoot = await makeTmpRoot('opencli-skill-fetcher-404');
   try {
     await assert.rejects(
       fetchAndExtractGitHubTarball(
@@ -221,7 +221,7 @@ test('fetchAndExtractGitHubTarball maps 404 to NOT_FOUND', { concurrency: false 
 });
 
 test('fetchAndExtractGitHubTarball maps 403 rate limit to RATE_LIMIT', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-fetcher-rate');
+  const tmpRoot = await makeTmpRoot('opencli-skill-fetcher-rate');
   try {
     await assert.rejects(
       fetchAndExtractGitHubTarball(
@@ -241,7 +241,7 @@ test('fetchAndExtractGitHubTarball maps 403 rate limit to RATE_LIMIT', { concurr
 // ------------------------------
 
 test('buildSkillCreateEntriesFromExtractedRepo returns entries with utf8-vs-base64 classification', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-walker-happy');
+  const tmpRoot = await makeTmpRoot('opencli-skill-walker-happy');
 
   try {
     const skillDir = path.join(tmpRoot, 'demo-wrap', 'my-skill');
@@ -270,7 +270,7 @@ test('buildSkillCreateEntriesFromExtractedRepo returns entries with utf8-vs-base
 });
 
 test('buildSkillCreateEntriesFromExtractedRepo throws when no SKILL.md present', { concurrency: false }, async () => {
-  const tmpRoot = await makeTmpRoot('cloudcli-skill-walker-empty');
+  const tmpRoot = await makeTmpRoot('opencli-skill-walker-empty');
   try {
     await fs.writeFile(path.join(tmpRoot, 'README.md'), '# no skill here');
 

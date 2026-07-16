@@ -57,7 +57,7 @@ export function isAllowedAttachmentMimeType(mimeType: string): boolean {
   return ALLOWED_ATTACHMENT_MIME_TYPES.has(mimeType);
 }
 
-/** Creates the global `~/.cloudcli/assets` folder if needed and returns it. */
+/** Creates the global `~/.opencli/assets` folder if needed and returns it. */
 export async function ensureImageAssetsDir(): Promise<string> {
   const assetsDir = getGlobalImageAssetsDir();
   await fs.mkdir(assetsDir, { recursive: true });
@@ -83,7 +83,7 @@ export function buildStoredImageRecords(files: UploadedImageFile[]): StoredImage
  * Resolves one asset filename to its absolute path inside the global assets
  * folder, or null when the name is empty, contains path separators/traversal,
  * or would escape the folder. This is the only lookup the serving route uses,
- * so nothing outside `~/.cloudcli/assets` can ever be read through it.
+ * so nothing outside `~/.opencli/assets` can ever be read through it.
  */
 export function resolveImageAssetFile(filename: string): string | null {
   const trimmed = typeof filename === 'string' ? filename.trim() : '';

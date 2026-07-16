@@ -326,7 +326,7 @@ export class FileManagerService {
   }> {
     const rootPath = await this.getRootPath();
     const rootId = createHash('sha256').update(rootPath).digest('hex').slice(0, 16);
-    const basePath = path.join(os.homedir(), '.cloudcli', 'file-manager-trash', rootId);
+    const basePath = path.join(os.homedir(), '.opencli', 'file-manager-trash', rootId);
     return {
       basePath,
       itemsPath: path.join(basePath, 'items'),
@@ -713,7 +713,7 @@ export class FileManagerService {
       }
       return {
         buffer: await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }),
-        filename: `cloudcli-files-${new Date().toISOString().replace(/[:.]/g, '-')}.zip`,
+        filename: `opencli-files-${new Date().toISOString().replace(/[:.]/g, '-')}.zip`,
       };
     } catch (error) {
       throw fileError(error, 'Unable to create archive');

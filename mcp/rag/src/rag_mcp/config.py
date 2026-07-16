@@ -66,10 +66,10 @@ ALLOWED_ROOTS: tuple[Path, ...] = tuple(
 
 if not ALLOWED_ROOTS:
     # Last-resort default so the MCP doesn't refuse every ingest out of the
-    # box when launched without env wiring. `~/.cloudcli` is where OpenCLI
+    # box when launched without env wiring. `~/.opencli` is where OpenCLI
     # stores per-user data (assets, sessions, the KB store); ingesting from
     # the user's home directory would be too permissive for a default.
-    fallback = Path.home() / ".cloudcli"
+    fallback = Path.home() / ".opencli"
     ALLOWED_ROOTS = (fallback.resolve(),)
     log.warning(
         "RAG_ALLOWED_ROOTS (and WORKSPACES_ROOT) are unset; defaulting to %s. "

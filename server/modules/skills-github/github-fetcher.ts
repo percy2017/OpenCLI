@@ -110,7 +110,7 @@ export async function fetchAndExtractGitHubTarball(
       redirect: 'follow',
       signal: abortController.signal,
       headers: {
-        'user-agent': 'cloudcli-skill-installer',
+        'user-agent': 'opencli-skill-installer',
         accept: 'application/vnd.github.v3+json,application/x-gzip,application/octet-stream,*/*',
       },
     });

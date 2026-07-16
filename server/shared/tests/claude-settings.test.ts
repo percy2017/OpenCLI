@@ -7,7 +7,7 @@ import test from 'node:test';
 import { syncClaudeUserPermissions } from '../claude-settings.js';
 
 const createSettingsPath = async () => {
-  const rootPath = await mkdtemp(path.join(os.tmpdir(), 'cloudcli-claude-settings-'));
+  const rootPath = await mkdtemp(path.join(os.tmpdir(), 'opencli-claude-settings-'));
   const claudeDirectory = path.join(rootPath, '.claude');
   const settingsPath = path.join(claudeDirectory, 'settings.json');
   await mkdir(claudeDirectory, { recursive: true });

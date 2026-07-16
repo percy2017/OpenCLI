@@ -10,7 +10,7 @@ import { AppError } from '@/shared/utils.js';
 const withTempService = async (
   run: (service: FileManagerService, rootPath: string) => Promise<void>,
 ) => {
-  const tempPath = await mkdtemp(path.join(os.tmpdir(), 'cloudcli-file-manager-'));
+  const tempPath = await mkdtemp(path.join(os.tmpdir(), 'opencli-file-manager-'));
   const rootPath = path.join(tempPath, 'workspace');
   const homePath = path.join(tempPath, 'home');
   await mkdir(rootPath, { recursive: true });

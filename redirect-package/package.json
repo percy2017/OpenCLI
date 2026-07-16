@@ -6,9 +6,9 @@
   "main": "index.js",
   "bin": {
     "claude-code-ui": "./bin.js",
-    "cloudcli": "./bin.js"
+    "opencli": "./bin.js"
   },
-  "homepage": "https://cloudcli.ai",
+  "homepage": "https://opencli.ai",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/siteboon/claudecodeui.git"
@@ -20,14 +20,14 @@
     "claude code",
     "claude-code",
     "claude-code-ui",
-    "cloudcli",
+    "opencli",
     "anthropic",
     "coding-agent",
     "web-ui",
     "ui",
     "mobile IDE"
   ],
-  "author": "CloudCLI UI Contributors",
+  "author": "OpenCLI UI Contributors",
   "dependencies": {
     "opencli": "*"
   },

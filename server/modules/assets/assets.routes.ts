@@ -48,7 +48,7 @@ const upload = multer({
 
 /**
  * Stores chat attachments (images and office files) in the global
- * `~/.cloudcli/assets` folder and returns their absolute paths for use in
+ * `~/.opencli/assets` folder and returns their absolute paths for use in
  * provider prompts and chat history. The LLM receives only the path; it is
  * expected to use its native file-reading tools (or the RAG MCP) to consume
  * the contents.

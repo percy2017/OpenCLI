@@ -8,7 +8,7 @@
 
 ### Qué problema resolvemos
 
-CloudCLI ya expone una pestaña **"Minimax MCP"** (`AppTab = 'minimax'`) en la barra superior, renderizada por `src/components/minimax-mcp/MinimaxPanel.tsx`. Esa vista **solo muestra estado pasivo**:
+OpenCLI ya expone una pestaña **"Minimax MCP"** (`AppTab = 'minimax'`) en la barra superior, renderizada por `src/components/minimax-mcp/MinimaxPanel.tsx`. Esa vista **solo muestra estado pasivo**:
 
 - Versión de la CLI `mmx` (`/api/minimax/health`)
 - Cuotas General / Video del Token Plan (`/api/minimax/quota/text`)

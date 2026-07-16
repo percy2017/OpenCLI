@@ -1,14 +1,14 @@
 import { Cloud, ExternalLink, MessageSquare, Star, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { CLOUDCLI_WORDMARK_FONT_FAMILY } from '../../../../constants/branding';
+import { OPENCLI_WORDMARK_FONT_FAMILY } from '../../../../constants/branding';
 import { IS_PLATFORM } from '../../../../constants/config';
 import { useVersionCheck } from '../../../../hooks/useVersionCheck';
 import PremiumFeatureCard from '../PremiumFeatureCard';
 
 const GITHUB_REPO_URL = 'https://github.com/siteboon/claudecodeui';
 const DISCORD_URL = 'https://discord.gg/buxwujPNRE';
-const CLOUDCLI_URL = 'https://cloudcli.ai';
+const OPENCLI_URL = 'https://opencli.ai';
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -42,7 +42,7 @@ export default function AboutTab() {
           <div className="flex items-center gap-2">
             <span
               className="text-base font-semibold text-foreground"
-              style={{ fontFamily: CLOUDCLI_WORDMARK_FONT_FAMILY }}
+              style={{ fontFamily: OPENCLI_WORDMARK_FONT_FAMILY }}
             >
               OpenCLI
             </span>
@@ -105,13 +105,13 @@ export default function AboutTab() {
           Discord
         </a>
         <a
-          href={CLOUDCLI_URL}
+          href={OPENCLI_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
         >
           <ExternalLink className="h-3.5 w-3.5" />
-          cloudcli.ai
+          opencli.ai
         </a>
       </div>
 
@@ -123,7 +123,7 @@ export default function AboutTab() {
             Team collaboration, shared MCP configs, settings sync across environments, and managed infrastructure.
           </p>
           <a
-            href={CLOUDCLI_URL}
+            href={OPENCLI_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors hover:underline"
