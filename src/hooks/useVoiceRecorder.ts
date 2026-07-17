@@ -27,12 +27,33 @@ export type VoiceRecorderError =
   | { kind: 'empty'; message: string }
   | { kind: 'http'; status: number; message: string };
 
+export type VoiceRecorderInstallError = {
+  code: string;
+  message: string;
+};
+
 export type VoiceRecorderConfig = {
   enabled: boolean;
   available: boolean;
   language: string;
   model: string;
   timeoutMs: number;
+  installing: boolean;
+  installed: boolean;
+  installStage:
+    | 'idle'
+    | 'detecting-binary'
+    | 'cloning'
+    | 'building'
+    | 'downloading-model'
+    | 'verifying-model'
+    | 'done'
+    | 'failed'
+    | 'skipped-platform'
+    | 'skipped-disabled';
+  installProgress: number;
+  installMessage: string;
+  installError: VoiceRecorderInstallError | null;
 };
 
 export interface UseVoiceRecorderArgs {
@@ -48,10 +69,15 @@ export interface UseVoiceRecorderResult {
   config: VoiceRecorderConfig | null;
   /** True while MediaRecorder is open or the request is in flight. */
   busy: boolean;
+  installing: boolean;
+  installError: VoiceRecorderInstallError | null;
+  installStage: VoiceRecorderConfig['installStage'];
+  installMessage: string;
   start: () => Promise<void>;
   stop: () => void;
   cancel: () => void;
   refreshConfig: () => Promise<void>;
+  retryInstall: () => Promise<void>;
 }
 
 const DEFAULT_CONFIG: VoiceRecorderConfig = {
@@ -60,6 +86,12 @@ const DEFAULT_CONFIG: VoiceRecorderConfig = {
   language: 'auto',
   model: 'ggml-base.bin',
   timeoutMs: 60_000,
+  installing: false,
+  installed: false,
+  installStage: 'idle',
+  installProgress: 0,
+  installMessage: '',
+  installError: null,
 };
 
 const PREFERRED_MIME_TYPES = [
@@ -114,9 +146,40 @@ export function useVoiceRecorder({
     }
   }, []);
 
+  /**
+   * Trigger the install retry endpoint. Used by the chat composer's tooltip
+   * on `installError`. The first response will set `installing: true` and
+   * the existing poll-loop will track progress to completion.
+   */
+  const retryInstall = useCallback(async () => {
+    try {
+      const response = await authenticatedFetch('/api/first-run/whisper-status/retry', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        // Even if the POST fails we still kick a refresh so the UI sees
+        // whatever state the backend landed on.
+        await refreshConfig();
+      }
+    } catch {
+      await refreshConfig();
+    }
+  }, [refreshConfig]);
+
   useEffect(() => {
     void refreshConfig();
   }, [refreshConfig]);
+
+  // Poll /api/whisper/config every 2 s while the installer is running. Stops
+  // automatically as soon as the terminal stage is reached (`installing`
+  // flips to false) or the hook unmounts.
+  useEffect(() => {
+    if (!config?.installing) return;
+    const timer = setTimeout(() => {
+      if (mountedRef.current) void refreshConfig();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [config?.installing, config?.installProgress, config?.installMessage, refreshConfig]);
 
   // Release mic + recorder on unmount.
   useEffect(() => {
@@ -275,9 +338,14 @@ export function useVoiceRecorder({
     error,
     config,
     busy: status === 'recording' || status === 'processing',
+    installing: config?.installing ?? false,
+    installError: config?.installError ?? null,
+    installStage: config?.installStage ?? 'idle',
+    installMessage: config?.installMessage ?? '',
     start,
     stop,
     cancel,
     refreshConfig,
+    retryInstall,
   };
 }

@@ -6,6 +6,7 @@ import { appConfigDb } from '@/modules/database/index.js';
 import { findAppRoot } from '@/utils/runtime-paths.js';
 
 export { ensureRagMcpOnStartup } from './rag-mcp-installer.js';
+export { ensureWhisperOnStartup } from './whisper-installer.js';
 
 const SEEDED_KEY = 'skills_bundled_v1';
 const SEEDED_VERSION = '1';
@@ -158,16 +159,37 @@ export async function runFirstRunOnStartup(): Promise<void> {
     const result = await seedBundledSkills();
     if (result.skippedReason === 'already-seeded') {
       console.log('[first-run] Bundled skills already seeded; skipping.');
-      return;
-    }
-    if (result.skippedReason === 'no-bundled-skills') {
+    } else if (result.skippedReason === 'no-bundled-skills') {
       console.log('[first-run] No bundled skills found.');
-      return;
-    }
-    for (const target of result.targets) {
-      console.log(`[first-run] Seeded ${target.installed} skill(s) into ${target.rootDir}`);
+    } else {
+      for (const target of result.targets) {
+        console.log(`[first-run] Seeded ${target.installed} skill(s) into ${target.rootDir}`);
+      }
     }
   } catch (error) {
     console.warn('[first-run] Skill seeding failed:', (error as Error).message);
   }
+
+  // Whisper voice transcription auto-install runs alongside the existing
+  // bootstrap tasks. Fire-and-forget — its state surface is queried by the
+  // chat composer, not awaited here.
+  void ensureWhisperOnStartup().then((state) => {
+    if (state.stage === 'done') {
+      console.log('[first-run] Whisper voice transcription ready.');
+    } else if (state.stage === 'failed') {
+      console.warn(
+        `[first-run] Whisper auto-install failed (${state.error?.code ?? 'unknown'}): ${state.error?.message ?? 'no message'}. ` +
+        `Run \\`bash server/whisper/setup.sh\\` to retry.`,
+      );
+    } else if (state.stage === 'skipped-disabled') {
+      console.log('[first-run] Whisper voice transcription disabled via WHISPER_ENABLED=false.');
+    } else if (state.stage === 'skipped-platform') {
+      console.warn(
+        `[first-run] Whisper auto-install skipped on ${process.platform}. ` +
+        `Run \\`bash server/whisper/setup.sh\\` manually.`,
+      );
+    }
+  }).catch((error: unknown) => {
+    console.warn('[first-run] Whisper auto-install threw unexpectedly:', error);
+  });
 }

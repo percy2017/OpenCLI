@@ -179,7 +179,7 @@ export default function ChatComposer({
     },
     language: typeof navigator !== 'undefined' ? navigator.language : 'auto',
   });
-  const voiceAvailable = Boolean(voice.config?.enabled && voice.config?.available);
+  const voiceAvailable = Boolean(voice.config?.enabled && voice.config?.available && !voice.installing);
 
   const commandMenuPosition = useMemo(() => {
     if (!isCommandMenuOpen) {
@@ -219,25 +219,32 @@ export default function ChatComposer({
       ? t('input.stop')
       : t('input.send');
 
-  const voiceTooltip = voice.error
-    ? voice.error.kind === 'denied'
-      ? t('mic.denied')
-      : voice.error.kind === 'unavailable'
-        ? t('mic.unavailable')
-        : voice.error.kind === 'empty'
-          ? t('mic.noTranscript')
-          : voice.error.kind === 'unsupported'
-            ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
-            : voice.error.message || t('mic.error')
-    : voice.config?.enabled === false
-      ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
-      : !voiceAvailable
-        ? t('mic.setupRequired', { defaultValue: 'Voice input requires whisper.cpp — run server/whisper/setup.sh' })
-        : voice.status === 'recording'
-          ? t('mic.stop')
-          : voice.status === 'processing'
-            ? t('mic.processing')
-            : t('mic.start');
+  const voiceTooltip = voice.installing
+    ? t('mic.installing', { defaultValue: 'Configurando transcripción de voz…' })
+    : voice.installError
+      ? t('mic.installFailed', {
+          defaultValue: 'Falló la configuración de voz: {{message}} — vuelve a hacer clic para reintentar',
+          message: voice.installError.message,
+        })
+      : voice.error
+        ? voice.error.kind === 'denied'
+          ? t('mic.denied')
+          : voice.error.kind === 'unavailable'
+            ? t('mic.unavailable')
+            : voice.error.kind === 'empty'
+              ? t('mic.noTranscript')
+              : voice.error.kind === 'unsupported'
+                ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
+                : voice.error.message || t('mic.error')
+        : voice.config?.enabled === false
+          ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
+          : !voiceAvailable
+            ? t('mic.unavailable', { defaultValue: 'Transcripción de voz no disponible' })
+            : voice.status === 'recording'
+              ? t('mic.stop')
+              : voice.status === 'processing'
+                ? t('mic.processing')
+                : t('mic.start');
 
   return (
     <div className="chat-composer-shell relative flex-shrink-0 px-2 pb-2 pt-0 sm:px-4 sm:pb-4 md:px-4 md:pb-6">
@@ -408,10 +415,23 @@ export default function ChatComposer({
                 tooltip={{ content: voiceTooltip }}
                 aria-label={voiceTooltip}
                 aria-pressed={voice.status === 'recording'}
-                aria-disabled={!voiceAvailable || !onVoiceSend || isLoading}
-                data-state={!voiceAvailable ? 'unavailable' : voice.status}
+                aria-busy={voice.installing}
+                aria-disabled={!voiceAvailable || !onVoiceSend || (isLoading && !voice.installing)}
+                data-state={
+                  voice.installing
+                    ? 'installing'
+                    : voice.installError
+                      ? 'install-error'
+                      : !voiceAvailable
+                        ? 'unavailable'
+                        : voice.status
+                }
                 title={voiceTooltip}
                 onClick={() => {
+                  if (voice.installError) {
+                    void voice.retryInstall();
+                    return;
+                  }
                   if (!voiceAvailable || !onVoiceSend || isLoading) return;
                   if (voice.status === 'recording') {
                     voice.stop();
@@ -420,14 +440,18 @@ export default function ChatComposer({
                   }
                 }}
                 className={
-                  !voiceAvailable
-                    ? 'cursor-help opacity-50 hover:opacity-80'
-                    : voice.status === 'recording'
-                      ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 animate-pulse'
-                      : ''
+                  voice.installing
+                    ? 'cursor-progress text-primary'
+                    : voice.installError
+                      ? 'cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 animate-pulse'
+                      : !voiceAvailable
+                        ? 'cursor-help opacity-50 hover:opacity-80'
+                        : voice.status === 'recording'
+                          ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 animate-pulse'
+                          : ''
                 }
               >
-                {voice.status === 'processing' ? (
+                {voice.installing || voice.status === 'processing' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : voice.status === 'recording' ? (
                   <MicOff className="h-4 w-4" />

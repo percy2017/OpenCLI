@@ -46,7 +46,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Python 3.12+** for the RAG MCP (auto-installed on first boot — see below)
 - Optional: **Ollama** running locally for the RAG embeddings default
 - Optional: **`mmx` CLI** for the read-aloud TTS button — `mmx` must be on `PATH`; without it the button shows a "TTS no disponible" tooltip and stays disabled
-- Optional: **ffmpeg** and **whisper.cpp** for the voice input button — run `bash server/whisper/setup.sh` to build whisper.cpp from source and download `ggml-base.bin`. Without them the mic icon stays visible but disabled, with a tooltip pointing at `setup.sh`.
+- Optional: **ffmpeg** for the voice input button — `apt install ffmpeg` (or your OS equivalent). Whisper.cpp itself auto-installs on first backend boot, so a fresh clone works end-to-end with no manual setup.
 
 ### Install
 
@@ -373,22 +373,34 @@ audio/mp4   (Safari)          ─┼─▶ ffmpeg ─▶ 16 kHz mono PCM WAV ─
               /api/whisper/transcribe  (POST multipart, 25 MB cap)
 ```
 
-**Setup.** Run the bundled script — it builds whisper.cpp from source if no
-binary is on `PATH`, then downloads `ggml-base.bin` (~140 MB) into
-`server/whisper/models/`. At the end it prints the exact `.env` lines to add:
+**Auto-install (default).** On the first backend boot the server detects
+whether `whisper.cpp` is present; if not, it spawns
+`server/whisper/setup.sh` **automatically** in the background. You don't
+have to run anything — the chat Mic button stays visible the entire time,
+showing a spinner ("Configurando transcripción de voz…"). The script
+clones whisper.cpp, compiles it with `cmake`, downloads `ggml-base.bin`
+(~140 MB) into `server/whisper/models/`, then writes a sentinel to the
+auth DB. Subsequent boots skip the install and the voice button is
+interactive immediately. UI polls `/api/whisper/config` every 2 s so
+progress is visible without a refresh.
+
+**Manual / override.** If the auto-install fails (offline host, missing
+`cmake`, disk full, etc.) the Mic button turns red and the tooltip tells
+you what happened — clicking it retries. For more advanced cases
+(relocating the build, pre-warming offline machines, pinning a bigger
+model) you can also run the script directly:
 
 ```bash
-bash server/whisper/setup.sh
-# or pick a different model:
-bash server/whisper/setup.sh ggml-small.bin
+bash server/whisper/setup.sh                # default ggml-base.bin
+bash server/whisper/setup.sh ggml-small.bin # pin a model
 ```
 
-Then add the printed lines to `.env` and restart the backend:
+Optional env-var overrides (only needed for custom builds):
 
 ```env
-WHISPER_ENABLED=true
-WHISPER_BINARY=$(command -v whisper-cli)  # or absolute path
-WHISPER_MODEL=server/whisper/models/ggml-base.bin
+WHISPER_ENABLED=true                          # default; set false to disable voice entirely
+WHISPER_BINARY=$(command -v whisper-cli)      # or absolute path
+WHISPER_MODEL=ggml-base.bin                   # bare filename, resolved against server/whisper/models/
 WHISPER_LANGUAGE=auto
 ```
 

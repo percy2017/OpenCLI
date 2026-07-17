@@ -126,8 +126,10 @@
     "processing": "Transcribing…",
     "noTranscript": "No speech detected",
     "denied": "Microphone permission was denied",
-    "unavailable": "Voice transcription is not available (whisper.cpp not installed)",
+    "unavailable": "Voice transcription is not available",
     "setupRequired": "Voice input requires whisper.cpp — run server/whisper/setup.sh",
+    "installing": "Setting up voice transcription (this can take ~2 min the first time)…",
+    "installFailed": "Voice setup failed: {{message}} (click again to retry)",
     "disabled": "Voice transcription is disabled by the server administrator",
     "error": "Could not transcribe audio"
   },
@@ -271,7 +273,7 @@
       "connectTitle": "Connect to shell"
     },
     "loading": "Loading terminal...",
-    "connecting": "Connecting to shell...",
+    "connecting": "Connecting to terminal...",
     "startSession": "Start a new Claude session",
     "resumeSession": "Resume session: {{displayName}}...",
     "runCommand": "Run {{command}} in {{projectName}}",

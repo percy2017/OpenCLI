@@ -126,8 +126,10 @@
     "processing": "Transcribiendo…",
     "noTranscript": "No se detectó voz",
     "denied": "Permiso de micrófono denegado",
-    "unavailable": "Transcripción de voz no disponible (whisper.cpp no instalado)",
+    "unavailable": "Transcripción de voz no disponible",
     "setupRequired": "La entrada de voz requiere whisper.cpp — ejecuta server/whisper/setup.sh",
+    "installing": "Configurando transcripción de voz (la primera vez tarda ~2 min)…",
+    "installFailed": "Falló la configuración de voz: {{message}} (vuelve a hacer clic para reintentar)",
     "disabled": "Transcripción deshabilitada por el servidor",
     "error": "No se pudo transcribir el audio"
   },
@@ -173,14 +175,13 @@
       "loadEarlier": "Cargar mensajes anteriores",
       "loadAll": "Cargar todos los mensajes",
       "loadingAll": "Cargando todos los mensajes...",
-      "allLoaded": "Todos los mensajes cargados",
-      "perfWarning": "Todos los mensajes cargados — el desplazamiento puede ser más lento. Haz clic en \"Ir al final\" para restaurar el rendimiento."
+      "allLoaded": "Todos los mensajes cargados"
     }
   },
   "commandResult": {
     "defaultTitle": "Resultado del comando",
     "close": "Cerrar",
-    "closeModalAria": "Cerrar el modal de resultado del comando",
+    "closeModalAria": "Cerrar el modal de resultado de comando",
     "escCloses": "Esc cierra el modal.",
     "help": {
       "eyebrow": "Centro de comandos",
@@ -254,11 +255,11 @@
   },
   "shell": {
     "selectProject": {
-      "title": "Selecciona un proyecto",
+      "title": "Selecciona un Proyecto",
       "description": "Elige un proyecto para abrir una terminal interactiva en ese directorio"
     },
     "status": {
-      "newSession": "Nueva sesión",
+      "newSession": "Nueva Sesión",
       "initializing": "Inicializando...",
       "restarting": "Reiniciando..."
     },

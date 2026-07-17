@@ -18,6 +18,11 @@ import {
   retryRagMcpInstall,
   type InstallerSummary,
 } from './rag-mcp-installer.js';
+import {
+  getWhisperInstallSummary,
+  retryWhisperInstall,
+  type WhisperInstallSummary,
+} from './whisper-installer.js';
 
 const router = express.Router();
 
@@ -45,6 +50,24 @@ router.post('/rag-status/retry', async (_req, res) => {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to retry RAG install.',
     });
+  }
+});
+
+router.get('/whisper-status', async (_req, res, next) => {
+  try {
+    const data: WhisperInstallSummary = getWhisperInstallSummary();
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/whisper-status/retry', async (_req, res, next) => {
+  try {
+    const data: WhisperInstallSummary = await retryWhisperInstall();
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
   }
 });
 

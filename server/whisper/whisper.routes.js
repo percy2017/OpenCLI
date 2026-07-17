@@ -22,6 +22,7 @@ import {
   probeWhisperAvailable,
   transcribeBuffer,
 } from './whisper-runner.js';
+import { getWhisperInstallSummary } from '../modules/first-run/whisper-installer.js';
 
 const MAX_BYTES = Number.parseInt(process.env.WHISPER_MAX_FILE_SIZE_MB || '25', 10) * 1024 * 1024;
 const MAX_MB = Math.round(MAX_BYTES / (1024 * 1024));
@@ -48,7 +49,24 @@ router.get('/config', async (_req, res) => {
   try {
     const available = await probeWhisperAvailable();
     const cfg = getWhisperConfig();
-    res.json({ success: true, data: { ...cfg, available } });
+    const installer = getWhisperInstallSummary();
+    // The chat composer polls this endpoint while `installer.state.inProgress`
+    // is true so the Mic button can render an installation spinner instead
+    // of the dimmed error tooltip. `available` flips to true once the
+    // installer sentinel is written.
+    res.json({
+      success: true,
+      data: {
+        ...cfg,
+        available,
+        installing: installer.state.inProgress,
+        installStage: installer.state.stage,
+        installProgress: installer.state.progress,
+        installMessage: installer.state.message,
+        installError: installer.state.error,
+        installed: installer.installed,
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -60,6 +78,21 @@ router.get('/config', async (_req, res) => {
 router.post('/transcribe', (req, res, next) => {
   upload.single('audio')(req, res, (err) => (err ? handleMulterError(err, req, res, next) : next()));
 }, async (req, res) => {
+  // The boot-time auto-install writes its sentinel before flipping
+  // `installing: false`, but we keep this guard so a stale config can't
+  // produce a confusing 502 in the few-millisecond window between binary
+  // appearing and `/api/whisper/config` being observed as done.
+  const installer = getWhisperInstallSummary();
+  if (installer.state.inProgress) {
+    return res.status(503).json({
+      success: false,
+      error: 'whisper-installing',
+      message: installer.state.message || 'Voice transcription is installing…',
+      stage: installer.state.stage,
+      progress: installer.state.progress,
+    });
+  }
+
   if (!isWhisperEnabled()) {
     return res.status(503).json({
       success: false,
