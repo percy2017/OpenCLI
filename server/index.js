@@ -54,7 +54,7 @@ import { assetsRoutes } from './modules/assets/index.js';
 import { fileManagerRoutes } from './modules/file-manager/index.js';
 import { browserUseService } from './modules/browser-use/browser-use.service.js';
 import { initializeDatabase, projectsDb, sessionsDb } from './modules/database/index.js';
-import { runFirstRunOnStartup, ensureRagMcpOnStartup } from './modules/first-run/first-run.service.js';
+import { runFirstRunOnStartup, ensureRagMcpOnStartup } from './modules/first-run/index.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 import { IS_PLATFORM } from './constants/config.js';

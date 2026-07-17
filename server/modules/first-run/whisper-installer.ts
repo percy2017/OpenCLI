@@ -43,6 +43,8 @@ import spawnPkg from 'cross-spawn';
 import { appConfigDb } from '@/modules/database/index.js';
 import { findAppRoot } from '@/utils/runtime-paths.js';
 
+import { resetWhisperCaches } from '../../whisper/index.js';
+
 const { spawn: crossSpawn } = spawnPkg;
 
 const SUPPORTED_PLATFORMS = new Set<NodeJS.Platform>(['linux', 'darwin']);
@@ -143,6 +145,9 @@ export async function ensureWhisperOnStartup(): Promise<WhisperInstallState> {
     installedAt = sentinel.installedAt;
     installedBinaryPath = sentinel.binaryPath;
     installedModelPath = sentinel.modelPath;
+    if (installedBinaryPath) {
+      process.env.WHISPER_BINARY = installedBinaryPath;
+    }
     setLiveState({
       stage: 'done',
       inProgress: false,
@@ -150,6 +155,7 @@ export async function ensureWhisperOnStartup(): Promise<WhisperInstallState> {
       message: 'Voice transcription ready.',
       error: null,
     });
+    resetWhisperCaches();
     return readState();
   }
 
@@ -235,6 +241,9 @@ async function runOnce(): Promise<WhisperInstallState> {
         // Mark `done` even if stage never emitted the marker — the script
         // is the source of truth.
         try { refreshInstalledPaths(); } catch { /* ignore — best effort */ }
+        if (installedBinaryPath) {
+          process.env.WHISPER_BINARY = installedBinaryPath;
+        }
         setLiveState({
           stage: 'done',
           inProgress: false,
@@ -244,6 +253,7 @@ async function runOnce(): Promise<WhisperInstallState> {
           error: null,
         });
         writeSentinel();
+        resetWhisperCaches();
         finishWith(readState());
         return;
       }

@@ -176,6 +176,11 @@ export default tseslint.config(
           mode: "file",
         },
         {
+          type: "backend-whisper-runtime", // whisper.cpp bridge (runs outside module system until refactored)
+          pattern: "server/whisper",
+          mode: "folder",
+        },
+        {
           type: "backend-module", // logical element name used by boundaries rules below
           pattern: "server/modules/*", // each direct folder in server/modules is treated as one module boundary
           mode: "folder", // classify dependencies at folder-module level (not per individual file)
@@ -213,41 +218,41 @@ export default tseslint.config(
 
       // --- Architecture boundaries (backend modules) ---
       "boundaries/dependencies": [
-        "error", // treat architecture violations as lint errors
+        "error",
         {
-          default: "allow", // allow normal imports unless a rule below explicitly disallows them
-          checkInternals: false, // do not apply these cross-module rules to imports inside the same module
+          default: "allow",
+          checkInternals: false,
           rules: [
             {
-              from: { type: "backend-module" }, // modules may depend on shared type/interface contracts only as erased type-only imports
+              from: { type: "backend-module" },
               to: { type: "backend-shared-type-contract" },
               disallow: {
                 dependency: { kind: ["value", "typeof"] },
-              }, // block runtime imports so shared contracts stay compile-time only instead of becoming hidden shared modules
+              },
               message:
                 "Backend modules may only use `import type` when importing from server/shared/types.ts or server/shared/interfaces.ts.",
             },
             {
-              to: { type: "backend-module" }, // when importing anything that belongs to another backend module
-              disallow: { to: { internalPath: "**" } }, // block all direct/deep imports into module internals by default
+              to: { type: "backend-module" },
+              disallow: { to: { internalPath: "**" } },
               message:
-                "Cross-module imports must go through that module's barrel file (server/modules/<module>/index.ts or index.js).", // explicit error message for architecture violations
+                "Cross-module imports must go through that module's barrel file (server/modules/<module>/index.ts or index.js).",
             },
             {
-              to: { type: "backend-module" }, // same target scope as the disallow rule above
+              to: { type: "backend-module" },
               allow: {
                 to: {
                   internalPath: [
-                    "index", // allow extensionless barrel imports resolved as module root index
-                    "index.{js,mjs,cjs,ts,tsx}", // allow explicit index.* barrel file imports
+                    "index",
+                    "index.{js,mjs,cjs,ts,tsx}",
                   ],
                 },
-              }, // re-allow only public module entry points (barrel files)
+              },
             },
           ],
         },
       ],
-      "boundaries/no-unknown": "error", // fail fast if boundaries cannot classify a dependency, which prevents silent rule bypasses
+      "boundaries/no-unknown": "error",
     },
   }
 );

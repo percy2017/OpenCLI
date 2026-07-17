@@ -234,17 +234,15 @@ export default function ChatComposer({
             : voice.error.kind === 'empty'
               ? t('mic.noTranscript')
               : voice.error.kind === 'unsupported'
-                ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
+                ? voice.error.message || t('mic.disabled', { defaultValue: t('mic.unavailable') })
                 : voice.error.message || t('mic.error')
-        : voice.config?.enabled === false
-          ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
-          : !voiceAvailable
-            ? t('mic.unavailable', { defaultValue: 'Transcripción de voz no disponible' })
-            : voice.status === 'recording'
-              ? t('mic.stop')
-              : voice.status === 'processing'
-                ? t('mic.processing')
-                : t('mic.start');
+        : !voiceAvailable
+          ? t('mic.unavailable', { defaultValue: 'Transcripción de voz no disponible' })
+          : voice.status === 'recording'
+            ? t('mic.stop')
+            : voice.status === 'processing'
+              ? t('mic.processing')
+              : t('mic.start');
 
   return (
     <div className="chat-composer-shell relative flex-shrink-0 px-2 pb-2 pt-0 sm:px-4 sm:pb-4 md:px-4 md:pb-6">

@@ -15,6 +15,8 @@
 import express from 'express';
 import multer from 'multer';
 
+import { getWhisperInstallSummary } from '../modules/first-run/index.js';
+
 import {
   WhisperUnavailableError,
   getWhisperConfig,
@@ -22,7 +24,6 @@ import {
   probeWhisperAvailable,
   transcribeBuffer,
 } from './whisper-runner.js';
-import { getWhisperInstallSummary } from '../modules/first-run/whisper-installer.js';
 
 const MAX_BYTES = Number.parseInt(process.env.WHISPER_MAX_FILE_SIZE_MB || '25', 10) * 1024 * 1024;
 const MAX_MB = Math.round(MAX_BYTES / (1024 * 1024));
@@ -54,20 +55,20 @@ router.get('/config', async (_req, res) => {
     // is true so the Mic button can render an installation spinner instead
     // of the dimmed error tooltip. `available` flips to true once the
     // installer sentinel is written.
-    res.json({
-      success: true,
-      data: {
-        ...cfg,
-        available,
-        installing: installer.state.inProgress,
-        installStage: installer.state.stage,
-        installProgress: installer.state.progress,
-        installMessage: installer.state.message,
-        installError: installer.state.error,
-        installed: installer.installed,
-      },
-    });
+    const data = {
+      ...cfg,
+      available,
+      installing: installer.state.inProgress,
+      installStage: installer.state.stage,
+      installProgress: installer.state.progress,
+      installMessage: installer.state.message,
+      installError: installer.state.error,
+      installed: installer.installed,
+    };
+    console.log('[whisper-config] DEBUG:', JSON.stringify(data, null, 2));
+    res.json({ success: true, data });
   } catch (error) {
+    console.error('[whisper-config] ERROR:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load whisper config.',
