@@ -10,7 +10,7 @@ import type {
   RefObject,
   TouchEvent,
 } from 'react';
-import { ImageIcon, MessageSquareIcon, XIcon, ArrowUpIcon, Paperclip, Mic, MicOff, Loader2 } from 'lucide-react';
+import { ImageIcon, MessageSquareIcon, XIcon, ArrowUpIcon, Paperclip, Mic, Loader2 } from 'lucide-react';
 
 import { useVoiceRecorder } from '../../../../hooks/useVoiceRecorder';
 import type { QueuedDraft } from '../../hooks/useChatComposerState';
@@ -169,6 +169,13 @@ export default function ChatComposer({
   onVoiceSend,
 }: ChatComposerProps) {
   const { t } = useTranslation('chat');
+
+  function formatRecordingDuration(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
 
   // Voice recorder hook is mounted unconditionally so its config fetch and
   // cleanup run on every chat view. The button hides itself when the server
@@ -452,7 +459,9 @@ export default function ChatComposer({
                 {voice.installing || voice.status === 'processing' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : voice.status === 'recording' ? (
-                  <MicOff className="h-4 w-4" />
+                  <span className="min-w-[2.25rem] px-1 font-mono text-xs font-semibold tabular-nums">
+                    {formatRecordingDuration(voice.elapsedMs)}
+                  </span>
                 ) : (
                   <Mic className="h-4 w-4" />
                 )}

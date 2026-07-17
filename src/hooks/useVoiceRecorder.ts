@@ -73,6 +73,10 @@ export interface UseVoiceRecorderResult {
   installError: VoiceRecorderInstallError | null;
   installStage: VoiceRecorderConfig['installStage'];
   installMessage: string;
+  /** Wall-clock ms when recording started, or null while idle. */
+  recordingStartedAt: number | null;
+  /** Elapsed time since `recordingStartedAt`, updated every 250 ms while recording. */
+  elapsedMs: number;
   start: () => Promise<void>;
   stop: () => void;
   cancel: () => void;
@@ -131,6 +135,21 @@ export function useVoiceRecorder({
   const [status, setStatus] = useState<VoiceRecorderStatus>('idle');
   const [error, setError] = useState<VoiceRecorderError | null>(null);
   const [config, setConfig] = useState<VoiceRecorderConfig | null>(null);
+  // Wall-clock ms at the moment `recorder.start()` resolved, or null when idle.
+  // Drove from a `setInterval` so the UI can render an mm:ss timer while
+  // recording without polling Date.now() in render.
+  const [recordingStartedAt, setRecordingStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopElapsedClock = useCallback(() => {
+    if (elapsedTimerRef.current !== null) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+    setRecordingStartedAt(null);
+    setElapsedMs(0);
+  }, []);
 
   const refreshConfig = useCallback(async () => {
     try {
@@ -186,6 +205,10 @@ export function useVoiceRecorder({
     return () => {
       mountedRef.current = false;
       cancelledRef.current = true;
+      if (elapsedTimerRef.current !== null) {
+        clearInterval(elapsedTimerRef.current);
+        elapsedTimerRef.current = null;
+      }
       try { recorderRef.current?.stop(); } catch { /* ignore */ }
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
@@ -231,6 +254,7 @@ export function useVoiceRecorder({
 
       recorder.onstop = async () => {
         const wasCancelled = cancelledRef.current;
+        stopElapsedClock();
         if (wasCancelled) {
           cleanup();
           if (mountedRef.current) setStatus('idle');
@@ -301,6 +325,15 @@ export function useVoiceRecorder({
 
       cancelledRef.current = false;
       recorder.start();
+      const startedAt = Date.now();
+      setRecordingStartedAt(startedAt);
+      setElapsedMs(0);
+      if (elapsedTimerRef.current !== null) {
+        clearInterval(elapsedTimerRef.current);
+      }
+      elapsedTimerRef.current = setInterval(() => {
+        setElapsedMs(Date.now() - startedAt);
+      }, 250);
       setStatus('recording');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error.';
@@ -310,7 +343,7 @@ export function useVoiceRecorder({
       setError({ kind: isDenied ? 'denied' : 'unsupported', message });
       setStatus('error');
       cleanup();
-    }    }, [cleanup, onTranscript, language]);
+    }    }, [cleanup, onTranscript, language, stopElapsedClock]);
 
   const stop = useCallback(() => {
     cancelledRef.current = false;
@@ -318,10 +351,11 @@ export function useVoiceRecorder({
     if (recorder && recorder.state !== 'inactive') {
       recorder.stop();
     } else {
+      stopElapsedClock();
       cleanup();
       setStatus('idle');
     }
-  }, [cleanup]);
+  }, [cleanup, stopElapsedClock]);
 
   const cancel = useCallback(() => {
     cancelledRef.current = true;
@@ -329,9 +363,10 @@ export function useVoiceRecorder({
     if (recorder && recorder.state !== 'inactive') {
       recorder.stop();
     }
+    stopElapsedClock();
     cleanup();
     setStatus('idle');
-  }, [cleanup]);
+  }, [cleanup, stopElapsedClock]);
 
   return {
     status,
@@ -342,6 +377,8 @@ export function useVoiceRecorder({
     installError: config?.installError ?? null,
     installStage: config?.installStage ?? 'idle',
     installMessage: config?.installMessage ?? '',
+    recordingStartedAt,
+    elapsedMs,
     start,
     stop,
     cancel,

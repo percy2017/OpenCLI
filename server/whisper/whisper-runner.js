@@ -216,17 +216,21 @@ async function runWhisper(wavPath, opts = {}) {
   // `-of prefix` makes whisper.cpp write <prefix>.txt alongside the input.
   const outPrefix = wavPath.replace(/\.[^.]+$/, '');
 
+  // whisper-cli boolean flags take no value. Earlier versions of this
+  // runner emitted `--print-progress false` / `--print-realtime false` /
+  // `--print-colors false`, but those flags don't accept a value on the
+  // v1.9.x builds we ship; the binary interprets them as unknown options
+  // and dumps --help instead of transcribing, producing a 502 on the
+  // route. `-np` (no prints) already silences progress + realtime in one
+  // shot.
   const args = [
     '-m', modelPath,
     '-f', wavPath,
     '-l', language,
     '-of', outPrefix,
-    '-otxt',                     // newer whisper-cli builds require this to
-                                 // actually emit a .txt alongside the input
-    '--no-timestamps',
-    '--print-progress', 'false',
-    '--print-realtime', 'false',
-    '--print-colors', 'false',
+    '-otxt',
+    '-nt',  // no timestamps
+    '-np',  // no prints (silences progress / realtime / decoration)
   ];
 
   return new Promise((resolve, reject) => {
@@ -302,8 +306,12 @@ export async function transcribeBuffer(audioBuffer, originalName, opts = {}) {
   const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'whisper-'));
   const id = randomUUID();
   const ext = path.extname(originalName || '') || '.webm';
-  const inputPath = path.join(tmpDir, `${id}${ext}`);
-  const wavPath = path.join(tmpDir, `${id}.wav`);
+  // Keep the input and output paths strictly disjoint: when the upload
+  // already carries a .wav extension, `${id}.wav` would resolve to the
+  // same path as the input and ffmpeg aborts with
+  // "Output ... same as Input #0 - exiting".
+  const inputPath = path.join(tmpDir, `in-${id}${ext}`);
+  const wavPath = path.join(tmpDir, `out-${id}.wav`);
 
   try {
     await writeFile(inputPath, audioBuffer);
