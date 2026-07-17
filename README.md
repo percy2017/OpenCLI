@@ -16,6 +16,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Knowledge Base (RAG)** — vectorize local documents with Ollama / OpenAI / MiniMax embeddings, index them, and ask Claude about them.
 - **Skills** — manage Claude skills locally; fetch skills directly from GitHub URLs.
 - **Read aloud (TTS)** — Reproducir button on assistant messages, voiced via `mmx speech synthesize` (configurable voice / speed / language / auto-play).
+- **Voice input (STT)** — Mic button in the chat composer; one click records, the next transcribes via `whisper.cpp` (`audio/webm` → `ffmpeg` → 16 kHz mono PCM WAV), and the resulting text flows through the same `chat.send` path as typed input.
 - **MCP** — configure Model Context Protocol servers per session.
 - **Browser Use** — opt-in browser automation panel.
 - **Notifications** — desktop push via Web Push (VAPID), with provider toggles.
@@ -45,6 +46,7 @@ A full-stack, browser-based UI for [Claude Code CLI](https://docs.anthropic.com/
 - **Python 3.12+** for the RAG MCP (auto-installed on first boot — see below)
 - Optional: **Ollama** running locally for the RAG embeddings default
 - Optional: **`mmx` CLI** for the read-aloud TTS button — `mmx` must be on `PATH`; without it the button shows a "TTS no disponible" tooltip and stays disabled
+- Optional: **ffmpeg** and **whisper.cpp** for the voice input button — run `bash server/whisper/setup.sh` to build whisper.cpp from source and download `ggml-base.bin`. Without them the mic icon stays visible but disabled, with a tooltip pointing at `setup.sh`.
 
 ### Install
 
@@ -186,6 +188,7 @@ Edit `.env`. The most important variables:
 | `CLAUDE_CLI_PATH` | `claude` | Non-default Claude CLI executable |
 | `RAG_*` / `OLLAMA_*` | — | Embedding provider / model / batching / retry / chunking |
 | `TTS_*` | `Spanish_Narrator` / `1.0` / `es` / `speech-2.8-hd` / `false` / `30000` | TTS voice / speed / language / model / auto-play / timeout (see [Read-aloud](#read-aloud-tts)) |
+| `WHISPER_*` | `true` / auto / `ggml-base.bin` / `auto` / `60000` / `25` | STT enable / binary / model / language / timeout / upload cap (see [Voice input](#voice-input-stt)) |
 
 `npm run dev` (the dev proxy uses `PROXY_HOST` for `/api`, `/ws`, `/shell`, `/file-manager-events`, and `/plugin-ws`).
 
@@ -345,6 +348,79 @@ and the UI shows a tooltip — no audio element is created.
 
 If `mmx` is not on `PATH` the synthesize endpoint returns `503 tts-unavailable`
 and the UI shows a tooltip instead of crashing.
+
+### Voice input (STT)
+
+A **Mic** button lives next to the image-attach button in the chat composer.
+Click once to start recording, click again to stop; the transcript is inserted
+into the textarea and **automatically sent** to the LLM via the existing
+`chat.send` flow. The button is always visible — when whisper.cpp is missing
+or disabled by the server admin it renders dimmed with a tooltip explaining
+what's needed; it never disappears silently.
+
+The backend uses **[whisper.cpp](https://github.com/ggerganov/whisper.cpp)**
+(the `whisper-cli` binary) rather than a hosted STT API — runs locally,
+no per-request cost, and language detection is controllable per session.
+
+**Pipeline per request**
+
+```
+audio/webm (Chromium/Firefox) ─┐
+audio/mp4   (Safari)          ─┼─▶ ffmpeg ─▶ 16 kHz mono PCM WAV ─▶ whisper-cli ─▶ .txt
+                               │                ├─ -l <auto|es|en|…>
+                               │                └─ --no-timestamps
+                               ▼
+              /api/whisper/transcribe  (POST multipart, 25 MB cap)
+```
+
+**Setup.** Run the bundled script — it builds whisper.cpp from source if no
+binary is on `PATH`, then downloads `ggml-base.bin` (~140 MB) into
+`server/whisper/models/`. At the end it prints the exact `.env` lines to add:
+
+```bash
+bash server/whisper/setup.sh
+# or pick a different model:
+bash server/whisper/setup.sh ggml-small.bin
+```
+
+Then add the printed lines to `.env` and restart the backend:
+
+```env
+WHISPER_ENABLED=true
+WHISPER_BINARY=$(command -v whisper-cli)  # or absolute path
+WHISPER_MODEL=server/whisper/models/ggml-base.bin
+WHISPER_LANGUAGE=auto
+```
+
+**Env vars** (all optional, with sensible defaults — full reference in
+[`server/whisper/README.md`](server/whisper/README.md)):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `WHISPER_ENABLED` | `true` | Master toggle; `false` hides the mic button entirely |
+| `WHISPER_BINARY` | auto-detect | Absolute path to `whisper-cli` (also tries `whisper` and legacy `main`) |
+| `WHISPER_MODEL` | `ggml-base.bin` | Bare filename matching `ggml-*.bin`, resolved against `server/whisper/models/`; absolute paths also accepted |
+| `WHISPER_LANGUAGE` | `auto` | BCP-47 (`en-US`, `es-MX`, …) — server strips the region when calling whisper.cpp |
+| `WHISPER_TIMEOUT_MS` | `60000` | Hard timeout for a single transcription |
+| `WHISPER_MAX_FILE_SIZE_MB` | `25` | Multer upload cap; `413` on excess |
+
+**Endpoints** (JWT-protected, mounted under `/api/whisper`):
+
+- `POST /api/whisper/transcribe` — `multipart/form-data` with `audio` field
+  (the `language` form field overrides `WHISPER_LANGUAGE` for the request).
+  Returns `{ success: true, text: "..." }`.
+- `GET  /api/whisper/config` — `{ enabled, available, language, model, timeoutMs }`
+  so the UI can show the dim state correctly.
+
+If the backend can't reach whisper.cpp the endpoint returns
+`503 whisper-unavailable` and the UI shows the tooltip pointing at
+`server/whisper/setup.sh`. Empty recordings decode as `422 transcript-empty`;
+crashes inside whisper.cpp map to `502 whisper-failed`; uploads above the
+configured cap return `413 audio-too-large`.
+
+For the full env-var reference and endpoints see
+[`server/whisper/README.md`](server/whisper/README.md) — the source of
+truth that this summary stays in sync with.
 
 ### Vite dev proxy
 

@@ -120,6 +120,17 @@
       "delete": "Delete queued message"
     }
   },
+  "mic": {
+    "start": "Record voice message",
+    "stop": "Stop recording",
+    "processing": "Transcribing…",
+    "noTranscript": "No speech detected",
+    "denied": "Microphone permission was denied",
+    "unavailable": "Voice transcription is not available (whisper.cpp not installed)",
+    "setupRequired": "Voice input requires whisper.cpp — run server/whisper/setup.sh",
+    "disabled": "Voice transcription is disabled by the server administrator",
+    "error": "Could not transcribe audio"
+  },
   "composer": {
     "permissionModes": {
       "default": "Default",

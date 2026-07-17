@@ -182,6 +182,7 @@ function ChatInterface({
     commandModalPayload,
     closeCommandModal,
     showCostModal,
+    insertAndSend,
   } = useChatComposerState({
     selectedProject,
     selectedSession,
@@ -412,6 +413,7 @@ function ChatInterface({
           })}
           isTextareaExpanded={isTextareaExpanded}
           sendByCtrlEnter={sendByCtrlEnter}
+          onVoiceSend={insertAndSend}
         />
         </div>
       </div>

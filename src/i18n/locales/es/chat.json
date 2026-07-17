@@ -120,6 +120,17 @@
       "delete": "Eliminar mensaje en cola"
     }
   },
+  "mic": {
+    "start": "Grabar mensaje de voz",
+    "stop": "Detener grabación",
+    "processing": "Transcribiendo…",
+    "noTranscript": "No se detectó voz",
+    "denied": "Permiso de micrófono denegado",
+    "unavailable": "Transcripción de voz no disponible (whisper.cpp no instalado)",
+    "setupRequired": "La entrada de voz requiere whisper.cpp — ejecuta server/whisper/setup.sh",
+    "disabled": "Transcripción deshabilitada por el servidor",
+    "error": "No se pudo transcribir el audio"
+  },
   "composer": {
     "permissionModes": {
       "default": "Predeterminado",

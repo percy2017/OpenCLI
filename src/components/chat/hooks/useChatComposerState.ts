@@ -1140,6 +1140,40 @@ export function useChatComposerState({
     });
   }, [canAbortSession, currentSessionId, selectedSession?.id, sendMessage]);
 
+  /**
+   * Replace the composer text with the given string (e.g. a whisper.cpp
+   * transcript) and dispatch it through the normal submit path so it picks
+   * up slash commands, attachments, model settings, etc. The handleSubmit
+   * closure reads `inputValueRef.current`, so we deliberately mutate the
+   * ref BEFORE the React render commits; this avoids a one-tick lag where
+   * `handleSubmit` would see the old draft and accidentally send it.
+   */
+  const insertAndSend = useCallback((text: string) => {
+    const trimmed = String(text || '').trim();
+    if (!trimmed || !selectedProject) {
+      return;
+    }
+    inputValueRef.current = trimmed;
+    setInput(trimmed);
+    setAttachedImages([]);
+    setUploadingImages(new Map());
+    setImageErrors(new Map());
+    resetCommandMenuState();
+    setIsTextareaExpanded(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    safeLocalStorage.removeItem(`draft_input_${selectedProject.projectId}`);
+    // Run on the next tick so React commits setInput and the textarea
+    // autosize effect above before handleSubmit reads state. Cast through
+    // `unknown` because handleSubmit's parameter union includes MouseEvent,
+    // TouchEvent, and KeyboardEvent variants whose shape we don't satisfy
+    // — handleSubmit only ever calls `event.preventDefault()` on it.
+    setTimeout(() => {
+      handleSubmitRef.current?.({ preventDefault: () => undefined } as unknown as FormEvent<HTMLFormElement>);
+    }, 0);
+  }, [selectedProject, resetCommandMenuState]);
+
   const handleGrantToolPermission = useCallback(
     (suggestion: { entry: string; toolName: string }) => {
       if (!suggestion || provider !== 'claude') {
@@ -1239,5 +1273,6 @@ export function useChatComposerState({
     commandModalPayload,
     closeCommandModal,
     showCostModal,
+    insertAndSend,
   };
 }

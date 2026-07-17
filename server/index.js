@@ -48,6 +48,7 @@ import browserUseRoutes from './modules/browser-use/browser-use.routes.js';
 import featureFlagsRoutes from './modules/feature-flags/feature-flags.routes.js';
 import firstRunRoutes from './modules/first-run/first-run.routes.js';
 import ttsRoutes from './modules/tts/index.js';
+import whisperRoutes from './whisper/index.js';
 import ragRoutes from './modules/rag/rag.routes.js';
 import { assetsRoutes } from './modules/assets/index.js';
 import { fileManagerRoutes } from './modules/file-manager/index.js';
@@ -196,6 +197,9 @@ app.use('/api/first-run', authenticateToken, firstRunRoutes);
 
 // Text-to-speech (chat "Read aloud" button — proxies mmx speech synthesize)
 app.use('/api/tts', authenticateToken, ttsRoutes);
+
+// Voice → whisper.cpp transcription (chat "Voice message" button)
+app.use('/api/whisper', authenticateToken, whisperRoutes);
 
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);

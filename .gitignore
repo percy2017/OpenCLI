@@ -116,6 +116,13 @@ electron/*.tar.gz
 # TTS scratch files (regenerated on each synthesize request)
 /tmp/tts-*.mp3
 
+# Whisper.cpp voice transcription (built from source; large model downloads)
+/server/whisper/build/
+/server/whisper/models/
+# Whisper scratch audio / wav / txt (regenerated on each transcribe request)
+/tmp/whisper-*/
+
+
 # Python (mcp/rag and other tooling)
 __pycache__/
 *.py[cod]

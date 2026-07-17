@@ -10,8 +10,9 @@ import type {
   RefObject,
   TouchEvent,
 } from 'react';
-import { ImageIcon, MessageSquareIcon, XIcon, ArrowUpIcon, Paperclip } from 'lucide-react';
+import { ImageIcon, MessageSquareIcon, XIcon, ArrowUpIcon, Paperclip, Mic, MicOff, Loader2 } from 'lucide-react';
 
+import { useVoiceRecorder } from '../../../../hooks/useVoiceRecorder';
 import type { QueuedDraft } from '../../hooks/useChatComposerState';
 import type { SessionActivity } from '../../../../hooks/useSessionProtection';
 import type { PendingPermissionRequest, PermissionMode } from '../../types/types';
@@ -104,6 +105,12 @@ interface ChatComposerProps {
   placeholder: string;
   isTextareaExpanded: boolean;
   sendByCtrlEnter?: boolean;
+  /**
+   * Replaces the composer text (e.g. with a whisper.cpp transcript) and
+   * runs the normal submit path so the message flows through chat.send
+   * without the Mic button having to know how the composer state works.
+   */
+  onVoiceSend?: (text: string) => void;
 }
 
 export default function ChatComposer({
@@ -159,8 +166,20 @@ export default function ChatComposer({
   placeholder,
   isTextareaExpanded,
   sendByCtrlEnter,
+  onVoiceSend,
 }: ChatComposerProps) {
   const { t } = useTranslation('chat');
+
+  // Voice recorder hook is mounted unconditionally so its config fetch and
+  // cleanup run on every chat view. The button hides itself when the server
+  // reports whisper as unavailable.
+  const voice = useVoiceRecorder({
+    onTranscript: (text) => {
+      onVoiceSend?.(text);
+    },
+    language: typeof navigator !== 'undefined' ? navigator.language : 'auto',
+  });
+  const voiceAvailable = Boolean(voice.config?.enabled && voice.config?.available);
 
   const commandMenuPosition = useMemo(() => {
     if (!isCommandMenuOpen) {
@@ -199,6 +218,26 @@ export default function ChatComposer({
     : isLoading
       ? t('input.stop')
       : t('input.send');
+
+  const voiceTooltip = voice.error
+    ? voice.error.kind === 'denied'
+      ? t('mic.denied')
+      : voice.error.kind === 'unavailable'
+        ? t('mic.unavailable')
+        : voice.error.kind === 'empty'
+          ? t('mic.noTranscript')
+          : voice.error.kind === 'unsupported'
+            ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
+            : voice.error.message || t('mic.error')
+    : voice.config?.enabled === false
+      ? t('mic.disabled', { defaultValue: t('mic.unavailable') })
+      : !voiceAvailable
+        ? t('mic.setupRequired', { defaultValue: 'Voice input requires whisper.cpp — run server/whisper/setup.sh' })
+        : voice.status === 'recording'
+          ? t('mic.stop')
+          : voice.status === 'processing'
+            ? t('mic.processing')
+            : t('mic.start');
 
   return (
     <div className="chat-composer-shell relative flex-shrink-0 px-2 pb-2 pt-0 sm:px-4 sm:pb-4 md:px-4 md:pb-6">
@@ -363,6 +402,40 @@ export default function ChatComposer({
             >
               <ImageIcon />
             </PromptInputButton>
+
+            {(
+              <PromptInputButton
+                tooltip={{ content: voiceTooltip }}
+                aria-label={voiceTooltip}
+                aria-pressed={voice.status === 'recording'}
+                aria-disabled={!voiceAvailable || !onVoiceSend || isLoading}
+                data-state={!voiceAvailable ? 'unavailable' : voice.status}
+                title={voiceTooltip}
+                onClick={() => {
+                  if (!voiceAvailable || !onVoiceSend || isLoading) return;
+                  if (voice.status === 'recording') {
+                    voice.stop();
+                  } else if (voice.status === 'idle' || voice.status === 'error') {
+                    void voice.start();
+                  }
+                }}
+                className={
+                  !voiceAvailable
+                    ? 'cursor-help opacity-50 hover:opacity-80'
+                    : voice.status === 'recording'
+                      ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 animate-pulse'
+                      : ''
+                }
+              >
+                {voice.status === 'processing' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : voice.status === 'recording' ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </PromptInputButton>
+            )}
 
             {openFilePicker && handleFilePickerChange && fileInputRef && (
               <PromptInputButton
